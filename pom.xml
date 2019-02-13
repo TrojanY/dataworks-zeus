@@ -5,21 +5,38 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.taobao.zeus</groupId>
-    <artifactId>zeus</artifactId>
+    <artifactId>zeus-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
-    <modules>
+    <name>ZEUS-Parent</name>
+
+	<modules>
 		<module>schedule</module>
-        <module>web</module>
+		<module>web</module>
 		<module>deploy</module>
 		<module>client</module>
-    </modules>
-    <name>Zeus</name>
-	<dependencies>
-	</dependencies>
-	
-	
- 
+	</modules>
+
+	<properties>
+		<zeus-client.version>2.0.1-SNAPSHOT</zeus-client.version>
+		<zeus-schedule.version>2.0.0-SNAPSHOT</zeus-schedule.version>
+		<java.version>1.8</java.version>
+		<java.encoding>UTF-8</java.encoding>
+
+		<javax.transaction.version>1.1</javax.transaction.version>
+		<slf4j.version>1.6.0</slf4j.version>
+		<xerces2j.version>2.12.0</xerces2j.version>
+		<quartz.version>1.5.2</quartz.version>
+		<springframework.version>2.5.6</springframework.version>
+		<cglib.version>3.2.9</cglib.version>
+		<asm.version>3.3.1</asm.version>
+		<joda-time.version>2.9.9</joda-time.version>
+		<junit.version>4.4</junit.version>
+		<guava.version>23.0</guava.version>
+		<commons-lang.version>2.6</commons-lang.version>
+		<json-lib.version>2.4</json-lib.version>
+    </properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<!-- ================================================= -->
@@ -28,21 +45,22 @@
 			<dependency>
 				<groupId>javax.transaction</groupId>
 				<artifactId>jta</artifactId>
-				<version>1.1</version>
-			</dependency>			
+				<version>${javax.transaction.version}</version>
+			</dependency>
+
 			<!-- ================================================= -->
 			<!-- 日志及相关依赖（用slf4j+logback代替jcl+log4j）    -->
 			<!-- ================================================= -->
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.6.0</version>
+				<version>${slf4j.version}</version>
 			</dependency>
 			<!-- 将现有的jakarta commons logging的调用转换成slf4j的调用。-->
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>jcl-over-slf4j</artifactId>
-				<version>1.6.0</version>
+				<version>${slf4j.version}</version>
 			</dependency> 
 			<!-- Hack：确保commons-logging的jar包不被引入，否则将和jcl-over-slf4j冲突 
 			<dependency>
@@ -54,64 +72,88 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-log4j12</artifactId>
-				<version>1.6.0</version>
+				<version>${slf4j.version}</version>
 			</dependency>
+
 			<!-- ======================================== -->
 			<!-- 其它第三方依赖                             -->
 			<!-- ======================================== -->
-			
 			<dependency>
 				<groupId>joda-time</groupId>
 				<artifactId>joda-time</artifactId>
-				<version>2.0</version>
+				<version>${joda-time.version}</version>
 			</dependency>
 			<dependency>
 			  <groupId>asm</groupId>
 			  <artifactId>asm</artifactId>
-			  <version>3.3.1</version>
+			  <version>${asm.version}</version>
 			</dependency>
 			<dependency>
 			  <groupId>cglib</groupId>
 			  <artifactId>cglib</artifactId>
-			  <version>2.2</version>
+			  <version>${cglib.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring</artifactId>
-				<version>2.5.6</version>
+				<version>${springframework.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>quartz</groupId>
 				<artifactId>quartz</artifactId>
-				<version>1.5.2</version>
+				<version>${quartz.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId>
+				<version>${xerces2j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>${commons-lang.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.json-lib</groupId>
+				<artifactId>json-lib</artifactId>
+				<version>${json-lib.version}</version>
+				<classifier>jdk15</classifier>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+				<type>jar</type>
+				<scope>compile</scope>
+			</dependency>
+
+			<!-- ======================================== -->
+			<!-- 测试依赖                             -->
+			<!-- ======================================== -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+			</dependency>
+
+			<!-- ======================================== -->
+			<!-- 同级ZEUS项目依赖                             -->
+			<!-- ======================================== -->
 			<dependency>
 				<groupId>com.taobao.zeus</groupId>
 				<artifactId>zeus-client</artifactId>
-				<version>2.0.1-SNAPSHOT</version>
+				<version>${zeus-client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.taobao.zeus</groupId>
 				<artifactId>zeus-schedule</artifactId>
-				<version>2.0.0-SNAPSHOT</version>
-			</dependency>
-			<!--
-			<dependency>
-				<groupId>com.taobao.zeus</groupId>
-				<artifactId>zeus-connect</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
-			</dependency>
-			-->
-			<dependency>
-				<groupId>xerces</groupId>
-				<artifactId>xercesImpl</artifactId>
-				<version>2.9.1</version>
+				<version>${zeus-schedule.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	
 	<repositories>
-	<repository>
+		<repository>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -128,13 +170,13 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>mvnrepository</id>
+            <id>mvn-repository</id>
       		<url>http://mvnrepository.com/</url>
         </repository>
-    <repository>
-      <id>cloudera</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-    </repository>
+    	<repository>
+      		<id>cloudera</id>
+      		<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    	</repository>
 	</repositories>
 	
     <build>
@@ -142,36 +184,15 @@
         	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.7.1</version>
+				<version>2.22.1</version>
 			</plugin>
-			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.8</version>
-                <configuration>
-                   <additionalConfig>
-                      <file>
-                         <name>.settings/org.eclipse.core.resources.prefs</name>
-                         <content>
-                            <![CDATA[
-                                eclipse.preferences.version=1
-                                encoding/<project>=UTF-8
-                            ]]>
-                         </content>
-                      </file>
-					  
-                   </additionalConfig>
-				   <downloadSources>true</downloadSources>
-				   <downloadJavadocs>true</downloadJavadocs>
-                </configuration>
-             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <encoding>UTF-8</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>${java.encoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>

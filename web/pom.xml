@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>zeus</artifactId>
+		<artifactId>zeus-parent</artifactId>
 		<groupId>com.taobao.zeus</groupId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
@@ -11,18 +11,15 @@
 	<packaging>war</packaging>
 	<properties>
 		<warExplodedDirectory>target/exploded/${project.artifactId}.war</warExplodedDirectory>
-		<java.version>1.7</java.version>
 		<springext-plugin-version>1.0</springext-plugin-version>
-		<java.encoding>UTF-8</java.encoding>
+
 		<jetty-version>6.1.22</jetty-version>
 		<gwt-version>2.5.0</gwt-version>
 		<local.highcharts>${basedir}/libs/highcharts-1.4.0.jar</local.highcharts>
 	</properties>
 
-	<name>Zeus Web服务</name>
-	<description>
-		宙斯Web服务，提供界面维护管理功能
-    </description>
+	<name>ZEUS-Web</name>
+	<description>Zeus-Web management</description>
 
 	<dependencies>
 		<dependency>
@@ -33,9 +30,7 @@
 		<dependency>
 			<groupId>com.taobao.zeus</groupId>
 			<artifactId>zeus-client</artifactId>
-			<version>2.0.1-SNAPSHOT</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.taobao.zeus</groupId>
 			<artifactId>zeus-schedule</artifactId>
@@ -143,13 +138,7 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>jdk.tools</groupId>
-			<artifactId>jdk.tools</artifactId>
-			<version>${java.version}</version>
-			<scope>system</scope>
-			<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-		</dependency>
+
 
 	</dependencies>
 
@@ -235,7 +224,7 @@
 				<artifactId>maven-eclipse-plugin</artifactId>
 				<version>2.8</version>
 				<configuration>
-					<classpathContainersLast>true</classpathContainersLast>
+					<!--<classpathContainersLast>true</classpathContainersLast>-->
 					<classpathContainers>
 						<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
 						<classpathContainer>com.google.gwt.eclipse.core.GWT_CONTAINER</classpathContainer>

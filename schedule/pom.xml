@@ -3,32 +3,24 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.taobao.zeus</groupId>
-		<artifactId>zeus</artifactId>
+		<artifactId>zeus-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>zeus-schedule</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>调度系统内核</name>
-	<description>调度系统</description>
+	<name>ZEUS-Schedule</name>
+	<description>ZEUS-the task schedule system kernal</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<hadoop.version>2.0.0-cdh4.6.0</hadoop.version>
+		<hadoop.version>2.7.6</hadoop.version>
 		<hive.version>0.10.0-cdh4.6.0</hive.version>
 		<thrift.version>0.9.0</thrift.version>
 		<log4j.version>1.2.17</log4j.version>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>jdk.tools</groupId>
-			<artifactId>jdk.tools</artifactId>
-			<version>1.6</version>
-			<scope>system</scope>
-			<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-		</dependency>
 		<dependency>
 			<groupId>com.taobao.zeus</groupId>
 			<artifactId>zeus-client</artifactId>
@@ -79,7 +71,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
@@ -117,6 +108,7 @@
 			<artifactId>libthrift</artifactId>
 			<version>0.9.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-rdbms</artifactId>
@@ -124,13 +116,11 @@
 		</dependency>
 		<!-- <dependency> <groupId>org.datanucleus</groupId> <artifactId>datanucleus-enhancer</artifactId> 
 			<version>3.2.1</version> </dependency> -->
-
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-api-jdo</artifactId>
 			<version>3.2.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.datanucleus</groupId>
 			<artifactId>datanucleus-core</artifactId>
@@ -143,7 +133,6 @@
 			<artifactId>jdo2-api</artifactId>
 			<version>2.3-eb</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring</artifactId>
@@ -264,7 +253,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -275,13 +263,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>11.0.2</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
@@ -298,5 +280,11 @@
 			<version>2.2.2</version>
 		</dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
 	</dependencies>
 </project>

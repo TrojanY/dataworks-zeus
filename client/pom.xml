@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>zeus</artifactId>
+		<artifactId>zeus-parent</artifactId>
 		<groupId>com.taobao.zeus</groupId>
 		<version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -10,19 +10,17 @@
 	<artifactId>zeus-client</artifactId>
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>调度系统客户端</name>
-	<description>调度系统</description>
+	<name>ZEUS-Client</name>
+	<description>ZEUS</description>
 	<dependencies> 
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-			<version>2.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>net.sf.json-lib</groupId>
 		    <artifactId>json-lib</artifactId>
-		    <version>2.2</version>
-		    <classifier>jdk15</classifier>
+			<classifier>jdk15</classifier>
 		</dependency> 
 	</dependencies>
 	<build>

@@ -39,10 +39,8 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 		envMap=new HashMap<String, String>(System.getenv());
 	}
 
-	
 	public abstract List<String> getCommandList();
-	
-	
+
 	private void buildHadoopConf(String jobType){
 		File dir=new File(jobContext.getWorkDir()+File.separator+"hadoop_conf");
 		if(!dir.exists()){
@@ -81,7 +79,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			{
 				log.error("create file core-site.xml error",e);
 			}
-
+			//hdfs-site.xml
 			Configuration hdfsC=ConfUtil.getDefaultHdfsSite();
 			for(String key:hdfs.keySet()){
 				hdfsC.set(key, hdfs.get(key));
@@ -96,8 +94,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			} catch (Exception e) {
 				log.error("create file hdfs-site.xml error",e);
 			}
-		
-
+			//mapred-site.xml
 			Configuration mapredC=ConfUtil.getDefaultMapredSite();
 			for(String key:mapred.keySet()){
 				mapredC.set(key, mapred.get(key));
@@ -112,6 +109,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			} catch (Exception e) {
 				log.error("create file mapred-site.xml error",e);
 			}
+			//yarn-site.xml
 			Configuration yarnC=ConfUtil.getDefaultYarnSite();
 			for(String key:yarn.keySet()){
 				yarnC.set(key, mapred.get(key));

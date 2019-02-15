@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.taobao.zeus.model.JobDescriptor;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,13 +93,14 @@ public class HiveJob extends ProcessJob {
 		// get operator uid
 		String shellPrefix = "";
 		String user = "";
-		if (jobContext.getRunType() == 1 || jobContext.getRunType() == 2) {
+		if (jobContext.getRunType() == JobDescriptor.JobScheduleType.Dependent.getType()
+				|| jobContext.getRunType() == JobDescriptor.JobScheduleType.CyleJob.getType()) {
 			user = jobContext.getJobHistory().getOperator();
-			shellPrefix = "sudo -u " + user;
-		} else if (jobContext.getRunType() == 3) {
+			shellPrefix = "sudo -Eu " + user;
+		} else if (jobContext.getRunType() == JobContext.DEBUG_RUN) {
 			user = jobContext.getDebugHistory().getOwner();
-			shellPrefix = "sudo -u " + user;
-		} else if (jobContext.getRunType() == 4) {
+			shellPrefix = "sudo -Eu " + user;
+		} else if (jobContext.getRunType() == JobContext.SYSTEM_RUN) {
 			shellPrefix = "";
 		}else{
 			log("没有RunType=" + jobContext.getRunType() + " 的执行类别");

@@ -2,4 +2,5 @@ deploy/target
 client/target
 schedule/target
 web/target
+.idea
 

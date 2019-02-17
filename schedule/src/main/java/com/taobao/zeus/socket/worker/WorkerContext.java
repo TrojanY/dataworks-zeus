@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
+import io.netty.channel.Channel;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -55,9 +55,9 @@ public class WorkerContext {
 	}
 	private String serverHost;
 	private Channel serverChannel;
-	private Map<String, Job> runnings=new ConcurrentHashMap<String, Job>();
-	private Map<String, Job> manualRunnings=new ConcurrentHashMap<String, Job>();
-	private Map<String,Job> debugRunnings=new ConcurrentHashMap<String, Job>();
+	private Map<String, Job> runnings=new ConcurrentHashMap<>();
+	private Map<String, Job> manualRunnings=new ConcurrentHashMap<>();
+	private Map<String,Job> debugRunnings=new ConcurrentHashMap<>();
 	private WorkerHandler handler;
 	private ClientWorker clientWorker;
 	private ExecutorService threadPool=Executors.newCachedThreadPool();

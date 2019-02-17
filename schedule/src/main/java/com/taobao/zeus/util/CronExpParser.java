@@ -26,7 +26,7 @@ public class CronExpParser {
 				|| cronDate == null || cronDate.length() < 1) {
 			return false;
 		} else {
-			CronExpression exp = null;
+			CronExpression exp;
 			try {
 				// 初始化cron表达式解析器
 				exp = new CronExpression(cronExpression);
@@ -46,6 +46,7 @@ public class CronExpParser {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			assert dStart != null;
 			c.setTime(dStart);
 			c.add(Calendar.SECOND, -1);
 			dStart = c.getTime();
@@ -62,7 +63,6 @@ public class CronExpParser {
 				result.add(sdf.format(dd));
 				dd = exp.getNextValidTimeAfter(dd);
 			}
-			exp = null;
 		}
 		return true;
 	}
@@ -74,13 +74,13 @@ public class CronExpParser {
 	private static final String CRON_DATE = "2014-09-14";
 
 	public static void main(String[] args) {
-		List<String> lTime = new ArrayList<String>();
+		List<String> lTime = new ArrayList<>();
 		if (!CronExpParser.Parser(CRON_EXPRESSION, CRON_DATE, lTime)) {
 			System.out.println("无法生成Cron表达式：日期," + CRON_DATE + ";不符合规则cron表达式："
 					+ CRON_EXPRESSION);
 		}
-		for (int i = 0; i < lTime.size(); i++) {
-			System.out.println(lTime.get(i));
+		for (String aLTime : lTime) {
+			System.out.println(aLTime);
 		}
 		System.out.println(lTime.size());
 	}

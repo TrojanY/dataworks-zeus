@@ -10,8 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
+import io.netty.channel.Channel;
+import java.util.concurrent.ConcurrentHashMap;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -32,7 +32,7 @@ import com.taobao.zeus.store.HostGroupManager;
 public class MasterContext {
 
 	private static Logger log = LoggerFactory.getLogger(MasterContext.class);
-	private Map<Channel, MasterWorkerHolder> workers=new ConcurrentHashMap<Channel, MasterWorkerHolder>();
+	private Map<Channel, MasterWorkerHolder> workers=new ConcurrentHashMap<>();
 	private ApplicationContext applicationContext;
 	private Master master;
 	private Scheduler scheduler;
@@ -40,27 +40,19 @@ public class MasterContext {
 	private Map<String,HostGroupCache> hostGroupCache;
 	//调度任务 jobId
 //	private Queue<JobElement> queue=new ArrayBlockingQueue<JobElement>(10000);
-	private Queue<JobElement> queue=new PriorityBlockingQueue<JobElement>(10000, new Comparator<JobElement>() {
-					public int compare(JobElement je1, JobElement je2) {
-						int numbera = je1.getPriorityLevel();
-						int numberb = je2.getPriorityLevel();
-						if (numberb > numbera) {
-							return 1;
-						} else if (numberb < numbera) {
-							return -1;
-						} else {
-							return 0;
-						}
-					}
-				});
+	private Queue<JobElement> queue=new PriorityBlockingQueue<>(10000, (je1, je2) -> {
+		int number_a = je1.getPriorityLevel();
+		int number_b = je2.getPriorityLevel();
+		return Integer.compare(number_b, number_a);
+	});
 	
-	private Queue<JobElement> exceptionQueue = new LinkedBlockingQueue<JobElement>();
+	private Queue<JobElement> exceptionQueue = new LinkedBlockingQueue<>();
 	
 	
 	//调试任务  debugId
-	private Queue<JobElement> debugQueue=new ArrayBlockingQueue<JobElement>(1000);
+	private Queue<JobElement> debugQueue=new ArrayBlockingQueue<>(1000);
 	//手动任务  historyId
-	private Queue<JobElement> manualQueue=new ArrayBlockingQueue<JobElement>(1000);
+	private Queue<JobElement> manualQueue=new ArrayBlockingQueue<>(1000);
 //	private Queue<JobElement> manualQueue=new PriorityBlockingQueue<JobElement>(1000, new Comparator<JobElement>() {
 //		public int compare(JobElement je1, JobElement je2) {
 //			int numbera = je1.getPriorityLevel();
@@ -82,7 +74,7 @@ public class MasterContext {
 	public MasterContext(ApplicationContext applicationContext){
 		this.applicationContext=applicationContext;
 	}
-	public void init(int port){
+	public void init(int port) throws InterruptedException {
 		log.info("init begin");
 		try {
 			StdSchedulerFactory stdSchedulerFactory = new StdSchedulerFactory();

@@ -4,7 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 import com.taobao.zeus.socket.master.AtomicIncrease;
 import com.taobao.zeus.socket.master.MasterContext;

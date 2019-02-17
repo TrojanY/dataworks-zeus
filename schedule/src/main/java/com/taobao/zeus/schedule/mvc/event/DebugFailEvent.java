@@ -1,7 +1,6 @@
 package com.taobao.zeus.schedule.mvc.event;
 
 import com.taobao.zeus.model.DebugHistory;
-import com.taobao.zeus.model.JobStatus.TriggerType;
 import com.taobao.zeus.mvc.AppEvent;
 /**
  * Job失败触发的事件

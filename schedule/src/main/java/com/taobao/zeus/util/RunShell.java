@@ -13,12 +13,11 @@ public class RunShell {
 
 	private static Logger log = LoggerFactory.getLogger(RunShell.class);
 	private List<String> cmd;
-	private ProcessBuilder builder;
 	private Process process;
 	private int exitCode = -999;
 
 	public RunShell(String command) {
-		cmd = new ArrayList<String>();
+		cmd = new ArrayList<>();
 		cmd.add("sh");
 		cmd.add("-c");
 		cmd.add(command);
@@ -26,13 +25,11 @@ public class RunShell {
 	}
 
 	public int run() {
-		builder = new ProcessBuilder(cmd);
+		ProcessBuilder builder = new ProcessBuilder(cmd);
 		try {
 			process = builder.start();
 			exitCode = process.waitFor();
-		} catch (IOException e) {
-			log.error("error", e);
-		} catch (InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 			log.error("error", e);
 		}
 		return exitCode;
@@ -41,7 +38,7 @@ public class RunShell {
 	public String getResult() throws IOException {
 		if (exitCode == 0) {
 			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line = null;
+			String line ;
 			StringBuilder result = new StringBuilder();
 			while ((line = input.readLine()) != null) {
 				result.append(line);
@@ -49,7 +46,7 @@ public class RunShell {
 			return result.toString().trim();
 		} else {
 			BufferedReader err_input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line = null;
+			String line;
 			StringBuilder err_result = new StringBuilder();
 			while ((line = err_input.readLine()) != null) {
 				err_result.append(line);

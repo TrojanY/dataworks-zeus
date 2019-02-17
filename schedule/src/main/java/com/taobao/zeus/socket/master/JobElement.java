@@ -18,11 +18,11 @@ public class JobElement {
 		this.hostGroupId = hostGroupId;
 	}
 	
-//	public JobElement(String jobID, String host, int priorityLevel) {
-//		this.jobID = jobID;
-//		this.host = host;
-//		this.priorityLevel = priorityLevel;
-//	}
+/*	public JobElement(String jobID, String host, int priorityLevel) {
+		this.jobID = jobID;
+		this.host = host;
+		this.priorityLevel = priorityLevel;
+	}*/
 	
 	public JobElement(String jobID, String hostGroupId, int priorityLevel) {
 		this.jobID = jobID;

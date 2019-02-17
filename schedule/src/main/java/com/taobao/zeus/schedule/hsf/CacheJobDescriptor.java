@@ -16,7 +16,7 @@ public class CacheJobDescriptor {
 	
 	private final String jobId;
 	private  JobDescriptor jobDescriptor;
-	private Date lastTime=new Date();
+	//private Date lastTime=new Date();
 	
 	public CacheJobDescriptor(String jobId,GroupManager groupManager){
 		this.jobId=jobId;

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 import com.taobao.zeus.model.DebugHistory;
 import com.taobao.zeus.model.JobHistory;
@@ -46,9 +46,9 @@ public class MasterBeWebCancel {
 		SocketLog.info("receive web cancel request,rid=" + req.getRid()
 				+ ",jobId=" + history.getJobId());
 		String jobId = history.getId();
-		for (JobElement e : new ArrayList<JobElement>(context.getManualQueue())) {
+		for (JobElement e : new ArrayList<>(context.getManualQueue())) {
 			if (e.getJobID().equals(historyId)) {
-				if (context.getManualQueue().remove(e.getJobID())) {
+				if (context.getManualQueue().remove(e)) {
 					ret = WebResponse.newBuilder().setRid(req.getRid())
 							.setOperate(req.getOperate()).setStatus(Status.OK)
 							.build();
@@ -60,7 +60,7 @@ public class MasterBeWebCancel {
 			}
 		}
 		if (history.getTriggerType() == TriggerType.MANUAL) {
-			for (Channel key : new HashSet<Channel>(context.getWorkers()
+			for (Channel key : new HashSet<>(context.getWorkers()
 					.keySet())) {
 				MasterWorkerHolder worker = context.getWorkers().get(key);
 				if (worker.getManualRunnings().containsKey(historyId)) {
@@ -71,6 +71,7 @@ public class MasterBeWebCancel {
 					try {
 						f.get(30, TimeUnit.SECONDS);
 					} catch (Exception e) {
+						e.printStackTrace();
 					}
 					ret = WebResponse.newBuilder().setRid(req.getRid())
 							.setOperate(req.getOperate()).setStatus(Status.OK)
@@ -103,9 +104,9 @@ public class MasterBeWebCancel {
 				.findDebugHistory(debugId);
 		SocketLog.info("receive web debug cancel request,rid=" + req.getRid()
 				+ ",debugId=" + debugId);
-		for (JobElement e : new ArrayList<JobElement>(context.getDebugQueue())) {
+		for (JobElement e : new ArrayList<>(context.getDebugQueue())) {
 			if (e.getJobID().equals(debugId)) {
-				if (context.getDebugQueue().remove(debugId)) {
+				if (context.getDebugQueue().remove(e)) {
 					ret = WebResponse.newBuilder().setRid(req.getRid())
 							.setOperate(req.getOperate()).setStatus(Status.OK)
 							.build();
@@ -116,7 +117,7 @@ public class MasterBeWebCancel {
 				}
 			}
 		}
-		for (Channel key : new HashSet<Channel>(context.getWorkers().keySet())) {
+		for (Channel key : new HashSet<>(context.getWorkers().keySet())) {
 			MasterWorkerHolder worker = context.getWorkers().get(key);
 			if (worker.getDebugRunnings().containsKey(debugId)) {
 				Future<Response> f = new MasterCancelJob().cancel(context,
@@ -125,6 +126,7 @@ public class MasterBeWebCancel {
 				try {
 					f.get(10, TimeUnit.SECONDS);
 				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				ret = WebResponse.newBuilder().setRid(req.getRid())
 						.setOperate(req.getOperate()).setStatus(Status.OK)
@@ -157,9 +159,9 @@ public class MasterBeWebCancel {
 		SocketLog.info("receive web cancel request,rid=" + req.getRid()
 				+ ",jobId=" + history.getJobId());
 		String jobId = history.getJobId();
-		for (JobElement e : new ArrayList<JobElement>(context.getQueue())) {
+		for (JobElement e : new ArrayList<>(context.getQueue())) {
 			if (e.getJobID().equals(jobId)) {
-				if (context.getQueue().remove(e.getJobID())) {
+				if (context.getQueue().remove(e)) {
 					ret = WebResponse.newBuilder().setRid(req.getRid())
 							.setOperate(req.getOperate()).setStatus(Status.OK)
 							.build();
@@ -170,7 +172,7 @@ public class MasterBeWebCancel {
 				}
 			}
 		}
-		for (Channel key : new HashSet<Channel>(context.getWorkers().keySet())) {
+		for (Channel key : new HashSet<>(context.getWorkers().keySet())) {
 			MasterWorkerHolder worker = context.getWorkers().get(key);
 			if (worker.getRunnings().containsKey(jobId)) {
 				Future<Response> f = new MasterCancelJob().cancel(context,
@@ -180,6 +182,7 @@ public class MasterBeWebCancel {
 				try {
 					f.get(10, TimeUnit.SECONDS);
 				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				ret = WebResponse.newBuilder().setRid(req.getRid())
 						.setOperate(req.getOperate()).setStatus(Status.OK)

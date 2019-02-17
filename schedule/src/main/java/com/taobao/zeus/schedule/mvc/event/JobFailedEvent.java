@@ -54,7 +54,7 @@ public class JobFailedEvent extends AppEvent {
 	}
 
 	public void setRunCount(int value) {
-		if (triggerType.equals(triggerType.SCHEDULE)) {
+		if (triggerType.equals(TriggerType.SCHEDULE)) {
 			this.runCount = value;
 		}
 	}
@@ -64,7 +64,7 @@ public class JobFailedEvent extends AppEvent {
 	}
 
 	public void setRollBackTime(int value) {
-		if (triggerType.equals(triggerType.SCHEDULE)) {
+		if (triggerType.equals(TriggerType.SCHEDULE)) {
 			this.rollBackTime = value;
 		}
 	}

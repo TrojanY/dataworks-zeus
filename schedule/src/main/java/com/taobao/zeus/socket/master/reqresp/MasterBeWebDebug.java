@@ -18,11 +18,10 @@ public class MasterBeWebDebug {
 		// 如果不在，将该job放入等待队列
 		SocketLog.info("receive web debug request,rid="+req.getRid()+",debugId="+req.getId());
 		String debugId=req.getId();
-		for(JobElement e:new ArrayList<JobElement>(context.getDebugQueue())){
+		for(JobElement e:new ArrayList<>(context.getDebugQueue())){
 			if(e.getJobID().equals(debugId)){
-				WebResponse resp=WebResponse.newBuilder().setRid(req.getRid()).setOperate(WebOperate.ExecuteDebug)
+				return WebResponse.newBuilder().setRid(req.getRid()).setOperate(WebOperate.ExecuteDebug)
 					.setStatus(Status.ERROR).setErrorText("已经在队列中，无法再次运行").build();
-				return resp;
 			}
 		}
 		

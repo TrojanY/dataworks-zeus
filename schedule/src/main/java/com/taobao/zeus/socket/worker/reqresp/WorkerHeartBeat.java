@@ -5,7 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.UUID;
 
-import org.jboss.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFuture;
 
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.tool.CpuLoadPerCoreJob;

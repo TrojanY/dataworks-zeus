@@ -26,7 +26,7 @@
 		<javax.transaction.version>1.1</javax.transaction.version>
 		<slf4j.version>1.6.0</slf4j.version>
 		<xerces2j.version>2.12.0</xerces2j.version>
-		<quartz.version>1.5.2</quartz.version>
+		<quartz.version>2.3.0</quartz.version>
 		<springframework.version>2.5.6</springframework.version>
 		<cglib.version>3.2.9</cglib.version>
 		<asm.version>3.3.1</asm.version>
@@ -35,8 +35,9 @@
 		<guava.version>23.0</guava.version>
 		<commons-lang.version>2.6</commons-lang.version>
 		<json-lib.version>2.4</json-lib.version>
-		<org.jboss.netty.version>3.2.4.Final</org.jboss.netty.version>
+		<io.netty.version>4.1.33.Final</io.netty.version>
 		<commons-fileupload.version>1.1.1</commons-fileupload.version>
+        <protobuf-java.version>3.6.1</protobuf-java.version>
     </properties>
 
 	<dependencyManagement>
@@ -77,13 +78,27 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 
+            <!-- ======================================== -->
+            <!-- 其它第三方依赖                             -->
+            <!-- ======================================== -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>8.0.15</version>
+            </dependency>
+
 			<!-- ======================================== -->
 			<!-- 其它第三方依赖                             -->
 			<!-- ======================================== -->
-			<dependency>
-				<groupId>org.jboss.netty</groupId>
-				<artifactId>netty</artifactId>
-				<version>${org.jboss.netty.version}</version>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
+            </dependency>
+            <dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${io.netty.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>joda-time</groupId>
@@ -106,8 +121,13 @@
 				<version>${springframework.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>quartz</groupId>
+				<groupId>org.quartz-scheduler</groupId>
 				<artifactId>quartz</artifactId>
+				<version>${quartz.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.quartz-scheduler</groupId>
+				<artifactId>quartz-jobs</artifactId>
 				<version>${quartz.version}</version>
 			</dependency>
 			<dependency>

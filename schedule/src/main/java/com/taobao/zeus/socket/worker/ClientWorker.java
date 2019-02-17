@@ -10,17 +10,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.protobuf.ProtobufDecoder;
-import org.jboss.netty.handler.codec.protobuf.ProtobufEncoder;
-import org.jboss.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
-import org.jboss.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,32 +41,35 @@ import com.taobao.zeus.socket.worker.reqresp.WorkerWebUpdate;
 
 public class ClientWorker {
 	// Client服务启动器
-	private ClientBootstrap bootstrap;
+	private Bootstrap clientBootstrap;
 	private WorkerContext context = new WorkerContext();
 	private static Logger log = LoggerFactory.getLogger(ClientWorker.class);
 
 	@Autowired
 	public ClientWorker(ApplicationContext applicationContext) {
-		ClientBootstrap bootstrap = new ClientBootstrap(
-				new NioClientSocketChannelFactory(
-						Executors.newCachedThreadPool(),
-						Executors.newCachedThreadPool()));
+		EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-		// 每建立一个connection,也就是channel,就会调用pipelinFacty().getPipeline()方法一次.
+		Bootstrap clientBootstrap = new Bootstrap();
+		clientBootstrap.group(workerGroup);
+
+		// 每建立一个connection,也就是channel,ChannelInitializer.initChannel()方法一次.
 		// 设置一个处理服务端消息和各种消息事件的类(WorkHandler)  
 		// Pipeline：管道，传输途径。也就是说，在这里他是控制ChannelEvent事件分发和传递的
-		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+		clientBootstrap.channel(NioSocketChannel.class); // (3)
+		clientBootstrap.option(ChannelOption.SO_KEEPALIVE, true); // (4)
+		clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
-			public ChannelPipeline getPipeline() throws Exception {
-				return Channels.pipeline(
-						new ProtobufVarint32FrameDecoder(),
-						new ProtobufDecoder(Protocol.SocketMessage
-								.getDefaultInstance()),
-						new ProtobufVarint32LengthFieldPrepender(),
-						new ProtobufEncoder(), new WorkerHandler(context));
+			public void initChannel(SocketChannel socketChannel) throws Exception {
+                ChannelPipeline pipeline = socketChannel.pipeline();
+                pipeline.addLast(new ProtobufVarint32FrameDecoder());
+				pipeline.addLast(new ProtobufDecoder(Protocol.SocketMessage
+						.getDefaultInstance()));
+				pipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
+				pipeline.addLast(new ProtobufEncoder());
+				pipeline.addLast(new WorkerHandler(context));
 			}
 		});
-		this.bootstrap = bootstrap;
+		this.clientBootstrap = clientBootstrap;
 		//将clientworker对象注入到上下文对象中
 		context.setClientWorker(this);
 		//将spring容器注入到上下文对象中
@@ -97,7 +98,7 @@ public class ClientWorker {
 								SocketLog.info("heart beat send success!");
 							}
 							if (failCount > 3) {
-								future.getChannel().close();
+								future.channel().close();
 							}
 						}
 					});
@@ -202,24 +203,24 @@ public class ClientWorker {
 			public void operationComplete(ChannelFuture future)
 					throws Exception {
 				if (future.isSuccess()) {
-					context.setServerChannel(future.getChannel());
+					context.setServerChannel(future.channel());
 				}
 				latch.countDown();
 			}
 		};
 
-		final ChannelFuture connectFuture = bootstrap
+		final ChannelFuture connectFuture = clientBootstrap
 				.connect(new InetSocketAddress(host, port));
 
 		connectFuture.addListener(listener);
 		if (!latch.await(2, TimeUnit.SECONDS)) {
 			connectFuture.removeListener(listener);
-			connectFuture.cancel();
+			connectFuture.cancel(true);
 			throw new ExecutionException(new TimeoutException("创建链接2秒超时"));
 		}
 		if (!connectFuture.isSuccess()) {
 			throw new RuntimeException("connect server fail " + host,
-					connectFuture.getCause());
+					connectFuture.cause());
 		}
 		ScheduleInfoLog.info("worker connect server success");
 	}

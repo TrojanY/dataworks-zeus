@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 public class MasterWorkerHolder{
 	public class HeartBeatInfo{

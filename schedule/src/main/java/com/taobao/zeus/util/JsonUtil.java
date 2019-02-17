@@ -4,16 +4,13 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;  
 import java.beans.PropertyDescriptor;  
 import java.math.BigDecimal;  
-import java.math.BigInteger;  
-import java.util.ArrayList;  
-import java.util.List;  
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;  
-import java.util.Set;  
-import org.apache.commons.logging.Log;  
-import org.apache.commons.logging.LogFactory;  
+import java.util.Set;
   
-public class JsonUtil {  
-    private static Log log = LogFactory.getLog(JsonUtil.class);  
+public class JsonUtil {
     public static String object2json(Object obj) {  
         StringBuilder json = new StringBuilder();  
         if (obj == null) {  
@@ -39,19 +36,21 @@ public class JsonUtil {
         PropertyDescriptor[] props = null;  
         try {  
             props = Introspector.getBeanInfo(bean.getClass(), Object.class).getPropertyDescriptors();  
-        } catch (IntrospectionException e) {  
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
         }  
-        if (props != null) {  
-            for (int i = 0; i < props.length; i++) {  
-                try {  
-                    String name = object2json(props[i].getName());  
-                    String value = object2json(props[i].getReadMethod().invoke(bean));  
-                    json.append(name);  
-                    json.append(":");  
-                    json.append(value);  
-                    json.append(",");  
-                } catch (Exception e) {  
-                }  
+        if (props != null) {
+            for (PropertyDescriptor prop : props) {
+                try {
+                    String name = object2json(prop.getName());
+                    String value = object2json(prop.getReadMethod().invoke(bean));
+                    json.append(name);
+                    json.append(":");
+                    json.append(value);
+                    json.append(",");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }  
             json.setCharAt(json.length() - 1, '}');  
         } else {  
@@ -59,20 +58,26 @@ public class JsonUtil {
         }  
         return json.toString();  
     }  
-    public static String list2json(List<?> list) {  
-        StringBuilder json = new StringBuilder();  
-        json.append("[");  
-        if (list != null && list.size() > 0) {  
-            for (Object obj : list) {  
-                json.append(object2json(obj));  
-                json.append(",");  
-            }  
-            json.setCharAt(json.length() - 1, ']');  
-        } else {  
-            json.append("]");  
-        }  
-        return json.toString();  
-    }  
+    public static String list2json(List<?> list) {
+        return collection2json(list);
+    }
+    public static String set2json(Set<?> set) {
+        return collection2json(set);
+    }
+    private static String collection2json(Collection<?> coll) {
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+        if (coll != null && coll.size() > 0) {
+            for (Object obj : coll) {
+                json.append(object2json(obj));
+                json.append(",");
+            }
+            json.setCharAt(json.length() - 1, ']');
+        } else {
+            json.append("]");
+        }
+        return json.toString();
+    }
     public static String array2json(Object[] array) {  
         StringBuilder json = new StringBuilder();  
         json.append("[");  
@@ -102,21 +107,7 @@ public class JsonUtil {
             json.append("}");  
         }  
         return json.toString();  
-    }  
-    public static String set2json(Set<?> set) {  
-        StringBuilder json = new StringBuilder();  
-        json.append("[");  
-        if (set != null && set.size() > 0) {  
-            for (Object obj : set) {  
-                json.append(object2json(obj));  
-                json.append(",");  
-            }  
-            json.setCharAt(json.length() - 1, ']');  
-        } else {  
-            json.append("]");  
-        }  
-        return json.toString();  
-    }  
+    }
     public static String string2json(String s) {  
         if (s == null)  
             return "";  
@@ -149,7 +140,7 @@ public class JsonUtil {
                     sb.append("\\/");  
                     break;  
                 default :  
-                    if (ch >= '\u0000' && ch <= '\u001F') {  
+                    if (ch <= '\u001F') {
                         String ss = Integer.toHexString(ch);  
                         sb.append("\\u");  
                         for (int k = 0; k < 4 - ss.length(); k++) {  

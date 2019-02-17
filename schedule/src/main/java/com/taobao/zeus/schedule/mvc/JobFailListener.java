@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import com.taobao.zeus.broadcast.alarm.MailAlarm;
 import com.taobao.zeus.broadcast.alarm.SMSAlarm;
 import com.taobao.zeus.model.JobDescriptor;
-import com.taobao.zeus.model.JobStatus;
 import com.taobao.zeus.model.JobStatus.TriggerType;
 import com.taobao.zeus.mvc.DispatcherListener;
 import com.taobao.zeus.mvc.MvcEvent;
@@ -23,7 +22,6 @@ import com.taobao.zeus.store.JobHistoryManager;
 import com.taobao.zeus.store.UserManager;
 import com.taobao.zeus.store.mysql.ReadOnlyGroupManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
-import com.taobao.zeus.util.Tuple;
 /**
  * 任务失败的监听
  * 当任务失败，需要发送邮件给相关人员
@@ -39,17 +37,17 @@ public class JobFailListener extends DispatcherListener{
 	private MailAlarm mailAlarm;
 	private SMSAlarm smsAlarm;
 	public JobFailListener(MasterContext context){
-		groupManager=(GroupManager) context.getGroupManager();
+		groupManager=context.getGroupManager();
 		readOnlyGroupManager=(ReadOnlyGroupManager)context.getApplicationContext().getBean("readOnlyGroupManager");
 		userManager=(UserManager)context.getApplicationContext().getBean("userManager");
-		jobHistoryManager=(JobHistoryManager)context.getJobHistoryManager();
+		jobHistoryManager=context.getJobHistoryManager();
 		mailAlarm=(MailAlarm) context.getApplicationContext().getBean("mailAlarm");
 		smsAlarm=(SMSAlarm) context.getApplicationContext().getBean("smsAlarm");
 	}
 	//private ThreadLocal<ChainException> chainLocal=new ThreadLocal<ChainException>();
 	public static class ChainException{
 		final String causeJobId;
-		Map<String, Integer> userCountMap=new HashMap<String, Integer>();
+		Map<String, Integer> userCountMap=new HashMap<>();
 //		GroupBean gb;
 		public ChainException(String jobId,GroupBean gb){
 			this.causeJobId=jobId;
@@ -78,90 +76,85 @@ public class JobFailListener extends DispatcherListener{
 				final JobDescriptor jobDescriptor = groupManager.getJobDescriptor(jobId).getX();
 				final ZeusUser owner=userManager.findByUid(jobDescriptor.getOwner());
 				//延迟6秒发送邮件，保证日志已经输出到数据库
-				new Thread(){
-					public void run() {
-						try {
-							Thread.sleep(6000);
-							StringBuffer sb=new StringBuffer();
-							sb.append("Job任务(").append(jobId).append(")").append(jobDescriptor.getName()).append("运行失败");
-							sb.append("<br/>");
-							Map<String, String> properties=jobDescriptor.getProperties();
-							if(properties!=null){
-								String plevel=properties.get("run.priority.level");
-								if("1".equals(plevel)){
-									sb.append("Job任务优先级: ").append("low").append("，");
-								}else if("2".equals(plevel)){
-									sb.append("Job任务优先级: ").append("medium").append("，");
-								}else if("3".equals(plevel)){
-									sb.append("Job任务优先级: ").append("high").append("，");
+				new Thread(() -> {
+					try {
+						Thread.sleep(6000);
+						StringBuilder sb=new StringBuilder();
+						sb.append("Job任务(").append(jobId).append(")").append(jobDescriptor.getName()).append("运行失败");
+						sb.append("<br/>");
+						Map<String, String> properties=jobDescriptor.getProperties();
+						if(properties!=null){
+							String plevel=properties.get("run.priority.level");
+							if("1".equals(plevel)){
+								sb.append("Job任务优先级: ").append("low").append("，");
+							}else if("2".equals(plevel)){
+								sb.append("Job任务优先级: ").append("medium").append("，");
+							}else if("3".equals(plevel)){
+								sb.append("Job任务优先级: ").append("high").append("，");
+							}
+						}
+						String owner1 =jobDescriptor.getOwner();
+						sb.append("Job任务owner: ").append(owner1);
+						sb.append("<br/>");
+						String type="";
+						if(event.getTriggerType()==TriggerType.MANUAL){
+							type="手动触发";
+						}else if(event.getTriggerType()==TriggerType.MANUAL_RECOVER){
+							type="手动恢复";
+						}else if(event.getTriggerType()==TriggerType.SCHEDULE){
+							type="自动调度";
+						}
+						sb.append("Job任务的触发类型为:").append(type).append("<br/>");
+						if(event.getHistory()!=null){
+							sb.append("失败原因:<br/>").append(jobHistoryManager.findJobHistory(event.getHistory().getId()).getLog().getContent().replaceAll("\\n", "<br/>"));
+							String msg= "Zeus报警 JobId:"+jobId+" ("+jobDescriptor.getName()+") 任务运行失败";
+							int runCount = event.getRunCount();
+							int rollBackTime = event.getRollBackTime();
+							if (runCount > rollBackTime) {
+								if(event.getTriggerType()==TriggerType.SCHEDULE){
+									msg = "【严重】" + msg;
+								}else{
+									msg = "【警告】" + msg;
 								}
+							}else{
+								msg = "【提醒】" + msg;
 							}
-							String owner=jobDescriptor.getOwner();
-							sb.append("Job任务owner: ").append(owner);
-							sb.append("<br/>");
-							String type="";
-							if(event.getTriggerType()==TriggerType.MANUAL){
-								type="手动触发";
-							}else if(event.getTriggerType()==TriggerType.MANUAL_RECOVER){
-								type="手动恢复";
-							}else if(event.getTriggerType()==TriggerType.SCHEDULE){
-								type="自动调度";
-							}
-							sb.append("Job任务的触发类型为:"+type).append("<br/>");
-							if(event.getHistory()!=null){
-								sb.append("失败原因:<br/>"+jobHistoryManager.findJobHistory(event.getHistory().getId()).getLog().getContent().replaceAll("\\n", "<br/>"));
-								String msg= "Zeus报警 JobId:"+jobId+" ("+jobDescriptor.getName()+") 任务运行失败";
-								int runCount = event.getRunCount();
-							    int rollBackTime = event.getRollBackTime();
-							    if (runCount > rollBackTime) {
-							    	if(event.getTriggerType()==TriggerType.SCHEDULE){
-							    		msg = "【严重】" + msg;
-							    	}else{
-							    		msg = "【警告】" + msg;
-							    	}
-							    }else{
-							    	msg = "【提醒】" + msg;
-							    }
 //								if(!causeJobId.equalsIgnoreCase(event.getJobId())){
 //									msg+="(根本原因:job "+causeJobId+"运行失败)";
 //								}
-								mailAlarm.alarm(event.getHistory().getId(), msg, sb.toString());
-								//smsAlarm.alarm(event.getHistory().getId(), msg, sb.toString());
-							}
-						} catch (Exception e) {
-							log.error("邮件发送出现异常",e);
+							mailAlarm.alarm(event.getHistory().getId(), msg, sb.toString());
+							//smsAlarm.alarm(event.getHistory().getId(), msg, sb.toString());
 						}
-					};
-				}.start();
-				new Thread(){
-					@Override
-					public void run(){
-						String msg="Job任务("+jobId+"-"+owner.getName()+"):" + jobDescriptor.getName()+" 运行失败";
-						//优先级低的不NOC告警
-						String priorityLevel = jobDescriptor.getProperties().get("run.priority.level");
-						if(priorityLevel == null || !priorityLevel.trim().equals("1")){
-							//手机报警
-							//最后一次重试的时候发送
-							//只发送自动调度的报警  并且只在下班时间 或者周末发送
-							if(event.getHistory().getTriggerType()==TriggerType.SCHEDULE){
-								int runCount = event.getRunCount();
-							    int rollBackTime = event.getRollBackTime();
-								Calendar now=Calendar.getInstance();
-								int hour=now.get(Calendar.HOUR_OF_DAY);
-								int day=now.get(Calendar.DAY_OF_WEEK);
-								if (runCount > rollBackTime) {
-									if(day==Calendar.SATURDAY || day==Calendar.SUNDAY || hour<9 || hour>18){
-										try {
-											smsAlarm.alarm(event.getHistory().getId(), "宙斯报警", "宙斯"+msg, null);
-										} catch (Exception e) {
-											log.error("NOC发送出现异常",e);
-										}
+					} catch (Exception e) {
+						log.error("邮件发送出现异常",e);
+					}
+				}).start();
+				new Thread(() -> {
+					String msg="Job任务("+jobId+"-"+owner.getName()+"):" + jobDescriptor.getName()+" 运行失败";
+					//优先级低的不NOC告警
+					String priorityLevel = jobDescriptor.getProperties().get("run.priority.level");
+					if(priorityLevel == null || !priorityLevel.trim().equals("1")){
+						//手机报警
+						//最后一次重试的时候发送
+						//只发送自动调度的报警  并且只在下班时间 或者周末发送
+						if(event.getHistory().getTriggerType()==TriggerType.SCHEDULE){
+							int runCount = event.getRunCount();
+							int rollBackTime = event.getRollBackTime();
+							Calendar now=Calendar.getInstance();
+							int hour=now.get(Calendar.HOUR_OF_DAY);
+							int day=now.get(Calendar.DAY_OF_WEEK);
+							if (runCount > rollBackTime) {
+								if(day==Calendar.SATURDAY || day==Calendar.SUNDAY || hour<9 || hour>18){
+									try {
+										smsAlarm.alarm(event.getHistory().getId(), "宙斯报警", "宙斯"+msg, null);
+									} catch (Exception e) {
+										log.error("NOC发送出现异常",e);
 									}
 								}
 							}
 						}
 					}
-				}.start();
+				}).start();
 			}
 		} catch (Exception e) {
 			//处理异常，防止后续的依赖任务受此影响，无法正常执行

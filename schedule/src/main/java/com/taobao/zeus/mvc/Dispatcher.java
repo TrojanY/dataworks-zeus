@@ -60,7 +60,7 @@ public class Dispatcher extends BaseObservable {
   private List<Controller> controllers;
 
   public Dispatcher() {
-    controllers = new ArrayList<Controller>();
+    controllers = new ArrayList<>();
   }
 
   /**
@@ -150,7 +150,7 @@ public class Dispatcher extends BaseObservable {
 		MvcEvent e = new MvcEvent(this, event);
 		e.setAppEvent(event);
 		if (fireEvent(BeforeDispatch, e)) {
-		  List<Controller> copy = new ArrayList<Controller>(controllers);
+		  List<Controller> copy = new ArrayList<>(controllers);
 		  for (Controller controller : copy) {
 		    if (controller.canHandle(event)) {
 		      if (!controller.initialized) {

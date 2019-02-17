@@ -4,8 +4,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
-import javax.xml.transform.Source;
-
 import com.taobao.zeus.socket.SocketLog;
 import com.taobao.zeus.socket.master.AtomicIncrease;
 import com.taobao.zeus.socket.protocol.Protocol.ExecuteKind;

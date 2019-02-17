@@ -9,10 +9,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 import com.taobao.zeus.model.DebugHistory;
 import com.taobao.zeus.model.JobHistory;
@@ -27,9 +25,9 @@ import com.taobao.zeus.socket.protocol.Protocol.SocketMessage.Kind;
 import com.taobao.zeus.socket.worker.reqresp.WorkerBeCancel;
 import com.taobao.zeus.socket.worker.reqresp.WorkerBeExecute;
 
-public class WorkerHandler extends SimpleChannelUpstreamHandler{
+public class WorkerHandler extends SimpleChannelInboundHandler<SocketMessage> {
 
-	private CompletionService<Response> completionService=new ExecutorCompletionService<Response>(Executors.newCachedThreadPool());
+	private CompletionService<Response> completionService=new ExecutorCompletionService<>(Executors.newCachedThreadPool());
 	private WorkerContext context;
 	public WorkerHandler(final WorkerContext context){
 		this.context=context;
@@ -54,9 +52,8 @@ public class WorkerHandler extends SimpleChannelUpstreamHandler{
 		return SocketMessage.newBuilder().setKind(Kind.RESPONSE).setBody(resp.toByteString()).build();
 	}
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+	public void channelRead0(ChannelHandlerContext ctx, SocketMessage sm)
 			throws Exception {
-		SocketMessage sm=(SocketMessage) e.getMessage();
 		if(sm.getKind()==Kind.REQUEST){
 			final Request request=Request.newBuilder().mergeFrom(sm.getBody()).build();
 			Operate op=request.getOperate();
@@ -86,17 +83,16 @@ public class WorkerHandler extends SimpleChannelUpstreamHandler{
 				lis.onWebResponse(resp);
 			}
 		}
-		super.messageReceived(ctx, e);
+		super.channelRead(ctx, sm);
 	}
-	@Override
-	public void channelDisconnected(ChannelHandlerContext ctx,
-			ChannelStateEvent e) throws Exception {
-		super.channelDisconnected(ctx, e);
+
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		super.channelInactive(ctx);
 		this.context.setServerChannel(null);
 		SocketLog.info("worker disconnect to master");
 		//断开连接，如果还有运行中的job，将这些job取消掉
 		try{
-			for(String jobId:new HashSet<String>(context.getRunnings().keySet())){
+			for(String jobId:new HashSet<>(context.getRunnings().keySet())){
 				JobHistory his = context.getRunnings().get(jobId).getJobContext().getJobHistory();
 				if(his != null){
 					his.setIllustrate("worker断开连接，主动取消该任务");
@@ -105,14 +101,14 @@ public class WorkerHandler extends SimpleChannelUpstreamHandler{
 				}
 	
 			}
-			for(String debugId:new HashSet<String>(context.getDebugRunnings().keySet())){
+			for(String debugId:new HashSet<>(context.getDebugRunnings().keySet())){
 				DebugHistory his = context.getDebugRunnings().get(debugId).getJobContext().getDebugHistory();
 				if(his != null){
 					his.getLog().appendZeus("worker与master断开连接，worker主动取消该任务");
 					context.getClientWorker().cancelDebugJob(debugId);
 				}
 			}
-			for(String historyId:new HashSet<String>(context.getManualRunnings().keySet())){
+			for(String historyId:new HashSet<>(context.getManualRunnings().keySet())){
 				JobHistory his = context.getManualRunnings().get(historyId).getJobContext().getJobHistory();
 				if(his != null){
 					his.setIllustrate("worker断开连接，主动取消该任务");
@@ -126,10 +122,10 @@ public class WorkerHandler extends SimpleChannelUpstreamHandler{
 			ex.printStackTrace();
 		}
 	}
-	private List<ResponseListener> listeners=new CopyOnWriteArrayList<ResponseListener>();
-	public static interface ResponseListener{
-		public void onResponse(Response resp);
-		public void onWebResponse(WebResponse resp);
+	private List<ResponseListener> listeners=new CopyOnWriteArrayList<>();
+	public interface ResponseListener{
+		void onResponse(Response resp);
+		void onWebResponse(WebResponse resp);
 	}
 	public void addListener(ResponseListener listener){
 		listeners.add(listener);

@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,204 +97,184 @@ public class Master {
 		context.refreshHostGroupCache();
 		log.info("refresh HostGroup Cache");
 
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				//刷新host分组
-				context.refreshHostGroupCache();
-				log.info("refresh HostGroup Cache");
-				
-				//开始漏跑检测、清理schedule
-				try{
-					//取当前日期
-					Date now = new Date();
-					SimpleDateFormat dfDateTime=new SimpleDateFormat("yyyyMMddHHmmss0000");
-					String currentDateStr = dfDateTime.format(now);
-					
-					//取当前日期的后一天. 
-					Calendar cal = Calendar.getInstance();
-					cal.add(Calendar.DAY_OF_MONTH, +1);  
-					SimpleDateFormat dfNextDate=new SimpleDateFormat("yyyyMMdd0000000000");
-					String nextDateStr = dfNextDate.format(cal.getTime());
-					
-					Dispatcher dispatcher=context.getDispatcher();  
-					if(dispatcher != null){
-						Map<Long, JobPersistence> actionDetailsNew = new HashMap<Long, JobPersistence>();
-						actionDetailsNew = actionDetails;
-						if(actionDetailsNew != null && actionDetailsNew.size() > 0){
-							//增加controller，并修改event
-							List<Long> rollBackActionId = new ArrayList<Long>();
-							for (Long id : actionDetailsNew.keySet()) {
-								if(id < (Long.parseLong(currentDateStr)-15000000)){
-									//当前时间15分钟之前JOB的才检测漏跑
-									int loopCount = 0;
-									rollBackLostJob(id, actionDetailsNew, loopCount, rollBackActionId);
-								}
-							}
-							log.info("roll back lost job ok");
-							log.info("roll back action count:"+actionDetailsNew.size());
-							
-							//清理schedule
-							List<Controller> controllers = dispatcher.getControllers();
-							if(controllers!=null && controllers.size()>0){
-								Iterator<Controller> itController = controllers.iterator();
-								while(itController.hasNext()){
-									JobController jobc = (JobController)itController.next();
-									String jobId = jobc.getJobId();
-									if(Long.parseLong(jobId) < (Long.parseLong(currentDateStr)-15000000)){
-										try {
-											context.getScheduler().deleteJob(jobId, "zeus");
-										} catch (SchedulerException e) {
-											e.printStackTrace();
-										}
-									}else if(Long.parseLong(jobId) >= Long.parseLong(currentDateStr) && Long.parseLong(jobId) < Long.parseLong(nextDateStr)){
-										try {
-											if(!actionDetailsNew.containsKey(Long.valueOf(jobId))){
-												context.getScheduler().deleteJob(jobId, "zeus");
-												context.getGroupManager().removeJob(Long.valueOf(jobId));
-												itController.remove();
-											}
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-									}
-								}
-							}
-							log.info("clear job scheduler ok");
-						}
-					}
-				}catch(Exception e){
-					log.error("roll back lost job failed or clear job schedule failed !", e);
-				}
-			}
-		}, 1, 1, TimeUnit.HOURS);
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            //刷新host分组
+            context.refreshHostGroupCache();
+            log.info("refresh HostGroup Cache");
+
+            //开始漏跑检测、清理schedule
+            try{
+                //取当前日期
+                Date now = new Date();
+                SimpleDateFormat dfDateTime=new SimpleDateFormat("yyyyMMddHHmmss0000");
+                String currentDateStr = dfDateTime.format(now);
+
+                //取当前日期的后一天.
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DAY_OF_MONTH, +1);
+                SimpleDateFormat dfNextDate=new SimpleDateFormat("yyyyMMdd0000000000");
+                String nextDateStr = dfNextDate.format(cal.getTime());
+
+                Dispatcher dispatcher=context.getDispatcher();
+                if(dispatcher != null){
+                    Map<Long, JobPersistence> actionDetailsNew = actionDetails;
+                    if(actionDetailsNew != null && actionDetailsNew.size() > 0){
+                        //增加controller，并修改event
+                        List<Long> rollBackActionId = new ArrayList<>();
+                        for (Long id : actionDetailsNew.keySet()) {
+                            if(id < (Long.parseLong(currentDateStr)-15000000)){
+                                //当前时间15分钟之前JOB的才检测漏跑
+                                int loopCount = 0;
+                                rollBackLostJob(id, actionDetailsNew, loopCount, rollBackActionId);
+                            }
+                        }
+                        log.info("roll back lost job ok");
+                        log.info("roll back action count:"+actionDetailsNew.size());
+
+                        //清理schedule
+                        List<Controller> controllers = dispatcher.getControllers();
+                        if(controllers!=null && controllers.size()>0){
+                            Iterator<Controller> itController = controllers.iterator();
+                            while(itController.hasNext()){
+                                JobController jobc = (JobController)itController.next();
+                                String jobId = jobc.getJobId();
+                                if(Long.parseLong(jobId) < (Long.parseLong(currentDateStr)-15000000)){
+                                    try {
+                                        context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
+                                    } catch (SchedulerException e) {
+                                        e.printStackTrace();
+                                    }
+                                }else if(Long.parseLong(jobId) >= Long.parseLong(currentDateStr) && Long.parseLong(jobId) < Long.parseLong(nextDateStr)){
+                                    try {
+                                        if(!actionDetailsNew.containsKey(Long.valueOf(jobId))){
+                                            context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
+                                            context.getGroupManager().removeJob(Long.valueOf(jobId));
+                                            itController.remove();
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                        log.info("clear job scheduler ok");
+                    }
+                }
+            }catch(Exception e){
+                log.error("roll back lost job failed or clear job schedule failed !", e);
+            }
+        }, 1, 1, TimeUnit.HOURS);
 		
 		//***************2014-09-15 定时扫描JOB表,生成action表********************
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				try{
-					Date now = new Date();
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            try{
+                Date now = new Date();
 
-					SimpleDateFormat dfHour=new SimpleDateFormat("HH");
-					SimpleDateFormat dfMinute=new SimpleDateFormat("mm");
-					int execHour = Integer.parseInt(dfHour.format(now));
-					int execMinute = Integer.parseInt(dfMinute.format(now));
-					
-					if((execHour == 0 && execMinute == 0) 
-							|| (execHour == 0 && execMinute == 35)
-							|| (execHour > 7 && execMinute == 20) 
-							|| (execHour > 7 && execHour < 22 && execMinute == 50)){
-						//取当前时间
-						SimpleDateFormat dfDate=new SimpleDateFormat("yyyy-MM-dd");
-						SimpleDateFormat dfDateTime=new SimpleDateFormat("yyyyMMddHHmmss");
-						String currentDateStr = dfDateTime.format(now)+"0000";
-						
-						if(execHour == 23){
-							//取当前日期的后一天.
-							Calendar cal = Calendar.getInstance();
-							cal.add(Calendar.DAY_OF_MONTH, +1);   
-							SimpleDateFormat dfNextDate=new SimpleDateFormat("yyyyMMdd0000000000");
-							currentDateStr = dfNextDate.format(cal.getTime());
-							now = cal.getTime();
-						}
-						log.info("start to action, date：" + currentDateStr);
-						List<JobPersistenceOld> jobDetails = context.getGroupManagerOld().getAllJobs();
-						Map<Long, JobPersistence> actionDetailsNew = new HashMap<Long, JobPersistence>();
-						//首先，生成独立任务action
-						runScheduleJobToAction(jobDetails, now, dfDate, actionDetailsNew, currentDateStr);
-						//其次，生成依赖任务action
-						runDependencesJobToAction(jobDetails, actionDetailsNew, currentDateStr, 0);
-						
-						if(execHour < 23){
-							actionDetails = actionDetailsNew;
-						}
-						log.info("run job to action ok");
-						log.info("job to action count:"+actionDetailsNew.size());
-						Dispatcher dispatcher=context.getDispatcher();  
-						if(dispatcher != null){
-							//增加controller，并修改event
-							if (actionDetailsNew.size() > 0) {
-								for (Long id : actionDetailsNew.keySet()) {
-									dispatcher.addController(
-											new JobController(context, context.getMaster(),
-													id.toString()));
-									if (id > Long.parseLong(currentDateStr)) {
-										context.getDispatcher().forwardEvent(
-												new JobMaintenanceEvent(Events.UpdateJob,
-														id.toString()));
-									}
-								}
-							}
-						}
-						log.info("add job to scheduler ok");
-					}
-				}catch(Exception e){
-					log.error("job to action failed !", e);
-				}
-			}
-		}, 1, 1, TimeUnit.MINUTES);
+                SimpleDateFormat dfHour=new SimpleDateFormat("HH");
+                SimpleDateFormat dfMinute=new SimpleDateFormat("mm");
+                int execHour = Integer.parseInt(dfHour.format(now));
+                int execMinute = Integer.parseInt(dfMinute.format(now));
+
+                if((execHour == 0 && execMinute == 0)
+                        || (execHour == 0 && execMinute == 35)
+                        || (execHour > 7 && execMinute == 20)
+                        || (execHour > 7 && execHour < 22 && execMinute == 50)){
+                    //取当前时间
+                    SimpleDateFormat dfDate=new SimpleDateFormat("yyyy-MM-dd");
+                    SimpleDateFormat dfDateTime=new SimpleDateFormat("yyyyMMddHHmmss");
+                    String currentDateStr = dfDateTime.format(now)+"0000";
+
+                    if(execHour == 23){
+                        //取当前日期的后一天.
+                        Calendar cal = Calendar.getInstance();
+                        cal.add(Calendar.DAY_OF_MONTH, +1);
+                        SimpleDateFormat dfNextDate=new SimpleDateFormat("yyyyMMdd0000000000");
+                        currentDateStr = dfNextDate.format(cal.getTime());
+                        now = cal.getTime();
+                    }
+                    log.info("start to action, date：" + currentDateStr);
+                    List<JobPersistenceOld> jobDetails = context.getGroupManagerOld().getAllJobs();
+                    Map<Long, JobPersistence> actionDetailsNew = new HashMap<>();
+                    //首先，生成独立任务action
+                    runScheduleJobToAction(jobDetails, now, dfDate, actionDetailsNew, currentDateStr);
+                    //其次，生成依赖任务action
+                    runDependencesJobToAction(jobDetails, actionDetailsNew, currentDateStr, 0);
+
+                    if(execHour < 23){
+                        actionDetails = actionDetailsNew;
+                    }
+                    log.info("run job to action ok");
+                    log.info("job to action count:"+actionDetailsNew.size());
+                    Dispatcher dispatcher=context.getDispatcher();
+                    if(dispatcher != null){
+                        //增加controller，并修改event
+                        if (actionDetailsNew.size() > 0) {
+                            for (Long id : actionDetailsNew.keySet()) {
+                                dispatcher.addController(
+                                        new JobController(context, context.getMaster(),
+                                                id.toString()));
+                                if (id > Long.parseLong(currentDateStr)) {
+                                    context.getDispatcher().forwardEvent(
+                                            new JobMaintenanceEvent(Events.UpdateJob,
+                                                    id.toString()));
+                                }
+                            }
+                        }
+                    }
+                    log.info("add job to scheduler ok");
+                }
+            }catch(Exception e){
+                log.error("job to action failed !", e);
+            }
+        }, 1, 1, TimeUnit.MINUTES);
 				
 		// 定时扫描等待队列
 		log.info("The scan rate is " + Environment.getScanRate());
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					scan();
-				} catch (Exception e) {
-					log.error("get job from queue failed!", e);
-				}
-			}
-		}, 0, Environment.getScanRate(), TimeUnit.MILLISECONDS);
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            try {
+                scan();
+            } catch (Exception e) {
+                log.error("get job from queue failed!", e);
+            }
+        }, 0, Environment.getScanRate(), TimeUnit.MILLISECONDS);
 	
 		log.info("The scan exception rate is " + Environment.getScanExceptionRate());
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					scanExceptionQueue();
-				} catch (Exception e) {
-					log.error("get job from exception queue failed!", e);
-				}
-			}
-		}, 0, Environment.getScanExceptionRate(), TimeUnit.MILLISECONDS);
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            try {
+                scanExceptionQueue();
+            } catch (Exception e) {
+                log.error("get job from exception queue failed!", e);
+            }
+        }, 0, Environment.getScanExceptionRate(), TimeUnit.MILLISECONDS);
 		
 		// 定时扫描worker channel，心跳超过1分钟没有连接就主动断掉
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			@Override
-			public void run() {
-				Date now = new Date();
-				for (MasterWorkerHolder holder : new ArrayList<MasterWorkerHolder>(
-						context.getWorkers().values())) {
-//					log.info("schedule worker start:"+holder.getDebugRunnings().size());
-					try {
-						if (holder.getHeart().timestamp == null
-								|| (now.getTime() - holder.getHeart().timestamp
-										.getTime()) > 1000 * 60) {
-							holder.getChannel().close();
-						}
-					} catch (Exception e) {
-						log.error("holder:"+holder+" is in error",e);
-					}
-					
-//					log.info("schedule worker end:"+holder.getDebugRunnings().size());
-				}
-			}
-		}, 30, 30, TimeUnit.SECONDS);
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            Date now = new Date();
+            for (MasterWorkerHolder holder : new ArrayList<>(
+                    context.getWorkers().values())) {
+                log.info("schedule worker start:"+holder.getDebugRunnings().size());
+                try {
+                    if (holder.getHeart().timestamp == null
+                            || (now.getTime() - holder.getHeart().timestamp
+                                    .getTime()) > 1000 * 60) {
+                        holder.getChannel().close();
+                    }
+                } catch (Exception e) {
+                    log.error("holder:"+holder+" is in error",e);
+                }
+
+                log.info("schedule worker end:"+holder.getDebugRunnings().size());
+            }
+        }, 30, 30, TimeUnit.SECONDS);
 		
-		context.getSchedulePool().scheduleAtFixedRate(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					// 检测任务超时
-					checkTimeOver();
-				} catch (Exception e) {
-					log.error("error occurs in checkTimeOver",e);
-				}
-			}
-		}, 0, 3, TimeUnit.SECONDS);
+		context.getSchedulePool().scheduleAtFixedRate(() -> {
+            try {
+                // 检测任务超时
+                checkTimeOver();
+            } catch (Exception e) {
+                log.error("error occurs in checkTimeOver",e);
+            }
+        }, 0, 3, TimeUnit.SECONDS);
 	}
 
 	//重新调度漏跑的JOB
@@ -306,7 +287,7 @@ public class Master {
 				if (jobDependStr != null && jobDependStr.trim().length() > 0) {
 					String[] jobDependencies = jobDependStr.split(",");
 					boolean isAllComplete = true;
-					if(jobDependencies != null && jobDependencies.length > 0){
+					if(jobDependencies.length > 0){
 						for (String jobDepend : jobDependencies) {
 							if(actionDetails.get(Long.parseLong(jobDepend)) != null){
 								if (actionDetails.get(Long.parseLong(jobDepend)).getStatus() == null
@@ -496,7 +477,7 @@ public class Master {
 							else {
 								if(worker == null){
 									log.error("worker is null");
-								}else if(worker!=null && worker.getHeart()==null && worker.getChannel()!=null){
+								}else if(worker.getHeart()==null && worker.getChannel()!=null){
 									log.error("worker " + worker.getChannel().toString()+" heart is null");
 								}
 							}	
@@ -522,14 +503,16 @@ public class Master {
 		if (!context.getQueue().isEmpty()) {
 			log.info("schedule queue :" +context.getQueue().size());
 			final JobElement e = context.getQueue().poll();
-			log.info("priority level :"+e.getPriorityLevel()+"; JobID :"+e.getJobID());
+            assert e != null;
+            log.info("priority level :"+e.getPriorityLevel()+"; JobID :"+e.getJobID());
 			runScheduleAction(e);
 		}
 		
 		if (!context.getManualQueue().isEmpty()) {
 			log.info("manual queue :" +context.getManualQueue().size());
 			final JobElement e = context.getManualQueue().poll();
-			log.info("priority level: "+e.getPriorityLevel()+"; JobID:"+e.getJobID());
+            assert e != null;
+            log.info("priority level: "+e.getPriorityLevel()+"; JobID:"+e.getJobID());
 			MasterWorkerHolder selectWorker = getRunableWorker(e.getHostGroupId());
 
 			if (selectWorker == null) {
@@ -544,7 +527,8 @@ public class Master {
 		if (!context.getDebugQueue().isEmpty()) {
 			log.info("debug queue :" +context.getDebugQueue().size() );
 			final JobElement e = context.getDebugQueue().poll();
-			log.info("priority level:null; JobID:"+e.getJobID());
+            assert e != null;
+            log.info("priority level:null; JobID:"+e.getJobID());
 			MasterWorkerHolder selectWorker = getRunableWorker(e.getHostGroupId());
 			if (selectWorker == null) {
 				context.getDebugQueue().offer(e);
@@ -574,7 +558,8 @@ public class Master {
 		if(!context.getExceptionQueue().isEmpty()){
 			log.info("exception queue :" +context.getExceptionQueue().size());
 			final JobElement e = context.getExceptionQueue().poll();
-			runScheduleAction(e);
+            assert e != null;
+            runScheduleAction(e);
 		}
 	}
 
@@ -584,56 +569,56 @@ public class Master {
 		SocketLog.info("master scan and poll debugId=" + jobID
 				+ " and run!");
 
-		new Thread() {
-			@Override
-			public void run() {
-				DebugHistory history = context.getDebugHistoryManager()
-						.findDebugHistory(jobID);
-				history.getLog().appendZeus(
-						new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-								.format(new Date()) + " 开始运行");
-				context.getDebugHistoryManager().updateDebugHistoryLog(
-						jobID, history.getLog().getContent());
-				Exception exception = null;
-				Response resp = null;
-				try {
-					Future<Response> f = new MasterExecuteJob().executeJob(
-							context, w, ExecuteKind.DebugKind,
-							jobID);
-					resp = f.get();
-				} catch (Exception e) {
-					exception = e;
-					DebugInfoLog.error(
-							String.format("debugId:%s run failed",
-									jobID), e);
-				}
-				boolean success = resp.getStatus() == Status.OK ? true : false;
+		new Thread(() -> {
+            DebugHistory history = context.getDebugHistoryManager()
+                    .findDebugHistory(jobID);
+            history.getLog().appendZeus(
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                            .format(new Date()) + " 开始运行");
+            context.getDebugHistoryManager().updateDebugHistoryLog(
+                    jobID, history.getLog().getContent());
+            Exception exception = null;
+            Response resp = null;
+            try {
+                Future<Response> f = new MasterExecuteJob().executeJob(
+                        context, w, ExecuteKind.DebugKind,
+                        jobID);
+                resp = f.get();
+            } catch (Exception e) {
+                exception = e;
+                DebugInfoLog.error(
+                        String.format("debugId:%s run failed",
+                                jobID), e);
+            }
+            finally {
+                assert resp != null;
+                boolean success = resp.getStatus() == Status.OK;
 
-				if (!success) {
-					// 运行失败，更新失败状态，发出失败消息
-					if (exception != null) {
-						exception = new ZeusException(String.format(
-								"fileId:%s run failed ", history.getFileId()),
-								exception);
-					} else {
-						exception = new ZeusException(String.format(
-								"fileId:%s run failed ", history.getFileId()));
-					}
-					DebugInfoLog.info("debugId:" + jobID + " run fail ");
-					history = context.getDebugHistoryManager()
-							.findDebugHistory(jobID);
-					DebugFailEvent jfe = new DebugFailEvent(
-							history.getFileId(), history, exception);
-					context.getDispatcher().forwardEvent(jfe);
-				} else {
-					// 运行成功，发出成功消息
-					DebugInfoLog.info("debugId:" + jobID + " run success");
-					DebugSuccessEvent dse = new DebugSuccessEvent(
-							history.getFileId(), history);
-					context.getDispatcher().forwardEvent(dse);
-				}
-			}
-		}.start();
+                if (!success) {
+                    // 运行失败，更新失败状态，发出失败消息
+                    if (exception != null) {
+                        exception = new ZeusException(String.format(
+                                "fileId:%s run failed ", history.getFileId()),
+                                exception);
+                    } else {
+                        exception = new ZeusException(String.format(
+                                "fileId:%s run failed ", history.getFileId()));
+                    }
+                    DebugInfoLog.info("debugId:" + jobID + " run fail ");
+                    history = context.getDebugHistoryManager()
+                            .findDebugHistory(jobID);
+                    DebugFailEvent jfe = new DebugFailEvent(
+                            history.getFileId(), history, exception);
+                    context.getDispatcher().forwardEvent(jfe);
+                } else {
+                    // 运行成功，发出成功消息
+                    DebugInfoLog.info("debugId:" + jobID + " run success");
+                    DebugSuccessEvent dse = new DebugSuccessEvent(
+                            history.getFileId(), history);
+                    context.getDispatcher().forwardEvent(dse);
+                }
+            }
+        }).start();
 	}
 
 	private void runManualJob(MasterWorkerHolder selectWorker,final String jobID) {
@@ -641,105 +626,100 @@ public class Master {
 		//final JobElement historyId = context.getManualQueue().poll();
 		SocketLog.info("master scan and poll historyId=" + jobID
 				+ " and run!");
-		new Thread() {
-			@Override
-			public void run() {
-				JobHistory history = context.getJobHistoryManager()
-						.findJobHistory(jobID);
-				history.getLog().appendZeus(
-						new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-								.format(new Date()) + " 开始运行");
-				context.getJobHistoryManager().updateJobHistoryLog(
-						jobID, history.getLog().getContent());
-				//更新手动运行状态
-				JobStatus jobstatus = context.getGroupManager().getJobStatus(history.getJobId());
-				jobstatus.setStatus(com.taobao.zeus.model.JobStatus.Status.RUNNING);
-				jobstatus.setHistoryId(jobID);
-				context.getGroupManager().updateJobStatus(jobstatus);
-				
-				Exception exception = null;
-				Response resp = null;
-				try {
-					Future<Response> f = new MasterExecuteJob().executeJob(
-							context, w, ExecuteKind.ManualKind,
-							jobID);
-					resp = f.get();
-				} catch (Exception e) {
-					exception = e;
-					ScheduleInfoLog.error("JobId:" + history.getJobId()
-							+ " run failed", e);
-					jobstatus.setStatus(com.taobao.zeus.model.JobStatus.Status.FAILED);
-					context.getGroupManager().updateJobStatus(jobstatus);
-				}
-				boolean success = resp.getStatus() == Status.OK ? true : false;
+		new Thread(() -> {
+            JobHistory history = context.getJobHistoryManager()
+                    .findJobHistory(jobID);
+            history.getLog().appendZeus(
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                            .format(new Date()) + " 开始运行");
+            context.getJobHistoryManager().updateJobHistoryLog(
+                    jobID, history.getLog().getContent());
+            //更新手动运行状态
+            JobStatus jobstatus = context.getGroupManager().getJobStatus(history.getJobId());
+            jobstatus.setStatus(JobStatus.Status.RUNNING);
+            jobstatus.setHistoryId(jobID);
+            context.getGroupManager().updateJobStatus(jobstatus);
 
-				if (!success) {
-					// 运行失败，更新失败状态，发出失败消息
-					ZeusJobException jobException = null;
-					if (exception != null) {
-						jobException = new ZeusJobException(history.getJobId(),
-								String.format("JobId:%s run failed ",
-										history.getJobId()), exception);
-					} else {
-						jobException = new ZeusJobException(history.getJobId(),
-								String.format("JobId:%s run failed ",
-										history.getJobId()));
-					}
-					ScheduleInfoLog.info("jobId:" + history.getJobId()
-							+ " run fail ");
-					history = context.getJobHistoryManager().findJobHistory(
-							jobID);
-					
-					jobstatus.setStatus(com.taobao.zeus.model.JobStatus.Status.FAILED);
-					JobFailedEvent jfe = new JobFailedEvent(history.getJobId(),
-							history.getTriggerType(), history, jobException);
-					if (history.getIllustrate() == null
-							|| !history.getIllustrate().contains("手动取消该任务")) {
-						context.getDispatcher().forwardEvent(jfe);
-					}
-				} else {
-					// 运行成功，发出成功消息
-					ScheduleInfoLog.info("manual jobId::" + history.getJobId()
-							+ " run success");
-					jobstatus.setStatus(com.taobao.zeus.model.JobStatus.Status.SUCCESS);
-					JobSuccessEvent jse = new JobSuccessEvent(
-							history.getJobId(), history.getTriggerType(),
-							jobID);
-					context.getDispatcher().forwardEvent(jse);
-				}
-				context.getGroupManager().updateJobStatus(jobstatus);
-			};
-		}.start();
+            Exception exception = null;
+            Response resp = null;
+            try {
+                Future<Response> f = new MasterExecuteJob().executeJob(
+                        context, w, ExecuteKind.ManualKind,
+                        jobID);
+                resp = f.get();
+            } catch (Exception e) {
+                exception = e;
+                ScheduleInfoLog.error("JobId:" + history.getJobId()
+                        + " run failed", e);
+                jobstatus.setStatus(JobStatus.Status.FAILED);
+                context.getGroupManager().updateJobStatus(jobstatus);
+            }
+            assert resp != null;
+            boolean success = resp.getStatus() == Status.OK;
+
+            if (!success) {
+                // 运行失败，更新失败状态，发出失败消息
+                ZeusJobException jobException = null;
+                if (exception != null) {
+                    jobException = new ZeusJobException(history.getJobId(),
+                            String.format("JobId:%s run failed ",
+                                    history.getJobId()), exception);
+                } else {
+                    jobException = new ZeusJobException(history.getJobId(),
+                            String.format("JobId:%s run failed ",
+                                    history.getJobId()));
+                }
+                ScheduleInfoLog.info("jobId:" + history.getJobId()
+                        + " run fail ");
+                history = context.getJobHistoryManager().findJobHistory(
+                        jobID);
+
+                jobstatus.setStatus(JobStatus.Status.FAILED);
+                JobFailedEvent jfe = new JobFailedEvent(history.getJobId(),
+                        history.getTriggerType(), history, jobException);
+                if (history.getIllustrate() == null
+                        || !history.getIllustrate().contains("手动取消该任务")) {
+                    context.getDispatcher().forwardEvent(jfe);
+                }
+            } else {
+                // 运行成功，发出成功消息
+                ScheduleInfoLog.info("manual jobId::" + history.getJobId()
+                        + " run success");
+                jobstatus.setStatus(JobStatus.Status.SUCCESS);
+                JobSuccessEvent jse = new JobSuccessEvent(
+                        history.getJobId(), history.getTriggerType(),
+                        jobID);
+                context.getDispatcher().forwardEvent(jse);
+            }
+            context.getGroupManager().updateJobStatus(jobstatus);
+        }).start();
 	}
 
 	private void runScheduleJob(MasterWorkerHolder selectWorker,final String jobID) {
 		final MasterWorkerHolder w = selectWorker;
 		//final JobElement jobId = context.getQueue().poll();
 		SocketLog.info("master scan and poll jobId=" + jobID + " and run!");
-		new Thread() {
-			@Override
-			public void run() {
-				int runCount = 0;
-				int rollBackTimes = 0;
-				int rollBackWaitTime = 1;
-				try{				
-					JobDescriptor jobDes = context.getGroupManager().getJobDescriptor(jobID).getX();
-					Map<String,String> properties = jobDes.getProperties();
-					if(properties!=null && properties.size()>0){
-						rollBackTimes = Integer.parseInt(properties.get("roll.back.times")==null ? "0" : properties.get("roll.back.times"));
-						rollBackWaitTime = Integer.parseInt(properties.get("roll.back.wait.time")==null ? "1" : properties.get("roll.back.wait.time"));
-					}
-				}catch(Exception ex){
-					rollBackTimes = 0;
-					rollBackWaitTime = 1;
-				}
-				try{
-					runScheduleJobContext(w, jobID, runCount, rollBackTimes, rollBackWaitTime);
-				}catch(Exception ex){
-					log.error("roll back failed job failed !",ex);
-				}
-			}
-		}.start();
+		new Thread(() -> {
+            int runCount = 0;
+            int rollBackTimes = 0;
+            int rollBackWaitTime = 1;
+            try{
+                JobDescriptor jobDes = context.getGroupManager().getJobDescriptor(jobID).getX();
+                Map<String,String> properties = jobDes.getProperties();
+                if(properties!=null && properties.size()>0){
+                    rollBackTimes = Integer.parseInt(properties.get("roll.back.times")==null ? "0" : properties.get("roll.back.times"));
+                    rollBackWaitTime = Integer.parseInt(properties.get("roll.back.wait.time")==null ? "1" : properties.get("roll.back.wait.time"));
+                }
+            }catch(Exception ex){
+                rollBackTimes = 0;
+                rollBackWaitTime = 1;
+            }
+            try{
+                runScheduleJobContext(w, jobID, runCount, rollBackTimes, rollBackWaitTime);
+            }catch(Exception ex){
+                log.error("roll back failed job failed !",ex);
+            }
+        }).start();
 	}
 
 	//schedule任务运行，失败后重试
@@ -754,8 +734,8 @@ public class Master {
 			}
 		}
 		// 先根据任务ID，查询出任务上次执行的历史记录（jobID->historyid->JobHistory)
-		JobHistory his = null;
-		TriggerType type = null;
+		JobHistory his;
+		TriggerType type;
 		if(runCount == 1){
 			his = context.getJobHistoryManager().findJobHistory(
 					context.getGroupManager()
@@ -772,8 +752,8 @@ public class Master {
 			his.setTriggerType(TriggerType.SCHEDULE);
 			type = his.getTriggerType();
 			his.setJobId(jobDescriptor.getId());
-			his.setOperator(jobDescriptor.getOwner() == null ? null : jobDescriptor.getOwner());
-			his.setToJobId(jobDescriptor.getToJobId() == null ? null : jobDescriptor.getToJobId());
+			his.setOperator(jobDescriptor.getOwner());
+			his.setToJobId(jobDescriptor.getToJobId());
 			his.setTimezone(jobDescriptor.getTimezone());
 			his.setStatus(com.taobao.zeus.model.JobStatus.Status.RUNNING);
 			his.setHostGroupId(jobDescriptor.getHostGroupId());
@@ -802,17 +782,18 @@ public class Master {
 			jobstatus.setStatus(com.taobao.zeus.model.JobStatus.Status.FAILED);
 			context.getGroupManager().updateJobStatus(jobstatus);
 		}
-		boolean success = resp.getStatus() == Status.OK ? true : false;
+        assert resp != null;
+        boolean success = resp.getStatus() == Status.OK;
 		if (success
 				&& (his.getTriggerType() == TriggerType.SCHEDULE || his
 						.getTriggerType() == TriggerType.MANUAL_RECOVER)) {
 			ScheduleInfoLog.info("JobId:" + jobID
 					+ " clear ready dependency");
-			jobstatus.setReadyDependency(new HashMap<String, String>());
+			jobstatus.setReadyDependency(new HashMap<>());
 		}
 		if (!success) {
 			// 运行失败，更新失败状态，发出失败消息
-			ZeusJobException jobException = null;
+			ZeusJobException jobException;
 			if (exception != null) {
 				jobException = new ZeusJobException(jobID,
 						String.format("JobId:%s run failed ",
@@ -1020,21 +1001,19 @@ public class Master {
 				// 此处可以发送IM消息
 			} else {
 				// 此处可以发送IM消息
-				new Thread() {
-					@Override
-					public void run() {
-						try {
-							Thread.sleep(6000);
-							mailAlarm
-									.alarm(his.getId(),
-											title.toString(),
-											content.toString()
-													.replace("\n", "<br/>"));
-						} catch (Exception e) {
-							log.error("send run timeover mail alarm failed", e);
-						}
-					}
-				}.start();
+				new Thread(() -> {
+                    try {
+                        Thread.sleep(6000);
+                        assert his != null;
+                        mailAlarm
+                                .alarm(his.getId(),
+                                        title.toString(),
+                                        content.toString()
+                                                .replace("\n", "<br/>"));
+                    } catch (Exception e) {
+                        log.error("send run timeover mail alarm failed", e);
+                    }
+                }).start();
 				if (type == 0) {
 					String priorityLevel = "3";
 					if(jd != null){
@@ -1064,7 +1043,7 @@ public class Master {
 		if (holder != null) {
 //			SocketLog.info("worker disconnect, ip:" + channel.getRemoteAddress().toString());
 			context.getWorkers().remove(channel);
-			final List<JobHistory> hiss = new ArrayList<JobHistory>();
+			final List<JobHistory> hiss = new ArrayList<>();
 			Map<String, Tuple<JobDescriptor, JobStatus>> map = context
 					.getGroupManager().getJobDescriptor(
 							holder.getRunnings().keySet());
@@ -1080,31 +1059,29 @@ public class Master {
 				/*js.setStatus(com.taobao.zeus.model.JobStatus.Status.FAILED);
 				context.getGroupManager().updateJobStatus(js);*/
 			}
-			new Thread() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(30000);
-					} catch (InterruptedException e) {
-					}
-					for (JobHistory his : hiss) {
-						String jobId = his.getJobId();
-						his.setEndTime(new Date());
-						his.setStatus(com.taobao.zeus.model.JobStatus.Status.FAILED);
-						his.setIllustrate("worker断线，任务失败");
-						context.getJobHistoryManager().updateJobHistory(his);
-						JobHistory history = new JobHistory();
-						history.setJobId(jobId);
-						history.setToJobId(his.getToJobId());
-						history.setTriggerType(his.getTriggerType());
-						history.setIllustrate("worker断线，重新跑任务");
-						history.setOperator(his.getOperator());
-						history.setHostGroupId(his.getHostGroupId());
-						context.getJobHistoryManager().addJobHistory(history);
-						Master.this.run(history);
-					}
-				};
-			}.start();
+			new Thread(() -> {
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                for (JobHistory his : hiss) {
+                    String jobId = his.getJobId();
+                    his.setEndTime(new Date());
+                    his.setStatus(JobStatus.Status.FAILED);
+                    his.setIllustrate("worker断线，任务失败");
+                    context.getJobHistoryManager().updateJobHistory(his);
+                    JobHistory history = new JobHistory();
+                    history.setJobId(jobId);
+                    history.setToJobId(his.getToJobId());
+                    history.setTriggerType(his.getTriggerType());
+                    history.setIllustrate("worker断线，重新跑任务");
+                    history.setOperator(his.getOperator());
+                    history.setHostGroupId(his.getHostGroupId());
+                    context.getJobHistoryManager().addJobHistory(history);
+                    Master.this.run(history);
+                }
+            }).start();
 
 		}
 	}
@@ -1133,12 +1110,12 @@ public class Master {
 				priorityLevel = Integer.parseInt(priorityLevelStr);
 			}
 		}catch(Exception ex){
-			priorityLevel = 3;
+			ex.printStackTrace();
 		}
 		JobElement element = new JobElement(jobId, history.getHostGroupId(), priorityLevel);
 		history.setStatus(com.taobao.zeus.model.JobStatus.Status.RUNNING);
 		if (history.getTriggerType() == TriggerType.MANUAL_RECOVER) {
-			for (JobElement e : new ArrayList<JobElement>(context.getQueue())) {
+			for (JobElement e : new ArrayList<>(context.getQueue())) {
 				if (e.getJobID().equals(jobId)) {
 					history.getLog().appendZeus("已经在队列中，无法再次运行");
 					history.setStartTime(new Date());
@@ -1191,10 +1168,10 @@ public class Master {
 				try{
 					String jobCronExpression = jobDetail.getCronExpression();
 					String cronDate= dfDate.format(now);
-					List<String> lTime = new ArrayList<String>();
+					List<String> lTime = new ArrayList<>();
 					if(jobCronExpression != null && jobCronExpression.trim().length() > 0){
 						//定时调度
-						boolean isCronExp = false;
+						boolean isCronExp;
 						try{
 							isCronExp = CronExpParser.Parser(jobCronExpression, cronDate, lTime);
 						}catch(Exception ex){
@@ -1203,59 +1180,59 @@ public class Master {
 						if (!isCronExp) {
 							log.error("无法生成Cron表达式：日期," + cronDate + ";不符合规则cron表达式：" + jobCronExpression);
 						}
-						for (int i = 0; i < lTime.size(); i++) {
-							String actionDateStr = ZeusDateTool.StringToDateStr(lTime.get(i), "yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmm");
-							String actionCronExpr = ZeusDateTool.StringToDateStr(lTime.get(i), "yyyy-MM-dd HH:mm:ss", "0 m H d M") + " ?";
-							
-							JobPersistence actionPer = new JobPersistence();
-							actionPer.setId(Long.parseLong(actionDateStr)*1000000+jobDetail.getId());//update action id
-							actionPer.setToJobId(jobDetail.getId());
-							actionPer.setAuto(jobDetail.getAuto());
-							actionPer.setConfigs(jobDetail.getConfigs());
-							actionPer.setCronExpression(actionCronExpr);//update action cron expression
-							actionPer.setCycle(jobDetail.getCycle());
-							String jobDependencies = jobDetail.getDependencies();
-							actionPer.setDependencies(jobDependencies);
-							actionPer.setJobDependencies(jobDependencies);
-							actionPer.setDescr(jobDetail.getDescr());
-							actionPer.setGmtCreate(jobDetail.getGmtCreate());
-							actionPer.setGmtModified(new Date());
-							actionPer.setGroupId(jobDetail.getGroupId());
-							actionPer.setHistoryId(jobDetail.getHistoryId());
-							actionPer.setHost(jobDetail.getHost());
-							actionPer.setHostGroupId(jobDetail.getHostGroupId());
-							actionPer.setLastEndTime(jobDetail.getLastEndTime());
-							actionPer.setLastResult(jobDetail.getLastResult());
-							actionPer.setName(jobDetail.getName());
-							actionPer.setOffset(jobDetail.getOffset());
-							actionPer.setOwner(jobDetail.getOwner());
-							actionPer.setPostProcessers(jobDetail.getPostProcessers());
-							actionPer.setPreProcessers(jobDetail.getPreProcessers());
-							actionPer.setReadyDependency(jobDetail.getReadyDependency());
-							actionPer.setResources(jobDetail.getResources());
-							actionPer.setRunType(jobDetail.getRunType());
-							actionPer.setScheduleType(jobDetail.getScheduleType());
-/*							actionPer.setScript(jobDetail.getScript());*/
-							actionPer.setStartTime(jobDetail.getStartTime());
-							actionPer.setStartTimestamp(jobDetail.getStartTimestamp());
-							actionPer.setStatisStartTime(jobDetail.getStatisStartTime());
-							actionPer.setStatisEndTime(jobDetail.getStatisEndTime());
-							actionPer.setStatus(jobDetail.getStatus());
-							actionPer.setTimezone(jobDetail.getTimezone());
-							try {
-								//System.out.println("定时任务JobId: " + jobDetail.getId()+";  ActionId: " +actionPer.getId());
-								log.info("定时任务JobId: " + jobDetail.getId()+";  ActionId: " +actionPer.getId());
-								//if(actionPer.getId()>Long.parseLong(currentDateStr)){
-									context.getGroupManager().saveJob(actionPer);
-								//	System.out.println("success");
-									log.info("success");
-									actionDetails.put(actionPer.getId(),actionPer);
-								//}
-							} catch (ZeusException e) {
-							//	System.out.println("failed");
-								log.error("定时任务JobId:" + jobDetail.getId() + " 生成Action" +actionPer.getId() + "失败", e);
-							}
-						}
+                        for (String aLTime : lTime) {
+                            String actionDateStr = ZeusDateTool.StringToDateStr(aLTime, "yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmm");
+                            String actionCronExpr = ZeusDateTool.StringToDateStr(aLTime, "yyyy-MM-dd HH:mm:ss", "0 m H d M") + " ?";
+
+                            JobPersistence actionPer = new JobPersistence();
+                            actionPer.setId(Long.parseLong(actionDateStr) * 1000000 + jobDetail.getId());//update action id
+                            actionPer.setToJobId(jobDetail.getId());
+                            actionPer.setAuto(jobDetail.getAuto());
+                            actionPer.setConfigs(jobDetail.getConfigs());
+                            actionPer.setCronExpression(actionCronExpr);//update action cron expression
+                            actionPer.setCycle(jobDetail.getCycle());
+                            String jobDependencies = jobDetail.getDependencies();
+                            actionPer.setDependencies(jobDependencies);
+                            actionPer.setJobDependencies(jobDependencies);
+                            actionPer.setDescr(jobDetail.getDescr());
+                            actionPer.setGmtCreate(jobDetail.getGmtCreate());
+                            actionPer.setGmtModified(new Date());
+                            actionPer.setGroupId(jobDetail.getGroupId());
+                            actionPer.setHistoryId(jobDetail.getHistoryId());
+                            actionPer.setHost(jobDetail.getHost());
+                            actionPer.setHostGroupId(jobDetail.getHostGroupId());
+                            actionPer.setLastEndTime(jobDetail.getLastEndTime());
+                            actionPer.setLastResult(jobDetail.getLastResult());
+                            actionPer.setName(jobDetail.getName());
+                            actionPer.setOffset(jobDetail.getOffset());
+                            actionPer.setOwner(jobDetail.getOwner());
+                            actionPer.setPostProcessers(jobDetail.getPostProcessers());
+                            actionPer.setPreProcessers(jobDetail.getPreProcessers());
+                            actionPer.setReadyDependency(jobDetail.getReadyDependency());
+                            actionPer.setResources(jobDetail.getResources());
+                            actionPer.setRunType(jobDetail.getRunType());
+                            actionPer.setScheduleType(jobDetail.getScheduleType());
+                            /*							actionPer.setScript(jobDetail.getScript());*/
+                            actionPer.setStartTime(jobDetail.getStartTime());
+                            actionPer.setStartTimestamp(jobDetail.getStartTimestamp());
+                            actionPer.setStatisStartTime(jobDetail.getStatisStartTime());
+                            actionPer.setStatisEndTime(jobDetail.getStatisEndTime());
+                            actionPer.setStatus(jobDetail.getStatus());
+                            actionPer.setTimezone(jobDetail.getTimezone());
+                            try {
+                                //System.out.println("定时任务JobId: " + jobDetail.getId()+";  ActionId: " +actionPer.getId());
+                                log.info("定时任务JobId: " + jobDetail.getId() + ";  ActionId: " + actionPer.getId());
+                                //if(actionPer.getId()>Long.parseLong(currentDateStr)){
+                                context.getGroupManager().saveJob(actionPer);
+                                //	System.out.println("success");
+                                log.info("success");
+                                actionDetails.put(actionPer.getId(), actionPer);
+                                //}
+                            } catch (ZeusException e) {
+                                //	System.out.println("failed");
+                                log.error("定时任务JobId:" + jobDetail.getId() + " 生成Action" + actionPer.getId() + "失败", e);
+                            }
+                        }
 					}
 				}catch(Exception ex){
 					log.error("定时任务生成Action失败",ex);
@@ -1423,21 +1400,19 @@ public class Master {
 					|| (jobDetail.getScheduleType() != null && jobDetail.getScheduleType()==2)){
 				try{
 					String jobDependencies = jobDetail.getDependencies();
-					String actionDependencies = "";
+					String actionDependencies;
 					if(jobDependencies != null && jobDependencies.trim().length()>0){
 	
 						//计算这些依赖任务的版本数
-						Map<String,List<JobPersistence>> dependActionList = new HashMap<String,List<JobPersistence>>();
+						Map<String,List<JobPersistence>> dependActionList = new HashMap<>();
 						String[] dependStrs = jobDependencies.split(",");
 						for(String deps : dependStrs){
-							List<JobPersistence> dependActions = new ArrayList<JobPersistence>();
-							Iterator<JobPersistence> actionIt = actionDetails.values().iterator();
-							while(actionIt.hasNext()){
-								JobPersistence action = actionIt.next();
-								if(action.getToJobId().toString().equals(deps)){
-									dependActions.add(action);
-								}
-							}
+							List<JobPersistence> dependActions = new ArrayList<>();
+                            for (JobPersistence action : actionDetails.values()) {
+                                if (action.getToJobId().toString().equals(deps)) {
+                                    dependActions.add(action);
+                                }
+                            }
 							dependActionList.put(deps, dependActions);
 							if(loopCount > 20){
 								if(!jobDetail.getConfigs().contains("sameday")){

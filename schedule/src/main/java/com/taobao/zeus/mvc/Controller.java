@@ -21,7 +21,7 @@ public abstract class Controller {
    * @param controller the controller to added
    */
   public void addChild(Controller controller) {
-    if (children == null) children = new ArrayList<Controller>();
+    if (children == null) children = new ArrayList<>();
     children.add(controller);
     controller.parent = this;
   }
@@ -131,7 +131,7 @@ public abstract class Controller {
    */
   protected void registerEventTypes(EventType... types) {
     if (supportedEvents == null) {
-      supportedEvents = new ArrayList<EventType>();
+      supportedEvents = new ArrayList<>();
     }
     if (types != null) {
       for (EventType type : types) {

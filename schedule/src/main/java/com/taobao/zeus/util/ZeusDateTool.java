@@ -47,12 +47,11 @@ public class ZeusDateTool {
 	 * @param dateStr 需要转换的字符串
 	 * @param formatStr 需要格式的目标字符串  举例 yyyy-MM-dd
 	 * @return outFormatStr 需要格式的输出字符串  举例 yyyy-MM-dd
-	 * @throws ParseException 转换异常
 	 */
 	public static String StringToDateStr(String dateStr,String formatStr, String outFormatStr){
 		DateFormat sdf = new SimpleDateFormat(formatStr);
 		SimpleDateFormat outDateFormat=new SimpleDateFormat(outFormatStr);
-		Date date = null;
+		Date date;
 		String outDateStr = "";
 		try {
 			date = sdf.parse(dateStr);
@@ -68,7 +67,6 @@ public class ZeusDateTool {
 	 * @param dateStr 需要转换的字符串
 	 * @param formatStr 需要格式的目标字符串  举例 yyyy-MM-dd
 	 * @return Date 返回转换后的时间
-	 * @throws ParseException 转换异常
 	 */
 	public static Date StringToDate(String dateStr,String formatStr){
 		DateFormat sdf=new SimpleDateFormat(formatStr);

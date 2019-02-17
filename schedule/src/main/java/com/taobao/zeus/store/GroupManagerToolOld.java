@@ -3,13 +3,6 @@ package com.taobao.zeus.store;
 import java.util.List;
 import java.util.Map;
 
-
-
-
-
-
-import org.antlr.grammar.v3.ANTLRParser.id_return;
-import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore.Processor.isPartitionMarkedForEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

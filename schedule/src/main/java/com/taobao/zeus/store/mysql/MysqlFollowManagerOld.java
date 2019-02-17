@@ -4,33 +4,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
-import org.antlr.grammar.v3.ANTLRParser.finallyClause_return;
-import org.apache.commons.lang.ObjectUtils.Null;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.HibernateTransactionManager;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.taobao.zeus.model.ZeusFollow;
 import com.taobao.zeus.store.FollowManagerOld;
-import com.taobao.zeus.store.GroupBean;
 import com.taobao.zeus.store.GroupBeanOld;
-import com.taobao.zeus.store.GroupManager;
 import com.taobao.zeus.store.GroupManagerOld;
-import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.JobBeanOld;
 import com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
 @SuppressWarnings("unchecked")
 public class MysqlFollowManagerOld extends HibernateDaoSupport implements FollowManagerOld{

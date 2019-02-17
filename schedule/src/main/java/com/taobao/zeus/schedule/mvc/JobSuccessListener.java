@@ -24,8 +24,8 @@ public class JobSuccessListener extends DispatcherListener{
 	
 	private JobHistoryManager jobHistoryManager;
 	public JobSuccessListener(MasterContext context){
-		groupManager=(GroupManager) context.getGroupManager();
-		jobHistoryManager=(JobHistoryManager)context.getJobHistoryManager();
+		groupManager=context.getGroupManager();
+		jobHistoryManager=context.getJobHistoryManager();
 	}
 	@Override
 	public void beforeDispatch(MvcEvent mvce) {

@@ -39,10 +39,10 @@ public class Environment {
 	private static String defaultWorkerGroupId;
 	private static String defaultMasterGroupId;
     
-	private static Float maxMemRate = Float.valueOf(0.8F);
-    private static Float maxCpuLoadPerCore = Float.valueOf(3F);
-    private static Integer scanRate = Integer.valueOf(3000);
-    private static Integer scanExceptionRate = Integer.valueOf(3000);
+	private static Float maxMemRate = 0.8F;
+    private static Float maxCpuLoadPerCore = 3F;
+    private static Integer scanRate = 3000;
+    private static Integer scanExceptionRate = 3000;
 	
     public Environment(String env,String scheduleGroup,String downloadPath,String hadoopHome,String hadoopConfDir,String hiveHome,String hiveConfDir,
 			String host,String port,String username,String password,String sendFrom,String notifyUrl,String accessToken,String excludeFile, String defaultWorkerGroupId, String defaultMasterGroupId
@@ -103,10 +103,10 @@ public class Environment {
 		log.info("the excludeFile is " + excludeFile.trim());
 		log.info("the defaultWorkerGroupId is " + defaultWorkerGroupId.trim());
 		log.info("the defaultMasterGroupId is " + defaultMasterGroupId.trim());
-		log.info("the maxMemRate is " + maxMemRate.trim().toString());
-		log.info("the maxCpuLoadPerCore is " + maxCpuLoadPerCore.trim().toString());
-		log.info("the scanRate is " + scanRate.trim().toString());
-		log.info("the scanExceptionRate is " + scanExceptionRate.trim().toString());
+		log.info("the maxMemRate is " + maxMemRate.trim());
+		log.info("the maxCpuLoadPerCore is " + maxCpuLoadPerCore.trim());
+		log.info("the scanRate is " + scanRate.trim());
+		log.info("the scanExceptionRate is " + scanExceptionRate.trim());
 	}
 	
 	public static String getNotifyUrl() {
@@ -183,6 +183,7 @@ public class Environment {
 	public static String getDefaultMasterGroupId() {
 		return defaultMasterGroupId;
 	}
+
 	public static Float getMaxMemRate() {
 		return maxMemRate;
 	}

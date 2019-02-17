@@ -22,12 +22,7 @@ import com.taobao.zeus.socket.protocol.Protocol.WebResponse;
 import com.taobao.zeus.socket.protocol.Protocol.SocketMessage.Kind;
 
 public class MasterExecuteJob {
-	/**
-	 * master向worker发送执行job的指令
-	 * @param context
-	 * @param jobId
-	 * @return
-	 */
+
 	public Future<Response> executeJob(final MasterContext context,final MasterWorkerHolder holder,ExecuteKind ek,final String id){
 		if(ek==ExecuteKind.ManualKind){
 			return processManual(context, holder, id);

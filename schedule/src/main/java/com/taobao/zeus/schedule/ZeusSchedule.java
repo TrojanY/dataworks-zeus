@@ -24,7 +24,7 @@ public class ZeusSchedule{
 		this.applicationContext=applicationContext;
 	}
 	
-	public void startup(int port){
+	public void startup(int port) throws InterruptedException {
 		if(!running.compareAndSet(false, true)){
 			return;
 		}

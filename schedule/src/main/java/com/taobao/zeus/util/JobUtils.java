@@ -47,7 +47,6 @@ import com.taobao.zeus.store.GroupManagerOld;
 import com.taobao.zeus.store.HierarchyProperties;
 import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.ProfileManager;
-import com.taobao.zeus.store.mysql.MysqlGroupManagerOld;
 
 public class JobUtils {
 
@@ -60,9 +59,9 @@ public class JobUtils {
 		jobContext.setDebugHistory(history);
 		jobContext.setWorkDir(workDir);
 		HierarchyProperties hp = new HierarchyProperties(
-				new HashMap<String, String>());
+				new HashMap<>());
 		String script = history.getScript();
-		List<Map<String, String>> resources = new ArrayList<Map<String, String>>();
+		List<Map<String, String>> resources = new ArrayList<>();
 		// 处理脚本中的 资源引用 语句
 		script = resolvScriptResource(resources, script, applicationContext);
 		jobContext.setResources(resources);
@@ -81,7 +80,7 @@ public class JobUtils {
 		jobContext.setProperties(new RenderHierarchyProperties(hp));
 		hp.setProperty("hadoop.mapred.job.zeus_id",
 				"zeus_debug_" + history.getId());
-		List<Job> pres = new ArrayList<Job>(1);
+		List<Job> pres = new ArrayList<>(1);
 		pres.add(new DownloadJob(jobContext));
 		Job core = null;
 		if (history.getJobRunType() == JobRunType.Hive) {
@@ -89,9 +88,8 @@ public class JobUtils {
 		} else if (history.getJobRunType() == JobRunType.Shell) {
 			core = new HadoopShellJob(jobContext);
 		}
-		Job job = new WithProcesserJob(jobContext, pres, new ArrayList<Job>(),
+		return new WithProcesserJob(jobContext, pres, new ArrayList<>(),
 				core, applicationContext);
-		return job;
 	}
 
 	public static Job createJob(JobContext jobContext, JobBean jobBean,
@@ -120,7 +118,7 @@ public class JobUtils {
 		///*************************update run date  2014-09-18**************
 		String dateStr = history.getJobId().substring(0,12)+"00";
 		System.out.println("Manual Job run date :"+dateStr);
-		if(dateStr != null && dateStr.length() == 14){
+		if(dateStr.length() == 14){
 			script = RenderHierarchyProperties.render(script, dateStr);
 //			System.out.println("Manual Job script :"+script);
 		}		
@@ -133,7 +131,7 @@ public class JobUtils {
 /*			jobBean.getJobDescriptor().setScript(script);*/
 		}
 		jobContext.setResources(resources);
-		if(dateStr != null && dateStr.length() == 14){
+		if(dateStr.length() == 14){
 			script = replace(jobContext.getProperties().getAllProperties(dateStr), script);
 		}else{
 			script = replace(jobContext.getProperties().getAllProperties(), script);
@@ -165,10 +163,8 @@ public class JobUtils {
 			core = new HiveJob(jobContext, applicationContext);
 		}
 
-		Job job = new WithProcesserJob(jobContext, pres, posts, core,
+		return new WithProcesserJob(jobContext, pres, posts, core,
 				applicationContext);
-
-		return job;
 	}
 
 	private static String replaceScript(JobHistory history, String script) {
@@ -198,7 +194,7 @@ public class JobUtils {
 			String name = "";
 			String referScript = null;
 			String path = uri.substring(uri.lastIndexOf('/') + 1);
-			Map<String, String> map = new HashMap<String, String>(2);
+			Map<String, String> map = new HashMap<>(2);
 			if (uri.startsWith("doc://")) {
 				FileManager manager = (FileManager) context
 						.getBean("fileManager");
@@ -251,14 +247,14 @@ public class JobUtils {
 		if (content == null) {
 			return null;
 		}
-		Map<String, String> newmap = new HashMap<String, String>();
+		Map<String, String> newmap = new HashMap<>();
 		for (String key : map.keySet()) {
 			if (map.get(key) != null) {
 				newmap.put("${" + key + "}", map.get(key));
 			}
 		}
 		for (String key : newmap.keySet()) {
-			String old = "";
+			String old;
 			do {
 				old = content;
 				content = content.replace(key, newmap.get(key));
@@ -270,9 +266,9 @@ public class JobUtils {
 	private static List<Job> parseJobs(JobContext jobContext,
 			ApplicationContext applicationContext, JobBean jobBean,
 			List<Processer> ps, JobHistory history, String workDir) {
-		List<Job> jobs = new ArrayList<Job>();
+		List<Job> jobs = new ArrayList<>();
 		Map<String, String> map = jobContext.getProperties().getAllProperties();
-		Map<String, String> newmap = new HashMap<String, String>();
+		Map<String, String> newmap = new HashMap<>();
 		try {
 			for (String key : map.keySet()) {
 				String value = map.get(key);
@@ -299,7 +295,7 @@ public class JobUtils {
 			String config = p.getConfig();
 			if (config != null && !"".equals(config.trim())) {
 				for (String key : newmap.keySet()) {
-					String old = "";
+					String old;
 					do {
 						old = config;
 						String value = newmap.get(key).replace("\"", "\\\"");
@@ -351,15 +347,15 @@ public class JobUtils {
 														key));
 							}
 						}
-						File direcotry = new File(workDir + File.separator
+						File directory = new File(workDir + File.separator
 								+ "job-processer-" + jobProcesser.getJobId());
-						if (!direcotry.exists()) {
-							direcotry.mkdirs();
+						if (!directory.exists()) {
+							directory.mkdirs();
 						}
 						JobContext sub = new JobContext(jobContext.getRunType());
 						sub.putData("depth", ++depth);
 						Job job = createJob(sub, jb, history,
-								direcotry.getAbsolutePath(), applicationContext);
+								directory.getAbsolutePath(), applicationContext);
 						jobs.add(job);
 					}
 				} else {

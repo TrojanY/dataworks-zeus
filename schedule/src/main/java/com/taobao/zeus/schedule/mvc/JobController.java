@@ -9,13 +9,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.quartz.CronTrigger;
-import org.quartz.Job;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
+import org.quartz.*;
 
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.jobs.JobContext;
@@ -59,20 +53,15 @@ public class JobController extends Controller {
 	public JobController(MasterContext context, Master master, String jobId) {
 		this.jobId = jobId;
 		this.jobHistoryManager = context.getJobHistoryManager();
-		groupManager = context.getGroupManager();
+		this.groupManager = context.getGroupManager();
 		this.cache = new CacheJobDescriptor(jobId, groupManager);
 		this.master = master;
 		this.context = context;
 		registerEventTypes(Events.Initialize);
 	}
 	
-	private final Date getForver(){
-		try {
-			return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2099-12-31 23:59:59");
-		} catch (ParseException e) {
-			e.printStackTrace();
-			return null;
-		}
+	private final Date getForver() throws ParseException {
+		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2099-12-31 23:59:59");
 	}
 	@Override
 	public boolean canHandle(AppEvent event, boolean bubbleDown) {
@@ -111,7 +100,7 @@ public class JobController extends Controller {
 
 	private void initializeEventHandle() {
 		JobStatus jobStatus = groupManager.getJobStatus(jobId);
-//		System.out.println("jobId: "+jobId+" jobStatus:"+jobStatus.getStatus());
+		log.debug("jobId: "+jobId+" jobStatus:"+jobStatus.getStatus());
 		if (jobStatus != null) {
 			// 启动时发现在RUNNING 状态，说明上一次运行的结果丢失，将立即进行重试
 			if (jobStatus.getStatus() == Status.RUNNING) {
@@ -153,7 +142,7 @@ public class JobController extends Controller {
 					JobDescriptor jobDescriptor = groupManager.getUpstreamJobBean(jobId).getJobDescriptor();
 					history.setToJobId(jobDescriptor.getToJobId());
 					if(jobDescriptor != null){
-						history.setOperator(jobDescriptor.getOwner() == null ? null : jobDescriptor.getOwner());
+						history.setOperator(jobDescriptor.getOwner());
 						history.setHostGroupId(jobDescriptor.getHostGroupId());
 					}
 					context.getJobHistoryManager().addJobHistory(history);
@@ -167,19 +156,26 @@ public class JobController extends Controller {
 		if (jd.getAuto() && jd.getScheduleType() == JobScheduleType.Independent) {
 			String cronExpression = jd.getCronExpression();
 			try {
-				CronTrigger trigger = new CronTrigger(jd.getId(), "zeus",
-						cronExpression);
+				CronTrigger trigger = TriggerBuilder.newTrigger()
+						.withIdentity(jd.getId(), "zeus")
+						.withSchedule(
+								CronScheduleBuilder.cronSchedule(cronExpression)
+						)
+						.build();
 				/**************2014-09-14**************
 				Date date=null;  
 			    SimpleDateFormat formatter=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
 			    date=formatter.parse(cronExpression);  
 				SimpleTrigger trigger = new SimpleTrigger(jd.getId(), "zeus", date, null, 0, 0L);
 				//**********************************************************************************/
-				JobDetail detail = new JobDetail(jd.getId(), "zeus",
-						TimerJob.class);
+				JobDetail detail = JobBuilder.newJob(TimerJob.class)
+						.withIdentity(jd.getId(), "zeus")
+						.build();
+
 				detail.getJobDataMap().put("jobId", jd.getId());
 				detail.getJobDataMap().put("dispatcher",
 						context.getDispatcher());
+
 				context.getScheduler().scheduleJob(detail, trigger);
 			} catch (Exception e) {
 				if (e instanceof SchedulerException
@@ -208,7 +204,7 @@ public class JobController extends Controller {
 	}
 
 	private void initCycleJob(JobDescriptor jd) {
-		Date date = null;
+		Date date;
 		try {
 			date = DateUtil.timestamp2Date(jd.getStartTimestamp(),
 					DateUtil.getDefaultTZStr());
@@ -216,7 +212,7 @@ public class JobController extends Controller {
 			date = new Date();
 			log.error("parse job start timestamp to date failed,", e);
 		}
-		SimpleTrigger simpleTrigger=null;
+		SimpleTrigger simpleTrigger;
 //		if(jd.getCycle().equals("hour")){
 //			simpleTrigger = new SimpleTrigger(jd.getId(), "zeus",
 //					date, this.getForver(), SimpleTrigger.REPEAT_INDEFINITELY, 60*60*1000);
@@ -226,28 +222,31 @@ public class JobController extends Controller {
 //					date, this.getForver(), SimpleTrigger.REPEAT_INDEFINITELY, 24*60*60*1000);
 //		}
 //		else{
-			simpleTrigger = new SimpleTrigger(jd.getId(), "zeus",
-					date, null, 0, 0L);
+			simpleTrigger = TriggerBuilder.newTrigger()
+                    .withIdentity(jd.getId(), "zeus")
+                    .startAt(date)
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                    .build();
 //		}
 		
 		JobDetail detail = null;
 		// 先查看之前是否存在该任务的调度，如果存在，先删除
 		try {
-			detail = context.getScheduler().getJobDetail(jd.getId(), "zeus");
+			detail = context.getScheduler().getJobDetail(new JobKey(jd.getId(), "zeus"));
 		} catch (SchedulerException e) {
 			log.error(e);
 		}
 		if (detail != null) {
 			try {
-				context.getScheduler().deleteJob(jobId, "zeus");
+				context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
 				log.error("schedule remove job with jobId:" + jobId);
 			} catch (SchedulerException e) {
 				log.error(e);
+                detail = null;
 			}
-			detail = null;
 		}
 
-		detail = new JobDetail(jd.getId(), "zeus", TimerJob.class);
+		detail = JobBuilder.newJob(TimerJob.class).withIdentity(jd.getId(), "zeus").build();
 		detail.getJobDataMap().put("jobId", jd.getId());
 		detail.getJobDataMap().put("dispatcher", context.getDispatcher());
 		try {
@@ -262,10 +261,10 @@ public class JobController extends Controller {
 	@Override
 	protected void destory() {
 		try {
-			JobDetail detail = context.getScheduler().getJobDetail(jobId,
-					"group");
+			JobDetail detail = context.getScheduler().getJobDetail(new JobKey(jobId,
+					"zeus"));
 			if (detail != null) {
-				context.getScheduler().deleteJob(jobId, "zeus");
+				context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
 			}
 		} catch (SchedulerException e) {
 			log.error(e);
@@ -277,19 +276,16 @@ public class JobController extends Controller {
 		if (super.canHandle(event)) {
 			return true;
 		}
-		if (event instanceof JobSuccessEvent || event instanceof JobFailedEvent
-				|| event instanceof ScheduleTriggerEvent
-				|| event instanceof JobMaintenanceEvent
-				|| event instanceof JobLostEvent) {
-			return true;
-		}
-		return false;
-	}
+        return event instanceof JobSuccessEvent || event instanceof JobFailedEvent
+                || event instanceof ScheduleTriggerEvent
+                || event instanceof JobMaintenanceEvent
+                || event instanceof JobLostEvent;
+    }
 
 	/**
 	 * 维护 当Job被更新后，调度系统需要相应的进行修改
 	 * 
-	 * @param event
+	 * @param event job event
 	 */
 	
 	private void maintenanceEventHandle(JobMaintenanceEvent event) {
@@ -314,7 +310,7 @@ public class JobController extends Controller {
 	/**
 	 * 漏跑JOB，重新依赖调度
 	 * 
-	 * @param event
+	 * @param event job event
 	 */
 	private void lostEventHandle(JobLostEvent event) {
 		if (event.getType() == Events.UpdateJob
@@ -336,10 +332,8 @@ public class JobController extends Controller {
 							history.setToJobId(jd.getToJobId());
 	//						history.setExecuteHost(jd.getHost());
 							history.setHostGroupId(jd.getHostGroupId());
-							if(jd != null){
-								history.setOperator(jd.getOwner() == null ? null : jd.getOwner());
-							}
-							context.getJobHistoryManager().addJobHistory(history);
+                            history.setOperator(jd.getOwner());
+                            context.getJobHistoryManager().addJobHistory(history);
 							master.run(history);
 							ScheduleInfoLog.info("JobId:" + jobId + " roll lost back lost ");
 						}
@@ -352,7 +346,7 @@ public class JobController extends Controller {
 	/**
 	 * 收到执行任务成功的事件的处理流程
 	 * 
-	 * @param event
+	 * @param event job event
 	 */
 	private void successEventHandle(JobSuccessEvent event) {
 		if (event.getTriggerType() == TriggerType.MANUAL) {
@@ -381,7 +375,7 @@ public class JobController extends Controller {
 			return;
 		}
 
-		JobStatus jobStatus = null;
+		JobStatus jobStatus;
 		synchronized (this) {
 			jobStatus = groupManager.getJobStatus(jobId);
 			JobBean bean = groupManager.getUpstreamJobBean(jobId);
@@ -393,7 +387,7 @@ public class JobController extends Controller {
 				if ("sameday".equals(cycle)) {
 					SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 					String now = format.format(new Date());
-					for (String key : new HashSet<String>(dep.keySet())) {
+					for (String key : new HashSet<>(dep.keySet())) {
 						String d = format.format(new Date(Long.valueOf(dep
 								.get(key))));
 						if (!now.equals(d)) {
@@ -434,14 +428,14 @@ public class JobController extends Controller {
 	}
 
 	private void startNewJob(TriggerType type, JobDescriptor jobDescriptor,
-			String jobID) {
+			String jobId) {
 		JobHistory history = new JobHistory();
 		history.setIllustrate("依赖任务全部到位，开始执行");
 		history.setTriggerType(TriggerType.SCHEDULE);
 		history.setJobId(jobId);
 //		System.out.println("依赖任务执行的operator ："+jobDescriptor.getOwner());
-		history.setOperator(jobDescriptor.getOwner() == null ? null : jobDescriptor.getOwner());
-		history.setToJobId(jobDescriptor.getToJobId() == null ? null : jobDescriptor.getToJobId());
+		history.setOperator(jobDescriptor.getOwner());
+		history.setToJobId(jobDescriptor.getToJobId());
 //		history.setExecuteHost(jobDescriptor.getHost());
 		history.setHostGroupId(jobDescriptor.getHostGroupId());
 		context.getJobHistoryManager().addJobHistory(history);
@@ -527,7 +521,7 @@ public class JobController extends Controller {
 			return;
 		}
 
-		JobStatus jobStatus = null;
+		JobStatus jobStatus;
 
 		synchronized (this) {
 			jobStatus = groupManager.getJobStatus(jobId);
@@ -703,7 +697,7 @@ public class JobController extends Controller {
 		}
 		JobDetail detail = null;
 		try {
-			detail = context.getScheduler().getJobDetail(jobId, "zeus");
+			detail = context.getScheduler().getJobDetail(new JobKey(jobId, "zeus"));
 		} catch (SchedulerException e) {
 			log.error(e);
 		}
@@ -711,7 +705,7 @@ public class JobController extends Controller {
 		if (!jd.getAuto()) {
 			if (detail != null) {
 				try {
-					context.getScheduler().deleteJob(jobId, "zeus");
+					context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
 					log.error("schedule remove job with jobId:" + jobId);
 				} catch (SchedulerException e) {
 					log.error(e);
@@ -722,7 +716,7 @@ public class JobController extends Controller {
 		if (jd.getScheduleType() == JobScheduleType.Dependent) {// 如果是依赖任务
 			if (detail != null) {// 说明原来是独立任务，现在变成依赖任务，需要删除原来的定时调度
 				try {
-					context.getScheduler().deleteJob(jobId, "zeus");
+					context.getScheduler().deleteJob(new JobKey(jobId, "zeus"));
 					ScheduleInfoLog
 							.info("JobId:"
 									+ jobId
@@ -741,18 +735,21 @@ public class JobController extends Controller {
 //							+ " remove from schedule");
 					return;
 				}
-				CronTrigger trigger = new CronTrigger(jd.getId(), "zeus",
-						jd.getCronExpression());
-				detail = new JobDetail(jd.getId(), "zeus", TimerJob.class);
+				CronTrigger trigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jd.getId(), "zeus")
+						.withSchedule(CronScheduleBuilder.cronSchedule(jd.getCronExpression()))
+                        .build();
+
+				detail = JobBuilder.newJob(TimerJob.class)
+                                   .withIdentity(jd.getId(), "zeus")
+                                   .build();
+
 				detail.getJobDataMap().put("jobId", jd.getId());
-				detail.getJobDataMap().put("dispatcher",
-						context.getDispatcher());
+				detail.getJobDataMap().put("dispatcher", context.getDispatcher());
 				context.getScheduler().scheduleJob(detail, trigger);
 				ScheduleInfoLog.info("JobId:" + jobId
 						+ " add job to schedule ");
 			} catch (SchedulerException e) {
-				log.error(e);
-			} catch (ParseException e) {
 				log.error(e);
 			}
 		} else if (jd.getScheduleType() == JobScheduleType.CyleJob
@@ -765,7 +762,7 @@ public class JobController extends Controller {
 	/**
 	 * 收到定时触发任务的事件的处理流程
 	 * 
-	 * @param event
+	 * @param event schedule event type
 	 */
 	private void triggerEventHandle(ScheduleTriggerEvent event) {
 		String eId = event.getJobId();
@@ -786,14 +783,14 @@ public class JobController extends Controller {
 	private void runJob(JobDescriptor jobDescriptor) {
 		JobHistory history = new JobHistory();
 		history.setJobId(jobDescriptor.getId());
-		history.setToJobId(jobDescriptor.getToJobId() == null ? null : jobDescriptor.getToJobId());
+		history.setToJobId(jobDescriptor.getToJobId());
 		history.setTriggerType(TriggerType.SCHEDULE);
 		history.setStatisEndTime(jobDescriptor.getStatisEndTime());
 		history.setTimezone(jobDescriptor.getTimezone());
 		history.setCycle(jobDescriptor.getCycle());
 //		history.setExecuteHost(jobDescriptor.getHost());
 		history.setHostGroupId(jobDescriptor.getHostGroupId());
-		history.setOperator(jobDescriptor.getOwner() == null ? null : jobDescriptor.getOwner());
+		history.setOperator(jobDescriptor.getOwner());
 		context.getJobHistoryManager().addJobHistory(history);
 		master.run(history);
 	}
@@ -866,8 +863,7 @@ public class JobController extends Controller {
 
 	public static class TimerJob implements Job {
 		@Override
-		public void execute(JobExecutionContext context)
-				throws JobExecutionException {
+		public void execute(JobExecutionContext context){
 			String jobId = context.getJobDetail().getJobDataMap()
 					.getString("jobId");
 			Dispatcher dispatcher = (Dispatcher) context.getJobDetail()
@@ -881,20 +877,25 @@ public class JobController extends Controller {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		JobDescriptor jd = cache.getJobDescriptor();
 		if (jd == null) {
-			sb.append("JobId:" + jobId + " 查询为null，有异常");
+			sb.append("JobId: ")
+              .append(jobId)
+              .append(" 查询为null，有异常");
 		} else {
-			sb.append("JobId:" + jobId).append(
-					" auto:" + cache.getJobDescriptor().getAuto());
-			sb.append(" dependency:"
-					+ cache.getJobDescriptor().getDependencies());
+			sb.append("JobId: ")
+                    .append(jobId)
+                    .append(" auto:")
+                    .append(cache.getJobDescriptor().getAuto());
+			sb.append(" dependency: ")
+                    .append(cache.getJobDescriptor().getDependencies());
 		}
 		JobDetail detail = null;
 		try {
-			detail = context.getScheduler().getJobDetail(jobId, "zeus");
+			detail = context.getScheduler().getJobDetail(new JobKey(jobId, "zeus"));
 		} catch (SchedulerException e) {
+		    e.printStackTrace();
 		}
 		if (detail == null) {
 			sb.append("job not in scheduler");

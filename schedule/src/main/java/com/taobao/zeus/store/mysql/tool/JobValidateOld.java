@@ -1,6 +1,5 @@
 package com.taobao.zeus.store.mysql.tool;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -8,7 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.quartz.CronTrigger;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.taobao.zeus.client.ZeusException;
@@ -46,7 +46,7 @@ public class JobValidateOld {
 					if(job.getCronExpression()==null || job.getCronExpression().trim().equals("")){
 						throw new ZeusException("独立任务的定时表达式必须填写");
 					}
-					job.setDependencies(new ArrayList<String>());
+					job.setDependencies(new ArrayList<>());
 				}
 				//如果是依赖任务
 				if(job.getScheduleType()==JobScheduleTypeOld.Dependent){
@@ -69,17 +69,18 @@ public class JobValidateOld {
 		}
 		
 		if(job.getCronExpression()!=null && !job.getCronExpression().trim().equals("")){
-			try {
-				new CronTrigger("test", "test", job.getCronExpression());
-			} catch (ParseException e) {
-				throw new ZeusException("cronExpression表达式格式出错");
-			}
+			TriggerBuilder.newTrigger()
+					.withIdentity(job.getId(), "zeus")
+					.withSchedule(
+							CronScheduleBuilder.cronSchedule(job.getCronExpression())
+					)
+					.build();
 		}
 		
 		//检查依赖的死循环问题
 		GroupBeanOld root=readOnlyGroupManager.getGlobeGroupBean();
 		Map<String, JobBeanOld> allJobBeans=root.getAllSubJobBeans();
-		Set<JobBeanOld> deps=new HashSet<JobBeanOld>();
+		Set<JobBeanOld> deps=new HashSet<>();
 		if(job.getScheduleType()==JobScheduleTypeOld.Dependent){
 			for(String jobId:job.getDependencies()){
 				if(allJobBeans.get(jobId)==null){

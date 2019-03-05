@@ -58,7 +58,7 @@ public class NewJobWindow extends Window{
 		setHeight(150);
 		setWidth(350);
 		
-		setHeadingText(groupModel.getName()+" 下新建任务");
+		setHeading(groupModel.getName()+" 下新建任务");
 		
 		formPanel=new FormPanel();
 		VerticalLayoutContainer p=new VerticalLayoutContainer();
@@ -68,25 +68,17 @@ public class NewJobWindow extends Window{
 		name.setAllowBlank(false);
 		p.add(new FieldLabel(name, "任务名称"),new VerticalLayoutData(1,-1));
 		
-		ListStore<Map<String, String>> jobTypeStore=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
-		Map<String, String> javamain=new HashMap<String, String>();
+		ListStore<Map<String, String>> jobTypeStore=new ListStore<>(item -> item.get("name"));
+		Map<String, String> javamain=new HashMap<>();
 		javamain.put("name", JobModel.MapReduce);
 		jobTypeStore.add(javamain);
-		Map<String, String> shell=new HashMap<String, String>();
+		Map<String, String> shell=new HashMap<>();
 		shell.put("name", JobModel.SHELL);
 		jobTypeStore.add(shell);
-		Map<String, String> hive=new HashMap<String, String>();
+		Map<String, String> hive=new HashMap<>();
 		hive.put("name", JobModel.HIVE);
 		jobTypeStore.add(hive);
-		jobType=new ComboBox<Map<String, String>>(jobTypeStore,new LabelProvider<Map<String, String>>() {
-			public String getLabel(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
+		jobType=new ComboBox<>(jobTypeStore, item -> item.get("name"));
 		jobType.setAllowBlank(false);
 		jobType.setTypeAhead(true);
 		jobType.setTriggerAction(TriggerAction.ALL);

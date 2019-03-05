@@ -61,13 +61,8 @@ public class HistoryTab extends ContentPanel {
 			.create(JobDebugService.class);
 	private final DebugHistoryProperties props = GWT
 			.create(DebugHistoryProperties.class);
-	private final ListStore<DebugHistoryModel> store = new ListStore<DebugHistoryModel>(
-			new ModelKeyProvider<DebugHistoryModel>() {
-				@Override
-				public String getKey(DebugHistoryModel item) {
-					return "" + item.getId();
-				}
-			});
+	private final ListStore<DebugHistoryModel> store = new ListStore<>(
+			item -> "" + item.getId());
 
 	final PagingLoader<PagingLoadConfig, PagingLoadResult<DebugHistoryModel>> loader;
 
@@ -82,10 +77,10 @@ public class HistoryTab extends ContentPanel {
 			}
 		};
 
-		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<DebugHistoryModel>>(
+		loader = new PagingLoader<>(
 				proxy);
 		loader.setRemoteSort(true);
-		loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, DebugHistoryModel, PagingLoadResult<DebugHistoryModel>>(
+		loader.addLoadHandler(new LoadResultListStoreBinding<>(
 				store));
 
 		final PagingToolBar toolBar = new PagingToolBar(20);
@@ -100,18 +95,13 @@ public class HistoryTab extends ContentPanel {
 			@Override
 			protected void onAfterFirstAttach() {
 				super.onAfterFirstAttach();
-				Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-					@Override
-					public void execute() {
-						loader.load();
-					}
-				});
+				Scheduler.get().scheduleDeferred(() -> loader.load());
 			}
 		};
 
-		IdentityValueProvider<DebugHistoryModel> identity = new IdentityValueProvider<DebugHistoryModel>();
+		IdentityValueProvider<DebugHistoryModel> identity = new IdentityValueProvider<>();
 
-		final MyRowExpander<DebugHistoryModel> expander = new MyRowExpander<DebugHistoryModel>(
+		final MyRowExpander<DebugHistoryModel> expander = new MyRowExpander<>(
 				identity, grid, new AbstractCell<DebugHistoryModel>() {
 
 					@Override
@@ -143,22 +133,22 @@ public class HistoryTab extends ContentPanel {
 					}
 				});
 
-		ColumnConfig<DebugHistoryModel, String> idColumn = new ColumnConfig<DebugHistoryModel, String>(
+		ColumnConfig<DebugHistoryModel, String> idColumn = new ColumnConfig<>(
 				props.id(), 60, "ID");
-		ColumnConfig<DebugHistoryModel, String> executeHostColumn = new ColumnConfig<DebugHistoryModel, String>(
+		ColumnConfig<DebugHistoryModel, String> executeHostColumn = new ColumnConfig<>(
 				props.executeHost(), 110, "执行机器IP");
-		ColumnConfig<DebugHistoryModel, Status> statusColumn = new ColumnConfig<DebugHistoryModel, Status>(
+		ColumnConfig<DebugHistoryModel, Status> statusColumn = new ColumnConfig<>(
 				props.status(), 60, "状态");
-		ColumnConfig<DebugHistoryModel, Date> startTimeColumn = new ColumnConfig<DebugHistoryModel, Date>(
+		ColumnConfig<DebugHistoryModel, Date> startTimeColumn = new ColumnConfig<>(
 				props.startTime(), 110, "开始时间");
-		ColumnConfig<DebugHistoryModel, Date> endTimeColumn = new ColumnConfig<DebugHistoryModel, Date>(
+		ColumnConfig<DebugHistoryModel, Date> endTimeColumn = new ColumnConfig<>(
 				props.endTime(), 110, "结束时间");
 		startTimeColumn.setCell(new DateCell(DateTimeFormat
 				.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
 		endTimeColumn.setCell(new DateCell(DateTimeFormat
 				.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
 		
-		ColumnConfig<DebugHistoryModel,DebugHistoryModel> operate = new ColumnConfig<DebugHistoryModel, DebugHistoryModel>(
+		ColumnConfig<DebugHistoryModel,DebugHistoryModel> operate = new ColumnConfig<>(
 				new ValueProvider<DebugHistoryModel, DebugHistoryModel>() {
 					public String getPath() {
 						return null;
@@ -202,7 +192,7 @@ public class HistoryTab extends ContentPanel {
 							box.addHideHandler(new HideHandler() {
 								public void onHide(HideEvent event) {
 									Dialog btn = (Dialog) event.getSource();
-									if (btn.getHideButton().getText()
+									if (btn.getButton(Dialog.PredefinedButton.YES).getText()
 											.equalsIgnoreCase("yes")) {
 										grid.mask("取消调试中");
 										RPCS.getJobDebugService()

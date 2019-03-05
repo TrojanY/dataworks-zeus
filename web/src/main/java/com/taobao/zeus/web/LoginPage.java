@@ -4,21 +4,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;  
-import javax.servlet.http.HttpServletResponse;  
-
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-
-
 import com.taobao.zeus.store.UserManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
-import com.taobao.zeus.web.LoginUser;
 
 
 public class LoginPage  extends HttpServlet  {

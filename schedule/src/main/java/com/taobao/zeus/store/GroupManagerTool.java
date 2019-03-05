@@ -10,7 +10,6 @@ import com.taobao.zeus.model.GroupDescriptor;
 import com.taobao.zeus.model.JobDescriptor;
 import com.taobao.zeus.model.JobDescriptor.JobScheduleType;
 import com.taobao.zeus.model.JobStatus;
-import com.taobao.zeus.socket.master.Master;
 import com.taobao.zeus.util.Tuple;
 
 public class GroupManagerTool {

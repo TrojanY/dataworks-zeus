@@ -1,32 +1,16 @@
 package com.taobao.zeus.web.platform.client;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
-import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.DomEvent.Type;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.EventListener;
+
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.impl.DOMImpl;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.TextBoxBase;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.FramedPanel;
@@ -34,7 +18,6 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutPack;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.PasswordField;
@@ -61,12 +44,9 @@ import com.taobao.zeus.web.platform.client.widget.Platform;
 public class PlatformEntry implements EntryPoint {
 	private FramedPanel vp;
 	static{
-		GWT.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void onUncaughtException(Throwable e) {
-				com.google.gwt.user.client.Window.alert(e.getMessage());
-				e.printStackTrace();
-			}
+		GWT.setUncaughtExceptionHandler(e -> {
+			com.google.gwt.user.client.Window.alert(e.getMessage());
+			e.printStackTrace();
 		});
 		
 	}
@@ -180,13 +160,10 @@ public class PlatformEntry implements EntryPoint {
 		final TextField name = new TextField();
 		final PasswordField passsword = new PasswordField();
 		final TextButton bt=new TextButton("Login");
-		 SelectHandler sh = new SelectHandler() {
-		        @Override
-		        public void onSelect(SelectEvent event) {
-		        	Info.display("Name:"+ name.getValue(),"Password:"+passsword.getValue());
-		        	vp.hide();
-		        }
-		      };
+		 SelectHandler sh = event -> {
+			 Info.display("Name:"+ name.getValue(),"Password:"+passsword.getValue());
+			 vp.hide();
+		 };
 		VerticalLayoutContainer p = new VerticalLayoutContainer();
 		vp.setWidth(350);
 		vp.add(p);
@@ -201,7 +178,7 @@ public class PlatformEntry implements EntryPoint {
 		
 		p.add(bt);
 		vp.setButtonAlign(BoxLayoutPack.CENTER);
-		vp.setHeadingText("zeus");
+		vp.setHeading("zeus");
 		bt.addSelectHandler(sh);
 		
 		return vp;

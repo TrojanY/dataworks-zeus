@@ -7,8 +7,6 @@ import com.google.gwt.user.client.ui.HasWidgets;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.taobao.zeus.web.platform.client.util.PlatformContext;
 import com.taobao.zeus.web.platform.client.util.async.PlatformAsyncCallback;
 import com.taobao.zeus.web.platform.client.util.filesystem.FSUtil;
@@ -89,16 +87,14 @@ public class FileManagerPresenterImpl implements FileManagerPresenter{
 				msg="确定 删除文件:"+model.getName()+"？";
 			}
 			ConfirmMessageBox box=new ConfirmMessageBox("删除", msg);
-			box.addHideHandler(new HideHandler() {
-				public void onHide(HideEvent event) {
-					Dialog dialog=(Dialog) event.getSource();
-					if(DefaultMessages.getMessages().messageBox_yes().equals(dialog.getHideButton().getText())){
-						context.getFileSystem().deleteFile(model.getId(), new PlatformAsyncCallback<Void>() {
-							public void callback(Void t) {
-								getFileManagerView().getMyTreeStore().remove(model);
-							}
-						});
-					}
+			box.addHideHandler(event -> {
+				Dialog dialog=(Dialog) event.getSource();
+				if(DefaultMessages.getMessages().messageBox_yes().equals(dialog.getButton(Dialog.PredefinedButton.YES).getText())){
+					context.getFileSystem().deleteFile(model.getId(), new PlatformAsyncCallback<Void>() {
+						public void callback(Void t) {
+							getFileManagerView().getMyTreeStore().remove(model);
+						}
+					});
 				}
 			});
 			box.show();

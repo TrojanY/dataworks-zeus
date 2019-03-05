@@ -29,7 +29,7 @@ public interface GroupManager {
 	/**
 	 * 根据组ID查询组信息
 	 * 向上查询该组上的所有组信息
-	 * @param groupName
+	 * @param groupId
 	 * @return
 	 */
 	GroupBean getUpstreamGroupBean(String groupId);
@@ -91,12 +91,7 @@ public interface GroupManager {
 	 * @return
 	 */
 	GroupDescriptor createGroup(String user,String groupName,String parentGroup,boolean isDirectory) throws ZeusException;
-	/**
-	 * 创建一个Job
-	 * @param user
-	 * @param group
-	 * @return
-	 */
+
 	JobDescriptor createJob(String user,String jobName,String parentGroup,JobRunType jobType) throws ZeusException;
 	/**
 	 * 删除组，成功删除需要的条件：

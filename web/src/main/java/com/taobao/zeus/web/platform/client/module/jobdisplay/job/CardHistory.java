@@ -79,7 +79,7 @@ public class CardHistory extends CenterTemplate implements
 			BorderLayoutData layoutData=new BorderLayoutData(140);
 			container.setSouthWidget(frame, layoutData);
 			setSize("700", "500");
-			setHeadingText("日志");
+			setHeading("日志");
 			setMaximizable(true);
 			timer = new Timer() {
 				public void run() {
@@ -90,7 +90,7 @@ public class CardHistory extends CenterTemplate implements
 									String lastJobId=null;
 									if (!result.getLog().equals(lastContent)) {
 										String[] lines=result.getLog().split("\n");
-										StringBuffer sb=new StringBuffer();
+										StringBuilder sb=new StringBuilder();
 										for(String line:lines){
 											String job=ToolUtil.extractJobId(line);
 											if(job!=null){
@@ -117,22 +117,17 @@ public class CardHistory extends CenterTemplate implements
 									}
 									if (result.getEndTime() != null) {
 										timer.cancel();
-										return;
 									}
 								}
 							});
 				}
 			};
-			addHideHandler(new HideHandler() {
-				public void onHide(HideEvent event) {
-					timer.cancel();
-				}
-			});
+			addHideHandler(event -> timer.cancel());
 		}
 
 		public void refreshId(String jobId,String hisId) {
 			this.id = hisId;
-			setHeadingText("任务ID："+jobId+" 记录ID:" + id);
+			setHeading("任务ID："+jobId+" 记录ID:" + id);
 			timer.run();
 			timer.scheduleRepeating(2000);
 			if (!isVisible()) {
@@ -145,13 +140,13 @@ public class CardHistory extends CenterTemplate implements
 	public CardHistory(JobPresenter p) {
 		this.presenter = p;
 
-		ColumnConfig<JobHistoryModel, String> id = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> id = new ColumnConfig<>(
 				prop.id(), 30, "id");
-		ColumnConfig<JobHistoryModel, String> jobId = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> jobId = new ColumnConfig<>(
 				prop.jobId(), 80, "ActionId");
-		ColumnConfig<JobHistoryModel, String> toJobId = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> toJobId = new ColumnConfig<>(
 				prop.toJobId(), 40, "JobId");
-		ColumnConfig<JobHistoryModel, Date> startTime = new ColumnConfig<JobHistoryModel, Date>(
+		ColumnConfig<JobHistoryModel, Date> startTime = new ColumnConfig<>(
 				prop.startTime(), 80, "开始时间");
 		startTime.setCell(new AbstractCell<Date>() {
 			private DateTimeFormat format = DateTimeFormat
@@ -164,7 +159,7 @@ public class CardHistory extends CenterTemplate implements
 				}
 			}
 		});
-		ColumnConfig<JobHistoryModel, Date> endTime = new ColumnConfig<JobHistoryModel, Date>(
+		ColumnConfig<JobHistoryModel, Date> endTime = new ColumnConfig<>(
 				prop.endTime(), 80, "结束时间");
 		endTime.setCell(new AbstractCell<Date>() {
 			private DateTimeFormat format = DateTimeFormat
@@ -177,13 +172,13 @@ public class CardHistory extends CenterTemplate implements
 				}
 			}
 		});
-		ColumnConfig<JobHistoryModel, String> executeHost = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> executeHost = new ColumnConfig<>(
 				prop.executeHost(), 80, "执行服务器");
-		ColumnConfig<JobHistoryModel, String> status = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> status = new ColumnConfig<>(
 				prop.status(), 50, "执行状态");
-		ColumnConfig<JobHistoryModel, String> triggerType = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> triggerType = new ColumnConfig<>(
 				prop.triggerType(), 50, "触发类型");
-		ColumnConfig<JobHistoryModel, String> operator = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> operator = new ColumnConfig<>(
 				prop.operator(), 80, "执行人");
 		operator.setCell(new AbstractCell<String>() {
 			public void render(com.google.gwt.cell.client.Cell.Context context,
@@ -192,7 +187,7 @@ public class CardHistory extends CenterTemplate implements
 						+ "</span>");
 			}
 		});
-		ColumnConfig<JobHistoryModel, String> illustrate = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> illustrate = new ColumnConfig<>(
 				prop.illustrate(), 100, "说明");
 		illustrate.setCell(new AbstractCell<String>() {
 			public void render(com.google.gwt.cell.client.Cell.Context context,
@@ -201,13 +196,13 @@ public class CardHistory extends CenterTemplate implements
 						+ "</span>");
 			}
 		});
-		ColumnConfig<JobHistoryModel, String> statisEndTime = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> statisEndTime = new ColumnConfig<>(
 				prop.statisEndTime(), 80, "统计时间");
-		ColumnConfig<JobHistoryModel, String> timezone = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> timezone = new ColumnConfig<>(
 				prop.timeZone(), 50, "时区");
-		ColumnConfig<JobHistoryModel, String> cycle = new ColumnConfig<JobHistoryModel, String>(
+		ColumnConfig<JobHistoryModel, String> cycle = new ColumnConfig<>(
 				prop.cycle(), 50, "任务周期");
-		ColumnConfig<JobHistoryModel, JobHistoryModel> operate = new ColumnConfig<JobHistoryModel, JobHistoryModel>(
+		ColumnConfig<JobHistoryModel, JobHistoryModel> operate = new ColumnConfig<>(
 				new ValueProvider<JobHistoryModel, JobHistoryModel>() {
 					public String getPath() {
 						return null;
@@ -254,7 +249,7 @@ public class CardHistory extends CenterTemplate implements
 							box.addHideHandler(new HideHandler() {
 								public void onHide(HideEvent event) {
 									Dialog btn = (Dialog) event.getSource();
-									if (btn.getHideButton().getText()
+									if (btn.getButton(Dialog.PredefinedButton.YES).getText()
 											.equalsIgnoreCase("yes")) {
 										grid.mask("取消任务中");
 										RPCS.getJobService()
@@ -301,20 +296,16 @@ public class CardHistory extends CenterTemplate implements
 			}
 		};
 
-		store = new ListStore<JobHistoryModel>(
-				new ModelKeyProvider<JobHistoryModel>() {
-					public String getKey(JobHistoryModel item) {
-						return item.getId();
-					}
-				});
+		store = new ListStore<>(
+				item -> item.getId());
 
-		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<JobHistoryModel>>(
+		loader = new PagingLoader<>(
 				proxy);
 		loader.setLimit(50);
-		loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, JobHistoryModel, PagingLoadResult<JobHistoryModel>>(
+		loader.addLoadHandler(new LoadResultListStoreBinding<>(
 				store));
 
-		grid = new Grid<JobHistoryModel>(store, cm);
+		grid = new Grid<>(store, cm);
 		grid.setLoadMask(true);
 		grid.getView().setForceFit(true);
 		grid.setLoader(loader);
@@ -329,17 +320,9 @@ public class CardHistory extends CenterTemplate implements
 
 		setCenter(con);
 
-		addButton(new TextButton("返回", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				presenter.display(presenter.getJobModel());
-			}
-		}));
+		addButton(new TextButton("返回", event -> presenter.display(presenter.getJobModel())));
 
-		addButton(new TextButton("刷新", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				refresh(presenter.getJobModel());
-			}
-		}));
+		addButton(new TextButton("刷新", event -> refresh(presenter.getJobModel())));
 	}
 
 	@Override

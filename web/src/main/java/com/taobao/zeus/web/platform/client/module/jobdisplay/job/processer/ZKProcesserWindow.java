@@ -3,10 +3,7 @@ package com.taobao.zeus.web.platform.client.module.jobdisplay.job.processer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.EditorError;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.widget.core.client.Window;
@@ -19,7 +16,6 @@ import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.FormPanel;
 import com.sencha.gxt.widget.core.client.form.Radio;
 import com.sencha.gxt.widget.core.client.form.TextField;
-import com.sencha.gxt.widget.core.client.form.Validator;
 import com.sencha.gxt.widget.core.client.form.error.DefaultEditorError;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.ProcesserType;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.ProcesserType.ZooKeeperP;
@@ -67,7 +63,7 @@ public class ZKProcesserWindow extends Window{
 	public ZKProcesserWindow(TextButton zk){
 		setModal(true);
 		this.zkBtn = zk;
-		setHeadingText("ZooKeeper通知 配置");
+		setHeading("ZooKeeper通知 配置");
 		setSize("400", "200");
 		
 		formPanel=new FormPanel();
@@ -86,37 +82,31 @@ public class ZKProcesserWindow extends Window{
 	    hp.add(useDefault);
 	    hp.add(useCustom);
 		
-	    useDefault.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-			@Override
-			public void onValueChange(ValueChangeEvent<Boolean> event) {
-				if(event.getValue()){
-					hostFieldWapper.hide();
-					pathFieldWapper.hide();
-					hostField.setAllowBlank(true);
-					pathField.setAllowBlank(true);
-					formPanel.isValid();
-				}
+	    useDefault.addValueChangeHandler(event -> {
+			if(event.getValue()){
+				hostFieldWapper.hide();
+				pathFieldWapper.hide();
+				hostField.setAllowBlank(true);
+				pathField.setAllowBlank(true);
+				formPanel.isValid();
 			}
 		});
-	    useCustom.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-			@Override
-			public void onValueChange(ValueChangeEvent<Boolean> event) {
-				if(event.getValue()){
+	    useCustom.addValueChangeHandler(event -> {
+			if(event.getValue()){
 //					AlertMessageBox box=new AlertMessageBox("警告", "强烈建议使用系统默认ZK，定制ZK只是为了适应老的Job");
 //					box.show();
-					if(hostField.getValue()==null||hostField.getValue().isEmpty()) {
-						hostField.setValue("${instance.processer.zk.host}");
-					}
-					hostField.setToolTip("请在配置项中配合填写 instance.processer.zk.host");
-					if(pathField.getValue()==null||pathField.getValue().isEmpty()) {
-						pathField.setValue("${instance.processer.zk.path}");
-					}
-					pathField.setToolTip("请在配置项中配合填写 instance.processer.zk.path");
-					hostFieldWapper.show();
-					pathFieldWapper.show();
-					hostField.setAllowBlank(false);
-					pathField.setAllowBlank(false);
+				if(hostField.getValue()==null||hostField.getValue().isEmpty()) {
+					hostField.setValue("${instance.processer.zk.host}");
 				}
+				hostField.setToolTip("请在配置项中配合填写 instance.processer.zk.host");
+				if(pathField.getValue()==null||pathField.getValue().isEmpty()) {
+					pathField.setValue("${instance.processer.zk.path}");
+				}
+				pathField.setToolTip("请在配置项中配合填写 instance.processer.zk.path");
+				hostFieldWapper.show();
+				pathFieldWapper.show();
+				hostField.setAllowBlank(false);
+				pathField.setAllowBlank(false);
 			}
 		});
 		
@@ -125,15 +115,12 @@ public class ZKProcesserWindow extends Window{
 		
 		pathField=new TextField();
 		pathField.setWidth(200);
-		pathField.addValidator(new Validator<String>() {
-			@Override
-			public List<EditorError> validate(Editor<String> editor, String value) {
-				List<EditorError> list=new ArrayList<EditorError>();
-				if(value!=null && value.startsWith("/zeus/")){
-					list.add(new DefaultEditorError(editor, "不得将通知设定到其他Job任务节点上", value));
-				}
-				return list;
+		pathField.addValidator((editor, value) -> {
+			List<EditorError> list=new ArrayList<>();
+			if(value!=null && value.startsWith("/zeus/")){
+				list.add(new DefaultEditorError(editor, "不得将通知设定到其他Job任务节点上", value));
 			}
+			return list;
 		});
 		hostFieldWapper=new FieldLabel(hostField,"ZK服务器");
 		pathFieldWapper=new FieldLabel(pathField,"路径");
@@ -145,12 +132,7 @@ public class ZKProcesserWindow extends Window{
 		add(formPanel,new MarginData(5));
 		
 		addButton(add);
-		addButton(new TextButton("取消",new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				ZKProcesserWindow.this.hide();
-			}
-		}));
+		addButton(new TextButton("取消", event -> ZKProcesserWindow.this.hide()));
 	}
 
 	public ProcesserType getProcesserType() {

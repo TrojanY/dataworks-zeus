@@ -7,7 +7,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -17,8 +16,6 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.data.client.loader.RpcProxy;
-import com.sencha.gxt.data.shared.IconProvider;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.loader.ChildTreeStoreBinding;
@@ -31,11 +28,7 @@ import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
-import com.sencha.gxt.widget.core.client.event.CancelEditEvent;
 import com.sencha.gxt.widget.core.client.event.CancelEditEvent.CancelEditHandler;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.TriggerClickEvent;
 import com.sencha.gxt.widget.core.client.form.StoreFilterField;
@@ -122,9 +115,7 @@ public class FileManagerViewImpl implements FileManagerView {
 						if (item.getId().equals(filter)) {
 							return true;
 						}
-						if (item.getName().contains(filter)) {
-							return true;
-						}
+						return item.getName().contains(filter);
 					}
 					return false;
 				}
@@ -226,22 +217,19 @@ public class FileManagerViewImpl implements FileManagerView {
 
 	public CompleteEditHandler<FileModel> getCompleteEditHandler() {
 		if (completeEditHandler == null) {
-			completeEditHandler = new CompleteEditHandler<FileModel>() {
-				@Override
-				public void onCompleteEdit(CompleteEditEvent<FileModel> event) {
-					editRestoreFileModel();
-					getFileManagerPresenter().onEditFileNameComplete(
-							editFileModel);
-					// Give the change a chance to propagate to model and store
-					// Scheduler.get().scheduleFixedDelay(new RepeatingCommand()
-					// {
-					// @Override
-					// public boolean execute() {
-					// getWindow().setHeadingText(getTitle(getSelectedItem()));
-					// return false;
-					// }
-					// }, 250);
-				}
+			completeEditHandler = event -> {
+				editRestoreFileModel();
+				getFileManagerPresenter().onEditFileNameComplete(
+						editFileModel);
+				// Give the change a chance to propagate to model and store
+				// Scheduler.get().scheduleFixedDelay(new RepeatingCommand()
+				// {
+				// @Override
+				// public boolean execute() {
+				// getWindow().setHeadingText(getTitle(getSelectedItem()));
+				// return false;
+				// }
+				// }, 250);
 			};
 		}
 		return completeEditHandler;
@@ -259,21 +247,18 @@ public class FileManagerViewImpl implements FileManagerView {
 
 	public CancelEditHandler<FileModel> getCancelEditHandler() {
 		if (cancelEditHandler == null) {
-			cancelEditHandler = new CancelEditHandler<FileModel>() {
-				@Override
-				public void onCancelEdit(CancelEditEvent<FileModel> event) {
-					/*
-					 * Works around a minor issue with GridInlineEditing in
-					 * which any update operation that does not change the value
-					 * is reported as a cancel.
-					 */
-					if (gridEditing.isEnter()) {
-						getFileManagerPresenter().onEditFileNameComplete(
-								editFileModel);
-					} else {
-						getFileManagerPresenter().onEditFileNameComplete(
-								editFileModel);
-					}
+			cancelEditHandler = event -> {
+				/*
+				 * Works around a minor issue with GridInlineEditing in
+				 * which any update operation that does not change the value
+				 * is reported as a cancel.
+				 */
+				if (gridEditing.isEnter()) {
+					getFileManagerPresenter().onEditFileNameComplete(
+							editFileModel);
+				} else {
+					getFileManagerPresenter().onEditFileNameComplete(
+							editFileModel);
 				}
 			};
 		}
@@ -283,17 +268,12 @@ public class FileManagerViewImpl implements FileManagerView {
 	public FileTreeGrid getCommonTreeGrid() {
 		if (commonTreeGrid == null) {
 			ColumnConfig<FileModel, String> name = getNameConfig();
-			List<ColumnConfig<FileModel, ?>> list = new ArrayList<ColumnConfig<FileModel, ?>>();
+			List<ColumnConfig<FileModel, ?>> list = new ArrayList<>();
 			list.add(name);
-			ColumnModel<FileModel> cm = new ColumnModel<FileModel>(list);
+			ColumnModel<FileModel> cm = new ColumnModel<>(list);
 
-			final TreeStore<FileModel> commonTreeStore = new TreeStore<FileModel>(
-					new ModelKeyProvider<FileModel>() {
-						@Override
-						public String getKey(FileModel item) {
-							return item.getId();
-						}
-					});
+			final TreeStore<FileModel> commonTreeStore = new TreeStore<>(
+					FileModel::getId);
 			final FileManagerServiceAsync fileService = com.google.gwt.core.shared.GWT
 					.create(FileManagerService.class);
 			RpcProxy<FileModel, List<FileModel>> proxy = new RpcProxy<FileModel, List<FileModel>>() {
@@ -310,7 +290,7 @@ public class FileManagerViewImpl implements FileManagerView {
 					return parent.isFolder();
 				}
 			};
-			loader.addLoadHandler(new ChildTreeStoreBinding<FileModel>(
+			loader.addLoadHandler(new ChildTreeStoreBinding<>(
 					commonTreeStore));
 			loader.load();
 
@@ -319,44 +299,35 @@ public class FileManagerViewImpl implements FileManagerView {
 			commonTreeGrid.setTreeLoader(loader);
 			commonTreeGrid.setHideHeaders(true);
 			commonTreeGrid.getView().setForceFit(true);
-			commonTreeGrid.setIconProvider(new IconProvider<FileModel>() {
-				@Override
-				public ImageResource getIcon(FileModel model) {
-					if (!model.isFolder()) {
-						if (model.getName().endsWith(".txt")) {
-							return Images.getImageResources().page_white();
-						} else {
-							return Images.getImageResources().script();
-						}
+			commonTreeGrid.setIconProvider(model -> {
+				if (!model.isFolder()) {
+					if (model.getName().endsWith(".txt")) {
+						return Images.getImageResources().page_white();
+					} else {
+						return Images.getImageResources().script();
 					}
-					return null;
 				}
+				return null;
 			});
 
 			Menu menu = new Menu();
 			MenuItem reload = new MenuItem("重新加载",
-					new SelectionHandler<MenuItem>() {
-						@Override
-						public void onSelection(SelectionEvent<MenuItem> event) {
-							FileModel fm = commonTreeGrid.getSelectionModel()
-									.getSelectedItem();
-							if (fm != null) {
-								commonTreeStore.removeChildren(fm);
-								loader.loadChildren(fm);
-							}
+					event -> {
+						FileModel fm = commonTreeGrid.getSelectionModel()
+								.getSelectedItem();
+						if (fm != null) {
+							commonTreeStore.removeChildren(fm);
+							loader.loadChildren(fm);
 						}
 					});
 			menu.add(reload);
 			final MenuItem referMenuItem = getReferMenuItem(true);
 			menu.add(referMenuItem);
-			menu.addBeforeShowHandler(new BeforeShowHandler() {
-				@Override
-				public void onBeforeShow(BeforeShowEvent event) {
-					if(getCommonTreeGrid().getSelectionModel().getSelectedItem().isFolder()){
-						referMenuItem.setEnabled(false);
-					}else{
-						referMenuItem.setEnabled(true);
-					}
+			menu.addBeforeShowHandler(event -> {
+				if(getCommonTreeGrid().getSelectionModel().getSelectedItem().isFolder()){
+					referMenuItem.setEnabled(false);
+				}else{
+					referMenuItem.setEnabled(true);
 				}
 			});
 			commonTreeGrid.setContextMenu(menu);
@@ -368,9 +339,9 @@ public class FileManagerViewImpl implements FileManagerView {
 	public FileTreeGrid getMyTreeGrid() {
 		if (myTreeGrid == null) {
 			ColumnConfig<FileModel, String> name = getNameConfig();
-			List<ColumnConfig<FileModel, ?>> list = new ArrayList<ColumnConfig<FileModel, ?>>();
+			List<ColumnConfig<FileModel, ?>> list = new ArrayList<>();
 			list.add(name);
-			ColumnModel<FileModel> cm = new ColumnModel<FileModel>(list);
+			ColumnModel<FileModel> cm = new ColumnModel<>(list);
 
 			myTreeGrid = new FileTreeGrid(context, getMyTreeStore(), cm, name);
 			Menu fileMenu = new FileMenu(fileManagerPresenter)
@@ -378,31 +349,25 @@ public class FileManagerViewImpl implements FileManagerView {
 			final MenuItem referMenuItem = getReferMenuItem(false);
 			fileMenu.add(new SeparatorMenuItem());
 			fileMenu.add(referMenuItem);
-			fileMenu.addBeforeShowHandler(new BeforeShowHandler() {
-				@Override
-				public void onBeforeShow(BeforeShowEvent event) {
-					if(getMyTreeGrid().getSelectionModel().getSelectedItem().isFolder()){
-						referMenuItem.setEnabled(false);
-					}else{
-						referMenuItem.setEnabled(true);
-					}
+			fileMenu.addBeforeShowHandler(event -> {
+				if(getMyTreeGrid().getSelectionModel().getSelectedItem().isFolder()){
+					referMenuItem.setEnabled(false);
+				}else{
+					referMenuItem.setEnabled(true);
 				}
 			});
 			myTreeGrid.setContextMenu(fileMenu);
 			myTreeGrid.setHideHeaders(true);
 			myTreeGrid.getView().setForceFit(true);
-			myTreeGrid.setIconProvider(new IconProvider<FileModel>() {
-				@Override
-				public ImageResource getIcon(FileModel model) {
-					if (!model.isFolder()) {
-						if (model.getName().endsWith(".txt")) {
-							return Images.getImageResources().page_white();
-						} else {
-							return Images.getImageResources().script();
-						}
+			myTreeGrid.setIconProvider(model -> {
+				if (!model.isFolder()) {
+					if (model.getName().endsWith(".txt")) {
+						return Images.getImageResources().page_white();
+					} else {
+						return Images.getImageResources().script();
 					}
-					return null;
 				}
+				return null;
 			});
 
 			final LimitedTreeGridDragSource source = new LimitedTreeGridDragSource(
@@ -425,7 +390,6 @@ public class FileManagerViewImpl implements FileManagerView {
 									targetThis.proxySuperDragDrop(event);
 								}
 							});
-					return;
 				}
 			};
 			target.setAllowSelfAsSource(true);
@@ -438,7 +402,7 @@ public class FileManagerViewImpl implements FileManagerView {
 
 	public ColumnConfig<FileModel, String> getNameConfig() {
 		if (nameConfig == null) {
-			nameConfig = new ColumnConfig<FileModel, String>(FSUtil
+			nameConfig = new ColumnConfig<>(FSUtil
 					.getFileModelProperties().name(), 200, "Name");
 		}
 		return nameConfig;
@@ -447,13 +411,8 @@ public class FileManagerViewImpl implements FileManagerView {
 	@Override
 	public TreeStore<FileModel> getMyTreeStore() {
 		if (myTreeStore == null) {
-			myTreeStore = new TreeStore<FileModel>(
-					new ModelKeyProvider<FileModel>() {
-						@Override
-						public String getKey(FileModel item) {
-							return item.getId();
-						}
-					});
+			myTreeStore = new TreeStore<>(
+					FileModel::getId);
 			myTreeStore.setAutoCommit(true);
 			FileManagerServiceAsync fileService = com.google.gwt.core.shared.GWT
 					.create(FileManagerService.class);
@@ -465,7 +424,7 @@ public class FileManagerViewImpl implements FileManagerView {
 								myTreeStore.add(sub.getFileModel());
 								recursion(sub);
 							}
-						};
+						}
 
 						private void recursion(FileClientBean bean) {
 							for (FileClientBean sub : bean.getSubFiles()) {
@@ -495,7 +454,7 @@ public class FileManagerViewImpl implements FileManagerView {
 						}
 					};
 					w.setModal(true);
-					w.setHeadingText("脚本引用语句");
+					w.setHeading("脚本引用语句");
 					w.setHeight(60);
 					StringBuffer sb = new StringBuffer();
 					sb.append("download[").append("doc://")

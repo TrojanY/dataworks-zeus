@@ -21,9 +21,6 @@ import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
 import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.BeforeHideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
@@ -55,7 +52,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 			presenter.displayHistory();
 		}
 	});
-	
+
 	private TextButton depGraph=new TextButton("依赖图",new SelectHandler() {
 		@Override
 		public void onSelect(SelectEvent event) {
@@ -72,20 +69,17 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		@Override
 		public void onSelect(SelectEvent event) {
 			ConfirmMessageBox box=new ConfirmMessageBox("删除任务", "你确认删除此任务?");
-			box.addHideHandler(new HideHandler() {
-				@Override
-				public void onHide(HideEvent event) {
-					Dialog btn = (Dialog) event.getSource();
-					if(btn.getHideButton().getText().equalsIgnoreCase("yes")){
-						RPCS.getJobService().deleteJob(presenter.getJobModel().getId(), new AbstractAsyncCallback<Void>() {
-							@Override
-							public void onSuccess(Void result) {
-								TreeNodeChangeEvent event=new TreeNodeChangeEvent();
-								event.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(presenter.getJobModel().getGroupId()));
-								presenter.getPlatformContext().getPlatformBus().fireEvent(event);
-							}
-						});
-					}
+			box.addHideHandler(event1 -> {
+				Dialog btn = (Dialog) event1.getSource();
+				if(btn.getButton(Dialog.PredefinedButton.YES).getText().equalsIgnoreCase("yes")){
+					RPCS.getJobService().deleteJob(presenter.getJobModel().getId(), new AbstractAsyncCallback<Void>() {
+						@Override
+						public void onSuccess(Void result) {
+							TreeNodeChangeEvent event1 =new TreeNodeChangeEvent();
+							event1.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(presenter.getJobModel().getGroupId()));
+							presenter.getPlatformContext().getPlatformBus().fireEvent(event1);
+						}
+					});
 				}
 			});
 			box.show();
@@ -468,7 +462,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 	public FieldSet getBaseFieldSet() {
 		if(baseFieldSet==null){
 			baseFieldSet=new FieldSet();
-			baseFieldSet.setHeadingText("基本信息");
+			baseFieldSet.setHeading("基本信息");
 			baseFieldSet.setHeight(260);
 			
 			HorizontalLayoutContainer layoutContainer=new HorizontalLayoutContainer();
@@ -552,7 +546,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if (hiveProcesserFieldSet == null) {
 			hiveProcesserFieldSet = new FieldSet();
 			hiveProcesserFieldSet.setCollapsible(true);
-			hiveProcesserFieldSet.setHeadingText("辅助功能配置");
+			hiveProcesserFieldSet.setHeading("辅助功能配置");
 			VerticalLayoutContainer container = new VerticalLayoutContainer();
 			/*outputTableLabel = new FieldLabel(getLabel(),"产出的表名");
 			syncTableLabel = new FieldLabel(getLabel(),"阻塞同步的天网表");
@@ -577,7 +571,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if(configFieldSet==null){
 			configFieldSet=new FieldSet();
 			configFieldSet.setCollapsible(true);
-			configFieldSet.setHeadingText("配置项信息");
+			configFieldSet.setHeading("配置项信息");
 			configContent=new HTMLPanel("");
 			configFieldSet.add(configContent);
 		}
@@ -588,7 +582,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if(configParentField==null){
 			configParentField=new FieldSet();
 			configParentField.setCollapsible(true);
-			configParentField.setHeadingText("继承的配置项信息");
+			configParentField.setHeading("继承的配置项信息");
 			
 			configParentContent=new HTMLPanel("");
 			configParentField.add(configParentContent);
@@ -600,7 +594,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if(resourceField==null){
 			resourceField=new FieldSet();
 			resourceField.setCollapsible(true);
-			resourceField.setHeadingText("资源信息");
+			resourceField.setHeading("资源信息");
 			
 			resourceContent=new HTMLPanel("");
 			resourceField.add(resourceContent);
@@ -612,7 +606,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if(resourceParentField==null){
 			resourceParentField=new FieldSet();
 			resourceParentField.setCollapsible(true);
-			resourceParentField.setHeadingText("继承的资源信息");
+			resourceParentField.setHeading("继承的资源信息");
 			resourceParentContent=new HTMLPanel("");
 			resourceParentField.add(resourceParentContent);
 		}
@@ -627,17 +621,14 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		if(scriptFieldSet==null){
 			scriptFieldSet=new FieldSet();
 			scriptFieldSet.setCollapsible(true);
-			scriptFieldSet.setHeadingText("脚本");
+			scriptFieldSet.setHeading("脚本");
 			CodeMirrorConfig cmc=new CodeMirrorConfig();
 			script=new CodeMirror(cmc);
 			scriptFieldSet.add(script);
 			scriptFieldSet.setWidth("96%");
-			scriptFieldSet.addBeforeHideHandler(new BeforeHideEvent.BeforeHideHandler() {
-				@Override
-				public void onBeforeHide(BeforeHideEvent event) {
-					if(scriptFieldSet.getElement().getWidth(false)==0) {
-						event.setCancelled(true);
-					}
+			scriptFieldSet.addBeforeHideHandler(event -> {
+				if(scriptFieldSet.getElement().getWidth(false)==0) {
+					event.setCancelled(true);
 				}
 			});
 		}

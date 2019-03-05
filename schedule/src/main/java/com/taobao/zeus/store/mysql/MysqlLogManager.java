@@ -1,6 +1,6 @@
 package com.taobao.zeus.store.mysql;
 
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.model.LogDescriptor;
 import com.taobao.zeus.store.mysql.persistence.LogPersistence;

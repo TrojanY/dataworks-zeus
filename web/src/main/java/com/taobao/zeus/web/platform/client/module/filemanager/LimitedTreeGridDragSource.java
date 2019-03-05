@@ -2,7 +2,7 @@ package com.taobao.zeus.web.platform.client.module.filemanager;
 
 import java.util.List;
 
-import com.google.gwt.user.client.Element;
+import com.google.gwt.dom.client.Element;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
@@ -24,7 +24,7 @@ public class LimitedTreeGridDragSource extends TreeGridDragSource<FileModel> {
 	@Override
 	protected void onDragStart(DndDragStartEvent event) {
 		Element startTarget = event.getDragStartEvent().getStartElement()
-				.<Element> cast();
+				. cast();
 		Tree.TreeNode<FileModel> start = getWidget().findNode(startTarget);
 		if (start == null
 				|| !getWidget().getTreeView().isSelectableTarget(startTarget)) {

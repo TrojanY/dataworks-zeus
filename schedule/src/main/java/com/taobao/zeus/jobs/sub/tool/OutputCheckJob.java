@@ -45,7 +45,7 @@ public class OutputCheckJob extends AbstractJob {
 		FileSystem fs = FileSystem.get(ConfUtil.getDefaultCoreSite());
 		FileStatus[] files = fs.listStatus(hdfsPath);
 		double total = 0;
-		List<ContentSummary> dirFiles = new ArrayList<ContentSummary>();
+		List<ContentSummary> dirFiles = new ArrayList<>();
 		for (FileStatus f : files) {
 			if (f.isDir()) {
 				ContentSummary cs = fs.getContentSummary(f.getPath());

@@ -3,13 +3,9 @@ package com.taobao.zeus.web.platform.client.module.jobmanager;
 import java.util.List;
 
 import com.google.gwt.core.shared.GWT;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.resources.client.ImageResource;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.util.Margins;
-import com.sencha.gxt.data.shared.IconProvider;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
@@ -25,17 +21,11 @@ import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer.AccordionLayoutAppearance;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.BeforeShowContextMenuEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeShowContextMenuEvent.BeforeShowContextMenuHandler;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.TriggerClickEvent;
 import com.sencha.gxt.widget.core.client.form.StoreFilterField;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
-import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.taobao.zeus.web.platform.client.module.jobmanager.event.TreeNodeChangeEvent;
 import com.taobao.zeus.web.platform.client.module.jobmanager.images.Images;
@@ -47,7 +37,7 @@ public class JobTree extends ContentPanel{
 	
 	private JobManagerPresenter presenter;
 	public JobTree(final JobManagerPresenter presenter,boolean isMy){
-		super((ContentPanelAppearance) GWT.create(AccordionLayoutAppearance.class));
+		super( GWT.create(AccordionLayoutAppearance.class));
 		this.isMy=isMy;
 		this.presenter=presenter;
 		add(getContainer());
@@ -85,8 +75,8 @@ public class JobTree extends ContentPanel{
 	private boolean loading;
 	public void refresh(final Callback callback){
 		if(tree==null){
-			store=new TreeStore<GroupJobTreeModel>(TreeKeyProviderTool.getModelKeyProvider());
-			tree=new Tree<GroupJobTreeModel, String>(store, new ValueProvider<GroupJobTreeModel, String>() {
+			store=new TreeStore<>(TreeKeyProviderTool.getModelKeyProvider());
+			tree=new Tree<>(store, new ValueProvider<GroupJobTreeModel, String>() {
 				public String getPath() {
 					return "name";
 				}
@@ -104,90 +94,76 @@ public class JobTree extends ContentPanel{
 					
 				}
 			});
-			tree.setIconProvider(new IconProvider<GroupJobTreeModel>() {
-				@Override
-				public ImageResource getIcon(GroupJobTreeModel model) {
-					if(model.isJob()){
-						return Images.getResources().job();
-					}else if(model.isDirectory()){
-						return Images.getResources().folder_group();
-					}else{
-						return Images.getResources().leaf_group();
-					}
+			tree.setIconProvider(model -> {
+				if(model.isJob()){
+					return Images.getResources().job();
+				}else if(model.isDirectory()){
+					return Images.getResources().folder_group();
+				}else{
+					return Images.getResources().leaf_group();
 				}
 			});
 			tree.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-			tree.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<GroupJobTreeModel>() {
-				public void onSelectionChanged(
-						SelectionChangedEvent<GroupJobTreeModel> event) {
-					if(!loading){
-						if(!event.getSelection().isEmpty()){
-							GroupJobTreeModel model=event.getSelection().get(0);
-							presenter.onSelect(TreeKeyProviderTool.getModelKeyProvider().getKey(model));
-						}
+			tree.getSelectionModel().addSelectionChangedHandler(event -> {
+				if(!loading){
+					if(!event.getSelection().isEmpty()){
+						GroupJobTreeModel model=event.getSelection().get(0);
+						presenter.onSelect(TreeKeyProviderTool.getModelKeyProvider().getKey(model));
 					}
 				}
 			});
 			Menu menu=new Menu();
 			final MenuItem follow = new MenuItem("关注(接收报警)",
-					new SelectionHandler<MenuItem>() {
-						@Override
-						public void onSelection(SelectionEvent<MenuItem> event) {
-							final GroupJobTreeModel model = tree.getSelectionModel().getSelectedItem();
-							int type = 0;
-							if (model.isGroup()) {
-								type = 1;
-							} else if (model.isJob()) {
-								type = 2;
-							}
-							RPCS.getTreeService().follow(type,
-									model.getId(),
-									new AbstractAsyncCallback<Void>() {
-										public void onSuccess(Void result) {
-											model.setFollow(true);
-											tree.refresh(model);
-											Info.display("成功", "关注成功");
-										}
-									});
-								}
-					});
-			final MenuItem unfollow = new MenuItem("取消关注",
-					new SelectionHandler<MenuItem>() {
-						@Override
-						public void onSelection(SelectionEvent<MenuItem> event) {
-							final GroupJobTreeModel model = tree
-									.getSelectionModel().getSelectedItem();
-							int type = 0;
-							if (model.isGroup()) {
-								type = 1;
-							} else if (model.isJob()) {
-								type = 2;
-							}
-							RPCS.getTreeService().unfollow(type,
-									model.getId(),
-									new AbstractAsyncCallback<Void>() {
-										public void onSuccess(Void result) {
-											model.setFollow(false);
-											tree.refresh(model);
-											Info.display("成功", "取消关注成功");
-										}
-									});
+					event -> {
+						final GroupJobTreeModel model = tree.getSelectionModel().getSelectedItem();
+						int type = 0;
+						if (model.isGroup()) {
+							type = 1;
+						} else if (model.isJob()) {
+							type = 2;
 						}
+						RPCS.getTreeService().follow(type,
+								model.getId(),
+								new AbstractAsyncCallback<Void>() {
+									public void onSuccess(Void result) {
+										model.setFollow(true);
+										tree.refresh(model);
+										Info.display("成功", "关注成功");
+									}
+								});
+							});
+			final MenuItem unfollow = new MenuItem("取消关注",
+					event -> {
+						final GroupJobTreeModel model = tree
+								.getSelectionModel().getSelectedItem();
+						int type = 0;
+						if (model.isGroup()) {
+							type = 1;
+						} else if (model.isJob()) {
+							type = 2;
+						}
+						RPCS.getTreeService().unfollow(type,
+								model.getId(),
+								new AbstractAsyncCallback<Void>() {
+									public void onSuccess(Void result) {
+										model.setFollow(false);
+										tree.refresh(model);
+										Info.display("成功", "取消关注成功");
+									}
+								});
 					});
 			menu.add(follow);
 			menu.add(unfollow);
 			tree.setContextMenu(menu);
-			tree.addBeforeShowContextMenuHandler(new BeforeShowContextMenuHandler() {
-				public void onBeforeShowContextMenu(BeforeShowContextMenuEvent event) {
-					GroupJobTreeModel model=tree.getSelectionModel().getSelectedItem();
-					if(model!=null){
-						if(model.isFollow()){
-							follow.hide();
-							unfollow.show();
-						}else{
-							follow.show();
-							unfollow.hide();
-						}
+			tree.addBeforeShowContextMenuHandler(event -> {
+				GroupJobTreeModel model=tree.getSelectionModel().getSelectedItem();
+				if(model!=null){
+					if(model.isFollow()){
+						follow.hide();
+						unfollow.show();
+					}else{
+						follow.show();
+						unfollow.hide();
 					}
 				}
 			});
@@ -321,31 +297,29 @@ public class JobTree extends ContentPanel{
 			}
 			final JobDropTarget targetThis=this;
 			ConfirmMessageBox confirm=new ConfirmMessageBox("警告", "迁移组/任务将会产生一定的风险，请确认:<br/>1.本次迁移造成的继承配置项改变，不影响任务正常运行.<br/>2.本次迁移造成的继承资源改变，不影响任务正常运行");
-			confirm.addHideHandler(new HideHandler() {
-				public void onHide(HideEvent he) {
-					Dialog dialog=(Dialog) he.getSource();
-					if(DefaultMessages.getMessages().messageBox_yes().equals(dialog.getHideButton().getText())){
-						if(sourceItem.isJob()){
-							RPCS.getJobService().move(sourceItem.getId(), activeItem.getModel().getId(), new AbstractAsyncCallback<Void>() {
-								public void onSuccess(Void result) {
-									source.removeSource();
-									targetThis.proxySuperDragDrop(event);
-									TreeNodeChangeEvent tnce=new TreeNodeChangeEvent();
-									tnce.setNeedSelectProviderKey(TreeKeyProviderTool.genJobProviderKey(sourceItem.getId()));
-									presenter.getPlatformContext().getPlatformBus().fireEvent(tnce);
-								}
-							});
-						}else{
-							RPCS.getGroupService().move(sourceItem.getId(), activeItem.getModel().getId(), new AbstractAsyncCallback<Void>() {
-								public void onSuccess(Void result) {
-									source.removeSource();
-									targetThis.proxySuperDragDrop(event);
-									TreeNodeChangeEvent tnce=new TreeNodeChangeEvent();
-									tnce.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(sourceItem.getId()));
-									presenter.getPlatformContext().getPlatformBus().fireEvent(tnce);
-								}
-							});
-						}
+			confirm.addHideHandler(he -> {
+				Dialog dialog=(Dialog) he.getSource();
+				if(DefaultMessages.getMessages().messageBox_yes().equals(dialog.getButton(Dialog.PredefinedButton.YES).getText())){
+					if(sourceItem.isJob()){
+						RPCS.getJobService().move(sourceItem.getId(), activeItem.getModel().getId(), new AbstractAsyncCallback<Void>() {
+							public void onSuccess(Void result) {
+								source.removeSource();
+								targetThis.proxySuperDragDrop(event);
+								TreeNodeChangeEvent tnce=new TreeNodeChangeEvent();
+								tnce.setNeedSelectProviderKey(TreeKeyProviderTool.genJobProviderKey(sourceItem.getId()));
+								presenter.getPlatformContext().getPlatformBus().fireEvent(tnce);
+							}
+						});
+					}else{
+						RPCS.getGroupService().move(sourceItem.getId(), activeItem.getModel().getId(), new AbstractAsyncCallback<Void>() {
+							public void onSuccess(Void result) {
+								source.removeSource();
+								targetThis.proxySuperDragDrop(event);
+								TreeNodeChangeEvent tnce=new TreeNodeChangeEvent();
+								tnce.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(sourceItem.getId()));
+								presenter.getPlatformContext().getPlatformBus().fireEvent(tnce);
+							}
+						});
 					}
 				}
 			});

@@ -21,7 +21,6 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.CenterTemplate;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.FormatUtil;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.FileUploadWidget;
-import com.taobao.zeus.web.platform.client.module.jobdisplay.job.FileUploadWidget.UploadCallback;
 import com.taobao.zeus.web.platform.client.module.jobmanager.GroupModel;
 import com.taobao.zeus.web.platform.client.module.jobmanager.event.TreeNodeChangeEvent;
 import com.taobao.zeus.web.platform.client.util.RPCS;
@@ -44,17 +43,14 @@ public class CardEditGroup extends CenterTemplate implements Refreshable<GroupMo
 	private TextButton upload=new TextButton("上传资源文件", new SelectHandler() {
 		@Override
 		public void onSelect(SelectEvent event) {
-			new FileUploadWidget("group", model.getId(),new UploadCallback() {
-				@Override
-				public void call(String name, String uri) {
-					Map<String, String> map=new HashMap<String, String>();
-					map.put("name", name);
-					map.put("uri", uri);
-					List<Map<String, String>> temp=new ArrayList<Map<String,String>>();
-					temp.add(map);
-					resources.setValue(resources.getValue()+"\n"+FormatUtil.convertResourcesToEditString(temp));
-					
-				}
+			new FileUploadWidget("group", model.getId(), (name, uri) -> {
+				Map<String, String> map=new HashMap<>();
+				map.put("name", name);
+				map.put("uri", uri);
+				List<Map<String, String>> temp=new ArrayList<>();
+				temp.add(map);
+				resources.setValue(resources.getValue()+"\n"+FormatUtil.convertResourcesToEditString(temp));
+
 			}).show();
 		}
 	});
@@ -95,7 +91,7 @@ public class CardEditGroup extends CenterTemplate implements Refreshable<GroupMo
 		centerContainer.setScrollMode(ScrollMode.AUTOY);
 		
 		FieldSet one=new FieldSet();
-		one.setHeadingText("基本信息");
+		one.setHeading("基本信息");
 		VerticalLayoutContainer p1 = new VerticalLayoutContainer();
 		p1.add(new FieldLabel(name, "名称"),new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 		p1.add(new FieldLabel(desc, "描述"),new VerticalLayoutContainer.VerticalLayoutData(1, 1));
@@ -104,7 +100,7 @@ public class CardEditGroup extends CenterTemplate implements Refreshable<GroupMo
 		centerContainer.add(one,new MarginData(5));
 		
 		final FieldSet two=new FieldSet();
-		two.setHeadingText("配置项信息");
+		two.setHeading("配置项信息");
 		configs=new TextArea();
 		configs.setResizable(TextAreaInputCell.Resizable.BOTH);
 		configs.addValidator(FormatUtil.propValidator);
@@ -115,7 +111,7 @@ public class CardEditGroup extends CenterTemplate implements Refreshable<GroupMo
 		centerContainer.add(two,new MarginData(5));
 		
 		final FieldSet three=new FieldSet();
-		three.setHeadingText("资源信息");
+		three.setHeading("资源信息");
 		resources=new TextArea();
 		resources.setResizable(Resizable.BOTH);
 		resources.setWidth(800);
@@ -126,11 +122,7 @@ public class CardEditGroup extends CenterTemplate implements Refreshable<GroupMo
 		
 		setCenter(centerContainer);
 		
-		addButton(new TextButton("返回", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				presenter.display(presenter.getGroupModel());
-			}
-		}));
+		addButton(new TextButton("返回", event -> presenter.display(presenter.getGroupModel())));
 		addButton(upload);
 		addButton(save);
 		

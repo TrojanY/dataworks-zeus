@@ -17,8 +17,6 @@ import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VBoxLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.Viewport;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.taobao.zeus.web.platform.client.app.Application;
 import com.taobao.zeus.web.platform.client.app.PlacePath.App;
 import com.taobao.zeus.web.platform.client.app.PlatformPlace.KV;
@@ -50,7 +48,7 @@ public class Platform implements IsWidget ,PlaceHandler{
 	CardLayoutContainer screen;
 	
 	private final PlatformContext platformContext;
-	private List<Shortcut> shortcuts=new ArrayList<Shortcut>();
+	private List<Shortcut> shortcuts=new ArrayList<>();
 	public Platform(ZUser user){
 		platformContext=new PlatformContext(user);
 		viewport=(Viewport) uiBinder.createAndBindUi(this);
@@ -62,17 +60,15 @@ public class Platform implements IsWidget ,PlaceHandler{
 		return viewport;
 	}
 	
-	private Map<Application, Widget> apps=new HashMap<Application, Widget>();
+	private Map<Application, Widget> apps=new HashMap<>();
 	public void addApp(final Application app){
 		apps.put(app, null);
 		if(!shortcuts.contains(app.getShortcut())){
-			app.getShortcut().addSelectHandler(new SelectHandler() {
-				public void onSelect(SelectEvent event) {System.out.println("SelectHandler");
-					if(screen.getActiveWidget()!=null && screen.getActiveWidget().equals(apps.get(app))){
-						return;
-					}
-					getPlatformContext().getPlatformBus().fireEvent(new PlatformPlaceChangeEvent(app.getPlace(),true));
+			app.getShortcut().addSelectHandler(event -> {System.out.println("SelectHandler");
+				if(screen.getActiveWidget()!=null && screen.getActiveWidget().equals(apps.get(app))){
+					return;
 				}
+				getPlatformContext().getPlatformBus().fireEvent(new PlatformPlaceChangeEvent(app.getPlace(),true));
 			});
 			shortcuts.add(app.getShortcut());
 			

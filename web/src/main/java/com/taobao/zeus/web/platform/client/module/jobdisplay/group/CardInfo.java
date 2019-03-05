@@ -10,8 +10,6 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
@@ -32,7 +30,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 			presenter.displayOverall();
 		}
 	});
-	
+
 	private TextButton running=new TextButton("自动任务",new SelectHandler() {
 		public void onSelect(SelectEvent event) {
 			presenter.displayRunning();
@@ -63,18 +61,16 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	private TextButton deleteGroup=new TextButton("删除",new SelectHandler() {
 		public void onSelect(SelectEvent event) {
 			ConfirmMessageBox box=new ConfirmMessageBox("删除组", "你确认删除此组?");
-			box.addHideHandler(new HideHandler() {
-				public void onHide(HideEvent event) {
-					Dialog btn = (Dialog) event.getSource();
-					if(btn.getHideButton().getText().equalsIgnoreCase("yes")){
-						RPCS.getGroupService().deleteGroup(presenter.getGroupModel().getId(), new AbstractAsyncCallback<Void>() {
-							public void onSuccess(Void result) {
-								TreeNodeChangeEvent event=new TreeNodeChangeEvent();
-								event.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(presenter.getGroupModel().getParent()));
-								presenter.getPlatformContext().getPlatformBus().fireEvent(event);
-							}
-						});
-					}
+			box.addHideHandler(event1 -> {
+				Dialog btn = (Dialog) event1.getSource();
+				if(btn.getButton(Dialog.PredefinedButton.YES).getText().equalsIgnoreCase("yes")){
+					RPCS.getGroupService().deleteGroup(presenter.getGroupModel().getId(), new AbstractAsyncCallback<Void>() {
+						public void onSuccess(Void result) {
+							TreeNodeChangeEvent event1 =new TreeNodeChangeEvent();
+							event1.setNeedSelectProviderKey(TreeKeyProviderTool.genGroupProviderKey(presenter.getGroupModel().getParent()));
+							presenter.getPlatformContext().getPlatformBus().fireEvent(event1);
+						}
+					});
 				}
 			});
 			box.show();
@@ -218,7 +214,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	public FieldSet getBaseFieldSet() {
 		if(baseFieldSet==null){
 			baseFieldSet=new FieldSet();
-			baseFieldSet.setHeadingText("基本信息");
+			baseFieldSet.setHeading("基本信息");
 			
 			VerticalLayoutContainer p = new VerticalLayoutContainer();
 			
@@ -243,7 +239,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	public FieldSet getConfigParentField() {
 		if(configParentField==null){
 			configParentField=new FieldSet();
-			configParentField.setHeadingText("继承的配置项信息");
+			configParentField.setHeading("继承的配置项信息");
 			configParentField.setCollapsible(true);
 			
 			configParentContent=new HTMLPanel("");
@@ -255,7 +251,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	public FieldSet getResourceField() {
 		if(resourceField==null){
 			resourceField=new FieldSet();
-			resourceField.setHeadingText("资源信息");
+			resourceField.setHeading("资源信息");
 			resourceContent=new HTMLPanel("");
 			resourceField.add(resourceContent);
 		}
@@ -265,7 +261,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	public FieldSet getResourceParentField() {
 		if(resourceParentField==null){
 			resourceParentField=new FieldSet();
-			resourceParentField.setHeadingText("继承的资源信息");
+			resourceParentField.setHeading("继承的资源信息");
 			resourceParentContent=new HTMLPanel("");
 			resourceParentField.add(resourceParentContent);
 		}
@@ -275,7 +271,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<GroupModel>{
 	public FieldSet getConfigFieldSet() {
 		if(configFieldSet==null){
 			configFieldSet=new FieldSet();
-			configFieldSet.setHeadingText("配置项信息");
+			configFieldSet.setHeading("配置项信息");
 			
 			configContent=new HTMLPanel("");
 			configFieldSet.add(configContent);

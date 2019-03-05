@@ -14,10 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<hadoop.version>2.7.6</hadoop.version>
-		<hive.version>3.1.1</hive.version>
-		<thrift.version>0.9.0</thrift.version>
-		<log4j.version>1.2.17</log4j.version>
+
 	</properties>
 
 	<dependencies>
@@ -34,37 +31,18 @@
 			<artifactId>protobuf-java</artifactId>
 		</dependency>
 
-<!--		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-common</artifactId>
-			<version>${hadoop.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.eclipse.jdt</groupId>
-					<artifactId>core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>-->
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
-			<version>${hadoop.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-metastore</artifactId>
-			<version>${hive.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive.version}</version>
         </dependency>
-        <!--<dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-common</artifactId>
-            <version>${hive.version}</version>
-        </dependency>-->
 
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
@@ -76,19 +54,24 @@
 		</dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
         </dependency>
 
         <!-- db persist-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
         <!--<dependency>
             <groupId>javax.jdo</groupId>
             <artifactId>jdo2-api</artifactId>
             <version>2.3-eb</version>
         </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>ejb3-persistence</artifactId>
@@ -104,8 +87,8 @@
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
 		</dependency>
-        -->
-        <!--<dependency>
+
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate</artifactId>
             <version>3.2.7.ga</version>
@@ -115,11 +98,11 @@
                     <artifactId>cglib</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>-->
+        </dependency>
+        -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-annotations</artifactId>
-            <version>3.5.4-Final</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

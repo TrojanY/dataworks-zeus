@@ -3,7 +3,6 @@ package com.taobao.zeus.web.platform.client.module.jobdisplay.job;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextField;
@@ -32,7 +31,7 @@ public class CardEditCron extends Window  {
 	}
 
 	public CardEditCron(String exp){
-		setHeadingText("构造定时表达式");
+		setHeading("构造定时表达式");
 		setModal(true);
 		setHeight(270);
 		setWidth(230);
@@ -86,15 +85,11 @@ public class CardEditCron extends Window  {
 		getLayoutContainer().add(dayWrapper);
 		getLayoutContainer().add(monthWrapper);
 		getLayoutContainer().add(weekWrapper);
-		addButton(new TextButton("确认",new SelectHandler() {
-			
-			@Override
-			public void onSelect(SelectEvent event) {
-				if (handler != null) {
-					handler.onSelect(event);
-				}
-				CardEditCron.this.hide();
+		addButton(new TextButton("确认", event -> {
+			if (handler != null) {
+				handler.onSelect(event);
 			}
+			CardEditCron.this.hide();
 		}));
 	}
 	

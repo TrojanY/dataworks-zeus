@@ -5,14 +5,11 @@ import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.toolbar.SeparatorToolItem;
-import com.taobao.zeus.util.Environment;
 import com.taobao.zeus.web.platform.client.lib.codemirror.CodeMirror;
 import com.taobao.zeus.web.platform.client.lib.codemirror.CodeMirror.OnChangeListener;
 import com.taobao.zeus.web.platform.client.module.filemanager.FileModel;
@@ -92,18 +89,16 @@ public class ShellToolBar extends AbstractToolBar{
 			}
 			if(!exist){
 				final CheckableJobTree tree=new CheckableJobTree();
-				tree.setHeadingText("同步任务");
+				tree.setHeading("同步任务");
 				tree.getTree().setCheckable(false);
 				tree.getTree().getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-				tree.setSelectHandler(new SelectHandler() {
-					public void onSelect(SelectEvent event) {
-						GroupJobTreeModel job=tree.getTree().getSelectionModel().getSelectedItem();
-						if(job!=null){
-							if(job.isGroup()){
-								new AlertMessageBox("错误","不能选择组").show();
-							}else{
-								syncScript(job.getId(),true);
-							}
+				tree.setSelectHandler(event1 -> {
+					GroupJobTreeModel job=tree.getTree().getSelectionModel().getSelectedItem();
+					if(job!=null){
+						if(job.isGroup()){
+							new AlertMessageBox("错误","不能选择组").show();
+						}else{
+							syncScript(job.getId(),true);
 						}
 					}
 				});
@@ -125,29 +120,27 @@ public class ShellToolBar extends AbstractToolBar{
 					sb.append("host组id：" + (result.getHostGroupId()) + "<br/>");
 					sb.append("您确认要进行同步吗?");
 					ConfirmMessageBox confirm=new ConfirmMessageBox("同步脚本和host组id", sb.toString());
-					confirm.addHideHandler(new HideHandler() {
-						public void onHide(HideEvent event) {
-							Dialog dialog=(Dialog)event.getSource();
-							if(dialog.getHideButton().getText().equals(DefaultMessages.getMessages().messageBox_yes())){
-								if(firstTime){
-									shellWord.getEditTab().getCodeMirror().setValue("#sync["+shellWord.getFileModel().getId()+"->"
-											+jobId+"]\n"+shellWord.getEditTab().getNewContent());
-								}
-								String hostGroupId = shellWord.getFileModel().getHostGroupId();
-								RPCS.getJobService().syncScriptAndHostGroupId(jobId, shellWord.getEditTab().getNewContent(), hostGroupId,
-									new AbstractAsyncCallback<Void>() {
-										@Override
-										public void onSuccess(
-												Void result) {
-											Info.display("同步成功","同步成功");
-										}
-									});
+					confirm.addHideHandler(event -> {
+						Dialog dialog=(Dialog)event.getSource();
+						if(dialog.getButton(Dialog.PredefinedButton.YES).getText().equals(DefaultMessages.getMessages().messageBox_yes())){
+							if(firstTime){
+								shellWord.getEditTab().getCodeMirror().setValue("#sync["+shellWord.getFileModel().getId()+"->"
+										+jobId+"]\n"+shellWord.getEditTab().getNewContent());
+							}
+							String hostGroupId = shellWord.getFileModel().getHostGroupId();
+							RPCS.getJobService().syncScriptAndHostGroupId(jobId, shellWord.getEditTab().getNewContent(), hostGroupId,
+								new AbstractAsyncCallback<Void>() {
+									@Override
+									public void onSuccess(
+											Void result1) {
+										Info.display("同步成功","同步成功");
+									}
+								});
 //								RPCS.getJobService().syncScript(jobId, shellWord.getEditTab().getNewContent(), new AbstractAsyncCallback<Void>() {
 //									public void onSuccess(Void result) {
 //										Info.display("同步成功", "同步成功");
 //									}
 //								});
-							}
 						}
 					});
 					confirm.show();

@@ -24,10 +24,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate3.HibernateTemplate;
+import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.taobao.zeus.model.HostGroupCache;
@@ -108,7 +109,7 @@ public class ScheduleDump extends HttpServlet {
 								HeartBeatInfo heart = holder.getHeart();
 								builder.append("<tr>");
 								builder.append("<td>");
-								builder.append(channel.getRemoteAddress()+ ":");
+								builder.append(channel.remoteAddress()+ ":");
 								builder.append("<br>" + "runnings:"+ runnings.toString());
 								builder.append("<br>" + "manual runnings:"+ manualRunnings.toString());
 								builder.append("<br>" + "debug runnings:"+ debugRunnings.toString());
@@ -263,8 +264,8 @@ public class ScheduleDump extends HttpServlet {
 													.parseLong(currentDateStr) - 15000000)) {
 												try {
 													context.getScheduler()
-															.deleteJob(jobId,
-																	"zeus");
+															.deleteJob(new JobKey(jobId,
+																	"zeus"));
 												} catch (SchedulerException e) {
 													e.printStackTrace();
 												}
@@ -275,8 +276,8 @@ public class ScheduleDump extends HttpServlet {
 															.containsKey(Long
 																	.valueOf(jobId))) {
 														context.getScheduler()
-																.deleteJob(jobId,
-																		"zeus");
+																.deleteJob(new JobKey(jobId,
+																		"zeus"));
 														context.getGroupManager()
 																.removeJob(
 																		Long.valueOf(jobId));

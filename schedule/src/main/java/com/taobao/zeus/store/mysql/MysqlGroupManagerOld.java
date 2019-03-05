@@ -1,6 +1,5 @@
 package com.taobao.zeus.store.mysql;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,14 +14,10 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.HibernateTemplate;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.GroupDescriptor;
@@ -71,7 +66,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 				throw new ZeusException("该组下不为空，无法删除");
 			}
 		}
-		GroupPersistence object = (GroupPersistence)getHibernateTemplate().get(GroupPersistence.class,
+		GroupPersistence object = getHibernateTemplate().get(GroupPersistence.class,
 				Integer.valueOf(groupId));
 		object.setExisted(0);
 		object.setGmtModified(new Date());
@@ -83,7 +78,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 		GroupBeanOld root = getGlobeGroupBean();
 		JobBeanOld job = root.getAllSubJobBeans().get(jobId);
 		if (!job.getDepender().isEmpty()) {
-			List<String> deps = new ArrayList<String>();
+			List<String> deps = new ArrayList<>();
 			for (JobBeanOld jb : job.getDepender()) {
 				deps.add(jb.getJobDescriptor().getId());
 			}
@@ -139,10 +134,10 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	 */
 	@Override
 	public List<Tuple<JobDescriptorOld, JobStatus>> getChildrenJob(String groupId) {
-		List<JobPersistenceOld> list = getHibernateTemplate().find(
+		List<JobPersistenceOld> list = (List<JobPersistenceOld>)getHibernateTemplate().find(
 				"from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where groupId="
 						+ groupId);
-		List<Tuple<JobDescriptorOld, JobStatus>> result = new ArrayList<Tuple<JobDescriptorOld, JobStatus>>();
+		List<Tuple<JobDescriptorOld, JobStatus>> result = new ArrayList<>();
 		if (list != null) {
 			for (JobPersistenceOld j : list) {
 				result.add(PersistenceAndBeanConvertOld.convert(j));
@@ -159,10 +154,10 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	 */
 	@Override
 	public List<GroupDescriptor> getChildrenGroup(String groupId) {
-		List<GroupPersistence> list = getHibernateTemplate().find(
+		List<GroupPersistence> list = (List<GroupPersistence>)getHibernateTemplate().find(
 				"from com.taobao.zeus.store.mysql.persistence.GroupPersistence where parent="
 						+ groupId);
-		List<GroupDescriptor> result = new ArrayList<GroupDescriptor>();
+		List<GroupDescriptor> result = new ArrayList<>();
 		if (list != null) {
 			for (GroupPersistence p : list) {
 				result.add(PersistenceAndBeanConvertOld.convert(p));
@@ -173,7 +168,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	@Override
 	public GroupDescriptor getGroupDescriptor(String groupId) {
-		GroupPersistence persist = (GroupPersistence) getHibernateTemplate()
+		GroupPersistence persist = getHibernateTemplate()
 				.get(GroupPersistence.class, Integer.valueOf(groupId));
 		if (persist != null) {
 			return PersistenceAndBeanConvertOld.convert(persist);
@@ -193,7 +188,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 		// 如果是周期任务，并且依赖不为空，则需要封装周期任务的依赖
 		if (jd.getScheduleType() == JobScheduleTypeOld.CyleJob
 				&& jd.getDependencies() != null) {
-			JobPersistenceOld jp = null;
+			JobPersistenceOld jp;
 			for (String jobID : jd.getDependencies()) {
 				if (StringUtils.isNotEmpty(jobID)) {
 					jp = getJobPersistence(jobID);
@@ -208,7 +203,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	}
 
 	private JobPersistenceOld getJobPersistence(String jobId) {
-		JobPersistenceOld persist = (JobPersistenceOld) getHibernateTemplate().get(
+		JobPersistenceOld persist = getHibernateTemplate().get(
 				JobPersistenceOld.class, Long.valueOf(jobId));
 		if (persist == null) {
 			return null;
@@ -218,29 +213,24 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	@Override
 	public String getRootGroupId() {
-		return (String) getHibernateTemplate().execute(new HibernateCallback() {
-
-			@Override
-			public Object doInHibernate(Session session)
-					throws HibernateException, SQLException {
-				Query query = session
-						.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence g order by g.id asc");
-				query.setMaxResults(1);
-				List<GroupPersistence> list = query.list();
-				if (list == null || list.size() == 0) {
-					GroupPersistence persist = new GroupPersistence();
-					persist.setName("众神之神");
-					persist.setOwner(ZeusUser.ADMIN.getUid());
-					persist.setDirectory(0);
-					session.save(persist);
-					if (persist.getId() == null) {
-						return null;
-					}
-					return String.valueOf(persist.getId());
-				}
-				return String.valueOf(list.get(0).getId());
-			}
-		});
+		return getHibernateTemplate().execute(session -> {
+            Query query = session
+                    .createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence g order by g.id asc");
+            query.setMaxResults(1);
+            List<GroupPersistence> list = query.list();
+            if (list == null || list.size() == 0) {
+                GroupPersistence persist = new GroupPersistence();
+                persist.setName("众神之神");
+                persist.setOwner(ZeusUser.ADMIN.getUid());
+                persist.setDirectory(0);
+                session.save(persist);
+                if (persist.getId() == null) {
+                    return null;
+                }
+                return String.valueOf(persist.getId());
+            }
+            return String.valueOf(list.get(0).getId());
+        });
 	}
 
 	@Override
@@ -256,7 +246,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	@Override
 	public void updateGroup(String user, GroupDescriptor group)
 			throws ZeusException {
-		GroupPersistence old = (GroupPersistence) getHibernateTemplate().get(
+		GroupPersistence old = getHibernateTemplate().get(
 				GroupPersistence.class, Integer.valueOf(group.getId()));
 		updateGroup(user, group, old.getOwner(), old.getParent() == null ? null
 				: old.getParent().toString());
@@ -265,7 +255,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	public void updateGroup(String user, GroupDescriptor group, String owner,
 			String parent) throws ZeusException {
 
-		GroupPersistence old = (GroupPersistence) getHibernateTemplate().get(
+		GroupPersistence old = getHibernateTemplate().get(
 				GroupPersistence.class, Integer.valueOf(group.getId()));
 
 		GroupPersistence persist = PersistenceAndBeanConvertOld.convert(group);
@@ -286,7 +276,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	@Override
 	public void updateJob(String user, JobDescriptorOld job) throws ZeusException {
-		JobPersistenceOld orgPersist = (JobPersistenceOld) getHibernateTemplate()
+		JobPersistenceOld orgPersist =  getHibernateTemplate()
 				.get(JobPersistenceOld.class, Long.valueOf(job.getId()));
 		updateJob(user, job, orgPersist.getOwner(), orgPersist.getGroupId()
 				.toString());
@@ -294,10 +284,10 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	public void updateJob(String user, JobDescriptorOld job, String owner,
 			String groupId) throws ZeusException {
-		JobPersistenceOld orgPersist = (JobPersistenceOld) getHibernateTemplate()
+		JobPersistenceOld orgPersist = getHibernateTemplate()
 				.get(JobPersistenceOld.class, Long.valueOf(job.getId()));
 		if (job.getScheduleType() == JobScheduleTypeOld.Independent) {
-			job.setDependencies(new ArrayList<String>());
+			job.setDependencies(new ArrayList<>());
 		} else if (job.getScheduleType() == JobScheduleTypeOld.Dependent) {
 			job.setCronExpression("");
 		}
@@ -390,35 +380,30 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	@Override
 	public Map<String, Tuple<JobDescriptorOld, JobStatus>> getJobDescriptor(
 			final Collection<String> jobIds) {
-		List<Tuple<JobDescriptorOld, JobStatus>> list = (List<Tuple<JobDescriptorOld, JobStatus>>) getHibernateTemplate()
-				.execute(new HibernateCallback() {
+		List<Tuple<JobDescriptorOld, JobStatus>> list = getHibernateTemplate()
+				.execute(session -> {
+                    if (jobIds.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+                    List<Long> ids = new ArrayList<>();
+                    for (String i : jobIds) {
+                        ids.add(Long.valueOf(i));
+                    }
+                    Query query = session
+                            .createQuery("from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where id in (:list)");
+                    query.setParameterList("list", ids);
+                    List<JobPersistenceOld> list1 = query.list();
+                    List<Tuple<JobDescriptorOld, JobStatus>> result = new ArrayList<>();
+                    if (list1 != null && !list1.isEmpty()) {
+                        for (JobPersistenceOld persist : list1) {
+                            result.add(PersistenceAndBeanConvertOld
+                                    .convert(persist));
+                        }
+                    }
+                    return result;
+                });
 
-					@Override
-					public Object doInHibernate(Session session)
-							throws HibernateException, SQLException {
-						if (jobIds.isEmpty()) {
-							return Collections.emptyList();
-						}
-						List<Long> ids = new ArrayList<Long>();
-						for (String i : jobIds) {
-							ids.add(Long.valueOf(i));
-						}
-						Query query = session
-								.createQuery("from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where id in (:list)");
-						query.setParameterList("list", ids);
-						List<JobPersistenceOld> list = query.list();
-						List<Tuple<JobDescriptorOld, JobStatus>> result = new ArrayList<Tuple<JobDescriptorOld, JobStatus>>();
-						if (list != null && !list.isEmpty()) {
-							for (JobPersistenceOld persist : list) {
-								result.add(PersistenceAndBeanConvertOld
-										.convert(persist));
-							}
-						}
-						return result;
-					}
-				});
-
-		Map<String, Tuple<JobDescriptorOld, JobStatus>> map = new HashMap<String, Tuple<JobDescriptorOld, JobStatus>>();
+		Map<String, Tuple<JobDescriptorOld, JobStatus>> map = new HashMap<>();
 		for (Tuple<JobDescriptorOld, JobStatus> jd : list) {
 			map.put(jd.getX().getId(), jd);
 		}
@@ -426,37 +411,33 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	}
 
 	public List<JobDescriptorOld> getJobDescriptors(final Collection<String> jobIds) {
-		List<JobDescriptorOld> list = (List<JobDescriptorOld>) getHibernateTemplate()
-				.execute(new HibernateCallback() {
-					@Override
-					public Object doInHibernate(Session session)
-							throws HibernateException, SQLException {
-						if (jobIds.isEmpty()) {
-							return Collections.emptyList();
-						}
-						List<Long> ids = new ArrayList<Long>();
-						for (String i : jobIds) {
-							if (StringUtils.isNotEmpty(i)) {
-								ids.add(Long.valueOf(i));
-							}
-						}
-						if (ids.isEmpty()) {
-							return Collections.emptyList();
-						}
-						Query query = session
-								.createQuery("from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where id in (:list)");
-						query.setParameterList("list", ids);
-						List<JobPersistenceOld> list = query.list();
-						List<JobDescriptorOld> result = new ArrayList<JobDescriptorOld>();
-						if (list != null && !list.isEmpty()) {
-							for (JobPersistenceOld persist : list) {
-								result.add(PersistenceAndBeanConvertOld.convert(
-										persist).getX());
-							}
-						}
-						return result;
-					}
-				});
+		List<JobDescriptorOld> list = getHibernateTemplate()
+				.execute(session -> {
+                    if (jobIds.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+                    List<Long> ids = new ArrayList<>();
+                    for (String i : jobIds) {
+                        if (StringUtils.isNotEmpty(i)) {
+                            ids.add(Long.valueOf(i));
+                        }
+                    }
+                    if (ids.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+                    Query query = session
+                            .createQuery("from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where id in (:list)");
+                    query.setParameterList("list", ids);
+                    List<JobPersistenceOld> list1 = query.list();
+                    List<JobDescriptorOld> result = new ArrayList<>();
+                    if (list1 != null && !list1.isEmpty()) {
+                        for (JobPersistenceOld persist : list1) {
+                            result.add(PersistenceAndBeanConvertOld.convert(
+                                    persist).getX());
+                        }
+                    }
+                    return result;
+                });
 		return list;
 	}
 
@@ -526,15 +507,12 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	@Override
 	public List<String> getHosts() throws ZeusException {
-		return (List<String>) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session)
-							throws HibernateException, SQLException {
-						Query query = session
-								.createQuery("select host from com.taobao.zeus.store.mysql.persistence.Worker");
-						return query.list();
-					}
-				});
+		return getHibernateTemplate().execute(
+               session -> {
+                    Query query = session
+                            .createQuery("select host from com.taobao.zeus.store.mysql.persistence.Worker");
+                    return query.list();
+                });
 	}
 
 	@Override
@@ -557,16 +535,10 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 		}
 
 	}
-	
-	/**
-	 * 获取All Jobs
-	 * 
-	 * @param groupId
-	 * @return
-	 */
+
 	@Override
 	public List<JobPersistenceOld> getAllJobs() {
-		List<JobPersistenceOld> list = getHibernateTemplate().find(
+		List<JobPersistenceOld> list = (List<JobPersistenceOld>)getHibernateTemplate().find(
 				"from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld ");
 		return list;
 	}
@@ -575,7 +547,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	public List<String> getAllDependencied(String jobID) {
 		List<JobPersistenceOld> jobs = getAllJobs();
 		if( jobs == null || jobs.size() == 0) return null;
-		Map<String, List<String>> allJobDependencied = new HashMap<String, List<String>>();
+		Map<String, List<String>> allJobDependencied = new HashMap<>();
 		for(JobPersistenceOld job : jobs){
 			JobDescriptorOld jobd = PersistenceAndBeanConvertOld.convert(job).getX();
 			if( jobd != null && jobd.hasDependencies()){
@@ -583,7 +555,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 				for(String dep : deps){
 					List<String> depds = allJobDependencied.get(dep);
 					if(depds == null){
-						depds = new ArrayList<String>();
+						depds = new ArrayList<>();
 					}
 					depds.add(job.getId().toString());
 					allJobDependencied.put(dep, depds);
@@ -591,9 +563,9 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 			}
 		}
 		
-		List<String> dependencied = new ArrayList<String>();
-		Set<String> visited = new HashSet<String>();
-		Queue<String> idQueue = new LinkedList<String>();
+		List<String> dependencied = new ArrayList<>();
+		Set<String> visited = new HashSet<>();
+		Queue<String> idQueue = new LinkedList<>();
 		idQueue.offer(jobID);
 		visited.add(jobID);
 		while (!idQueue.isEmpty()) {
@@ -616,9 +588,9 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 	public List<String> getAllDependencies(String jobID) {
 		JobDescriptorOld job = getJobDescriptor(jobID).getX();
 		if(job == null || !job.hasDependencies()) return null;
-		List<String> dependencies = new ArrayList<String>();
-		Set<String> visited = new HashSet<String>();
-		Queue<String> idQueue = new LinkedList<String>();
+		List<String> dependencies = new ArrayList<>();
+		Set<String> visited = new HashSet<>();
+		Queue<String> idQueue = new LinkedList<>();
 		idQueue.offer(jobID);
 		visited.add(jobID);
 		while (!idQueue.isEmpty()) {
@@ -651,8 +623,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 		Integer workGroupId = persist.getHostGroupId();
 		Integer auto = persist.getAuto();
 		logger.info("begin updateActionList.");
-		HibernateTemplate template = getHibernateTemplate();
-		List<JobPersistence> actionList = template.find("from com.taobao.zeus.store.mysql.persistence.JobPersistence where toJobId='"+ jobId +"' order by id desc");
+		List<JobPersistence> actionList = (List<JobPersistence>)getHibernateTemplate().find("from com.taobao.zeus.store.mysql.persistence.JobPersistence where toJobId='"+ jobId +"' order by id desc");
 		logger.info("finish query.");
 		if (actionList != null && actionList.size() > 0 ){
 			for(JobPersistence actionPer : actionList){
@@ -664,7 +635,7 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 					actionPer.setGmtModified(new Date());
 					actionPer.setHostGroupId(workGroupId);
 					actionPer.setAuto(auto);
-					template.saveOrUpdate(actionPer);
+                    getHibernateTemplate().saveOrUpdate(actionPer);
 //				}
 			}
 			logger.info("finish update " + actionList.size() + ".");

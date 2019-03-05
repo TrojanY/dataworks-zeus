@@ -5,13 +5,12 @@ import com.google.gwt.resources.client.ClientBundle;
 import com.taobao.zeus.web.platform.client.widget.ShortcutCell.ShortcutCellAppearance;
 import com.sencha.gxt.theme.base.client.button.ButtonCellDefaultAppearance;
 import com.sencha.gxt.theme.base.client.frame.TableFrame;
-import com.sencha.gxt.theme.base.client.frame.TableFrame.TableFrameResources;
 
 public class ShortcutCellDefaultAppearance<C> extends ButtonCellDefaultAppearance<C> implements
     ShortcutCellAppearance<C> {
 
   public interface ShortcutCellResources extends ButtonCellResources, ClientBundle {
-    @Source({"com/sencha/gxt/theme/base/client/button/ButtonCell.css", "ShortcutCell.css"})
+    @Source({"com/sencha/gxt/theme/base/client/button/ButtonCell.gss", "ShortcutCell.gss"})
     @Override
     ShortcutCellStyle style();
   }
@@ -21,9 +20,9 @@ public class ShortcutCellDefaultAppearance<C> extends ButtonCellDefaultAppearanc
   }
 
   public ShortcutCellDefaultAppearance() {
-    super(GWT.<ButtonCellResources> create(ShortcutCellResources.class),
-        GWT.<ButtonCellTemplates> create(ButtonCellTemplates.class), new TableFrame(
-            GWT.<TableFrameResources> create(ShortcutTableFrameResources.class)));
+    super(GWT.create(ShortcutCellResources.class),
+        GWT.create(ButtonCellTemplates.class), new TableFrame(
+            GWT.create(ShortcutTableFrameResources.class)));
   }
 
 }

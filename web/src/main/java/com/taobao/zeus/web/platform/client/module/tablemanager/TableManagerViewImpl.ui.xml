@@ -18,7 +18,7 @@
 
 	<container:BorderLayoutContainer>
 		<container:center>
-			<gxt:ContentPanel headingText="表管理" collapsible="false"
+			<gxt:ContentPanel heading="表管理" collapsible="false"
 				bodyBorder="false" ui:field="commonTab">
 				<container:VerticalLayoutContainer
 					ui:field="commonTableContainer" borders="true">
@@ -26,7 +26,7 @@
 			</gxt:ContentPanel>
 		</container:center>
 		<container:south layoutData="{southData}">
-			<gxt:ContentPanel headingText="数据预览" height="200"
+			<gxt:ContentPanel heading="数据预览" height="200"
 				ui:field="dataPreviewPanel">
 				<g:HTML HTML="&lt;p&gt;请选择分区进行预览。&lt;/p&gt;"></g:HTML>
 			</gxt:ContentPanel>

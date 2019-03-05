@@ -74,7 +74,7 @@ public interface ShortcutTableFrameResources extends TableFrameResources, Client
   @ImageOptions(repeatStyle = RepeatStyle.Vertical)
   ImageResource rightPressedBorder();
 
-  @Source({"ShortcutTableFrame.css"})
+  @Source({"ShortcutTableFrame.gss"})
   @Override
   ShortcutTableFrameStyle style();
 

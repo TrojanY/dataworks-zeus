@@ -1,15 +1,10 @@
 package com.taobao.zeus.web.platform.client.module.word.toolbar;
 
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.sencha.gxt.core.client.Style.LayoutRegion;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.info.Info;
@@ -106,22 +101,19 @@ public class HiveToolBar extends AbstractToolBar{
 			}
 			if (!exist) {
 				final CheckableJobTree tree = new CheckableJobTree();
-				tree.setHeadingText("同步任务");
+				tree.setHeading("同步任务");
 				tree.getTree().setCheckable(false);
 				tree.getTree().getSelectionModel()
 						.setSelectionMode(SelectionMode.SINGLE);
-				tree.setSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						GroupJobTreeModel job = tree.getTree()
-								.getSelectionModel()
-								.getSelectedItem();
-						if (job != null) {
-							if (job.isGroup()) {
-								new AlertMessageBox("错误","不能选择组").show();
-							} else {
-								syncScript(job.getId(),true);
-							}
+				tree.setSelectHandler(event1 -> {
+					GroupJobTreeModel job = tree.getTree()
+							.getSelectionModel()
+							.getSelectedItem();
+					if (job != null) {
+						if (job.isGroup()) {
+							new AlertMessageBox("错误","不能选择组").show();
+						} else {
+							syncScript(job.getId(),true);
 						}
 					}
 				});
@@ -137,7 +129,7 @@ public class HiveToolBar extends AbstractToolBar{
 								new AlertMessageBox("错误","目标任务不是Hive程序，无法同步").show();
 								return;
 							}
-							StringBuffer sb = new StringBuffer("您要同步的目标任务信息如下：<br/><br/>");
+							StringBuilder sb = new StringBuilder("您要同步的目标任务信息如下：<br/><br/>");
 							sb.append("id:" + result.getId()+ "<br/>");
 							sb.append("名称:" + result.getName()+ "<br/>");
 							sb.append("所有人:"+ result.getOwnerName()+ "(" + result.getOwner()+ ")<br/>");
@@ -147,26 +139,23 @@ public class HiveToolBar extends AbstractToolBar{
 							sb.append("您确认要进行同步吗?");
 							
 							ConfirmMessageBox confirm = new ConfirmMessageBox("同步脚本和host组id", sb.toString());
-							confirm.addHideHandler(new HideHandler() {
-								@Override
-								public void onHide(HideEvent event) {
-									Dialog dialog = (Dialog) event.getSource();
-									if (dialog.getHideButton().getText().equals(DefaultMessages.getMessages().messageBox_yes())) {
-										if(firstTime){
-											hiveWord.getEditTab().getCodeMirror().setValue(
-													"--sync["+ getFileModel().getId()+ "->"+ jobId+ "]\n"+ hiveWord.getEditTab()
-													.getNewContent());
-										}
-										
-										RPCS.getJobService().syncScriptAndHostGroupId(jobId, hiveWord.getEditTab().getNewContent(), hostGroupId,
-											new AbstractAsyncCallback<Void>() {
-												@Override
-												public void onSuccess(
-														Void result) {
-													Info.display("同步成功","同步成功");
-												}
-											});
+							confirm.addHideHandler(event -> {
+								Dialog dialog = (Dialog) event.getSource();
+								if (dialog.getButton(Dialog.PredefinedButton.YES).getText().equals(DefaultMessages.getMessages().messageBox_yes())) {
+									if(firstTime){
+										hiveWord.getEditTab().getCodeMirror().setValue(
+												"--sync["+ getFileModel().getId()+ "->"+ jobId+ "]\n"+ hiveWord.getEditTab()
+												.getNewContent());
 									}
+
+									RPCS.getJobService().syncScriptAndHostGroupId(jobId, hiveWord.getEditTab().getNewContent(), hostGroupId,
+										new AbstractAsyncCallback<Void>() {
+											@Override
+											public void onSuccess(
+													Void result1) {
+												Info.display("同步成功","同步成功");
+											}
+										});
 								}
 							});
 							confirm.show();

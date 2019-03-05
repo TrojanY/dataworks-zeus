@@ -6,7 +6,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfigBean;
@@ -16,7 +15,6 @@ import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
@@ -41,7 +39,7 @@ public class HostGroupWindow extends Window {
 	}
 
 	public HostGroupWindow() {
-		setHeadingText("host分组信息");
+		setHeading("host分组信息");
 		setModal(true);
 		setHeight(600);
 		setWidth(500);
@@ -49,22 +47,17 @@ public class HostGroupWindow extends Window {
 		container.setHeight(300);
 		container.setWidth(300);
 		add(container);
-		ColumnConfig<HostGroupModel, String> idColumn = new ColumnConfig<HostGroupModel, String>(
+		ColumnConfig<HostGroupModel, String> idColumn = new ColumnConfig<>(
 				props.id(), 30, "id");
-		ColumnConfig<HostGroupModel, String> nameColumn = new ColumnConfig<HostGroupModel, String>(
+		ColumnConfig<HostGroupModel, String> nameColumn = new ColumnConfig<>(
 				props.name(), 30, "组名");
-		ColumnConfig<HostGroupModel, String> descriptionColumn = new ColumnConfig<HostGroupModel, String>(
+		ColumnConfig<HostGroupModel, String> descriptionColumn = new ColumnConfig<>(
 				props.description(), 60, "描述");
 		ColumnModel<HostGroupModel> cm = new ColumnModel(Arrays.asList(
 				idColumn, nameColumn, descriptionColumn));
 
-		store = new ListStore<HostGroupModel>(
-				new ModelKeyProvider<HostGroupModel>() {
-					@Override
-					public String getKey(HostGroupModel item) {
-						return String.valueOf(item.getId());
-					}
-				});
+		store = new ListStore<>(
+				item -> String.valueOf(item.getId()));
 
 		RpcProxy<PagingLoadConfig, PagingLoadResult<HostGroupModel>> proxy = new RpcProxy<PagingLoadConfig, PagingLoadResult<HostGroupModel>>() {
 
@@ -76,12 +69,12 @@ public class HostGroupWindow extends Window {
 			}
 		};
 
-		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<HostGroupModel>>(
+		loader = new PagingLoader<>(
 				proxy);
 		loader.setLimit(20);
-		loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, HostGroupModel, PagingLoadResult<HostGroupModel>>(
+		loader.addLoadHandler(new LoadResultListStoreBinding<>(
 				store));
-		grid = new Grid<HostGroupModel>(store, cm);
+		grid = new Grid<>(store, cm);
 		grid.setLoader(loader);
 		grid.setLoadMask(true);
 		grid.getView().setForceFit(true);
@@ -92,12 +85,9 @@ public class HostGroupWindow extends Window {
 		container.add(grid,new VerticalLayoutData(1, 1));
 		container.add(toolBar,new VerticalLayoutData(1, 30));
 		
-		addButton(new TextButton("确定", new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				if (handler != null) {
-					handler.onSelect(event);
-				}
+		addButton(new TextButton("确定", event -> {
+			if (handler != null) {
+				handler.onSelect(event);
 			}
 		}));
 		refresh();

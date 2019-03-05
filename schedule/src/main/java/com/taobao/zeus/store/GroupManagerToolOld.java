@@ -26,7 +26,7 @@ public class GroupManagerToolOld {
 	}
 	/**
 	 * 构建一个带完整依赖关系的树形节点网络
-	 * @param GroupManagerOld
+	 * @param groupManagerOld
 	 * @return
 	 */
 	public static GroupBeanOld buildGlobeGroupBean(GroupManagerOld groupManagerOld) {
@@ -54,7 +54,7 @@ public class GroupManagerToolOld {
 	}
 	/**
 	 * 构建一个树形节点网络，不包含Job之间的依赖关系对象引用
-	 * @param GroupManagerOld
+	 * @param groupManagerOld
 	 * @return
 	 */
 	public static GroupBeanOld buildGlobeGroupBeanWithoutDepend(GroupManagerOld groupManagerOld) {

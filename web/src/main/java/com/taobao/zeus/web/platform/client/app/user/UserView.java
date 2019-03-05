@@ -20,7 +20,7 @@ public class UserView extends CardLayoutContainer{
 	
 	public void display(){
 		setActiveWidget(info);
-		info.setHeadingText("当前登录用户信息");
+		info.setHeading("当前登录用户信息");
 		info.refresh(presenter.getZuser());
 		info.getCenter().getElement().setScrollTop(0);
 	}
@@ -28,7 +28,7 @@ public class UserView extends CardLayoutContainer{
 	public void displayUserManager(){
 		setActiveWidget(userManager);
 		userManager.refresh(presenter.getZuser());
-		userManager.setHeadingText("所有用户管理");
+		userManager.setHeading("所有用户管理");
 	}
 
 	@Override

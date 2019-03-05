@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="GBK" ?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
         http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd"
 	default-autowire="byName">
 
-	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+
+    <aop:config></aop:config>
+
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
 		<property name="dataSource">
 			<ref bean="dataSource" />
 		</property>
@@ -46,9 +49,9 @@
 
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-		<property name="url" value="jdbc:mysql://10.3.8.88:3306/zeus_lky1?createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true&amp;autoReconnectForPools=true"/>
-		<property name="username" value="biuser"/>
-		<property name="password" value="biuser"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/zeus?createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true&amp;autoReconnectForPools=true"/>
+		<property name="username" value="root"/>
+		<property name="password" value="1qw2azxs"/>
 		<property name="maxActive" value="50" />
 		<property name="initialSize" value="10" />
 		<property name="maxWait" value="60000" />

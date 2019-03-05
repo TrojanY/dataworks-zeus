@@ -4,7 +4,8 @@
 	xmlns:g="urn:import:com.google.gwt.user.client.ui"
 	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
 	xmlns:p="urn:import:com.taobao.zeus.web.platform.client.widget">
-	<ui:style>
+
+	<ui:style gss="true">
 		.zeus-platform {
 		}
 	</ui:style>
@@ -20,7 +21,6 @@
 	<ui:with type="com.sencha.gxt.widget.core.client.container.MarginData" field="screenLayout">
 		<ui:attributes margins="{abc}" ></ui:attributes>
 	</ui:with>
-	
 	
 	<container:Viewport styleName="{style.zeus-platform}" ui:field="viewport">
 		<container:BorderLayoutContainer ui:field="platformContainer" borders="true" >

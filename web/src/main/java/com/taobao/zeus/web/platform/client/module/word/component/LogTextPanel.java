@@ -1,9 +1,6 @@
 package com.taobao.zeus.web.platform.client.module.word.component;
 
 import com.google.gwt.core.shared.GWT;
-import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -14,8 +11,6 @@ import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.taobao.zeus.web.platform.client.module.word.images.Images;
@@ -45,40 +40,33 @@ public class LogTextPanel extends ContentPanel{
 		
 		setContextMenu(contextMenu);
 				
-		stop = new MenuItem("停止运行", new SelectionHandler<MenuItem>() {
-			
-			@Override
-			public void onSelection(final SelectionEvent<MenuItem> se) {
-				final MessageBox box = new MessageBox("停止调试？", "确定要停止调试么？");
-				box.setPredefinedButtons(
-						PredefinedButton.YES,
-						PredefinedButton.NO);
-				box.setIcon(MessageBox.ICONS
-						.question());
-				box.addHideHandler(new HideHandler() {
-					@Override
-					public void onHide(HideEvent event) {
-						Dialog btn = (Dialog) event.getSource();
-						String choice = btn.getHideButton().getItemId();
-						if(choice.equalsIgnoreCase("yes")){
-							debugService.cancelDebug(debugId, new AsyncCallback<Void>() {
-								
-								@Override
-								public void onSuccess(Void result) {
-									se.getSelectedItem().setEnabled(false);
-								}
-								
-								@Override
-								public void onFailure(Throwable caught) {
-											Window.alert("取消调试失败！\n原因："
-													+ caught);
-								}
-							});
+		stop = new MenuItem("停止运行", se -> {
+			final MessageBox box = new MessageBox("停止调试？", "确定要停止调试么？");
+			box.setPredefinedButtons(
+					PredefinedButton.YES,
+					PredefinedButton.NO);
+			box.setIcon(MessageBox.ICONS
+					.question());
+			box.addHideHandler(event -> {
+				Dialog btn = (Dialog) event.getSource();
+				String choice = btn.getButton(PredefinedButton.YES).getItemId();
+				if(choice.equalsIgnoreCase("yes")){
+					debugService.cancelDebug(debugId, new AsyncCallback<Void>() {
+
+						@Override
+						public void onSuccess(Void result) {
+							se.getSelectedItem().setEnabled(false);
 						}
-					}
-				});
-				box.show();
-			}
+
+						@Override
+						public void onFailure(Throwable caught) {
+									Window.alert("取消调试失败！\n原因："
+											+ caught);
+						}
+					});
+				}
+			});
+			box.show();
 		});
 		
 		contextMenu.add(stop);
@@ -97,7 +85,7 @@ public class LogTextPanel extends ContentPanel{
 					public void onSuccess(DebugHistoryModel result) {
 						// 刷新日志
 						String[] lines=result.getLog().split("\n");
-						StringBuffer sb=new StringBuffer();
+						StringBuilder sb=new StringBuilder();
 						for(String line:lines){
 							for(long i=1;i<9;i++){
 								line = line.replace((char)('\u0000'+i), (char)('\u245f'+i));

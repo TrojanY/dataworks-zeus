@@ -45,9 +45,9 @@ public class TableInfoTab implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
-		ColumnConfig<ModelPropertyModel, String> name = new ColumnConfig<TableInfoTab.ModelPropertyModel, String>(
+		ColumnConfig<ModelPropertyModel, String> name = new ColumnConfig<>(
 				props.name(), 100, "Name");
-		ColumnConfig<ModelPropertyModel, String> value = new ColumnConfig<TableInfoTab.ModelPropertyModel, String>(
+		ColumnConfig<ModelPropertyModel, String> value = new ColumnConfig<>(
 				props.value(), 180, "Value");
 		value.setCell(new TitledCell() {
 			@Override
@@ -66,23 +66,23 @@ public class TableInfoTab implements IsWidget {
 				}
 			}
 		});
-		List<ColumnConfig<ModelPropertyModel, ?>> colList = new ArrayList<ColumnConfig<ModelPropertyModel, ?>>(
+		List<ColumnConfig<ModelPropertyModel, ?>> colList = new ArrayList<>(
 				2);
 		colList.add(name);
 		colList.add(value);
 
-		ColumnModel<ModelPropertyModel> colModel = new ColumnModel<TableInfoTab.ModelPropertyModel>(
+		ColumnModel<ModelPropertyModel> colModel = new ColumnModel<>(
 				colList);
-		Grid<ModelPropertyModel> grid = new Grid<TableInfoTab.ModelPropertyModel>(
+		Grid<ModelPropertyModel> grid = new Grid<>(
 				getStore(), colModel);
 		grid.setAllowTextSelection(true);
 		grid.getView().setForceFit(true);
 		grid.getView().setAutoFill(true);
-		final GridEditing<ModelPropertyModel> editing = new GridInlineEditing<ModelPropertyModel>(
+		final GridEditing<ModelPropertyModel> editing = new GridInlineEditing<>(
 				grid);
-		editing.addEditor(value, new TextField());
-		editing.getEditor(value).setReadOnly(true);
-
+		TextField field = new TextField();
+		field.setReadOnly(true);
+		editing.addEditor(value, field);
 		return grid;
 	}
 
@@ -165,13 +165,8 @@ public class TableInfoTab implements IsWidget {
 
 	private ListStore<ModelPropertyModel> getStore() {
 		if (this.store == null) {
-			this.store = new ListStore<TableInfoTab.ModelPropertyModel>(
-					new ModelKeyProvider<ModelPropertyModel>() {
-						@Override
-						public String getKey(ModelPropertyModel item) {
-							return item.getName();
-						}
-					});
+			this.store = new ListStore<>(
+					item -> item.getName());
 		}
 		return this.store;
 	}

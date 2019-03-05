@@ -7,7 +7,6 @@ import java.util.Map;
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.GroupDescriptor;
 import com.taobao.zeus.model.JobDescriptorOld;
-import com.taobao.zeus.model.JobDescriptor;
 import com.taobao.zeus.model.JobDescriptorOld.JobRunTypeOld;
 import com.taobao.zeus.model.JobStatus;
 import com.taobao.zeus.store.mysql.persistence.JobPersistenceOld;
@@ -30,7 +29,7 @@ public interface GroupManagerOld {
 	/**
 	 * 根据组ID查询组信息
 	 * 向上查询该组上的所有组信息
-	 * @param groupName
+	 * @param groupId
 	 * @return
 	 */
 	GroupBeanOld getUpstreamGroupBean(String groupId);
@@ -100,12 +99,7 @@ public interface GroupManagerOld {
 	 * @return
 	 */
 	GroupDescriptor createGroup(String user,String groupName,String parentGroup,boolean isDirectory) throws ZeusException;
-	/**
-	 * 创建一个Job
-	 * @param user
-	 * @param group
-	 * @return
-	 */
+
 	JobDescriptorOld createJob(String user,String jobName,String parentGroup,JobRunTypeOld jobType) throws ZeusException;
 	/**
 	 * 删除组，成功删除需要的条件：

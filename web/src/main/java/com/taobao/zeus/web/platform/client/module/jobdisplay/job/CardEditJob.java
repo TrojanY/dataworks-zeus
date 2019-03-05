@@ -7,17 +7,12 @@ import java.util.Map;
 
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.text.shared.AbstractSafeHtmlRenderer;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
-import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
@@ -64,20 +59,17 @@ public class CardEditJob extends CenterTemplate implements
 		@Override
 		public void onSelect(final SelectEvent event) {
 			new FileUploadWidget("job", presenter.getJobModel().getId(),
-					new UploadCallback() {
-						@Override
-						public void call(final String name, final String uri) {
-							Map<String, String> map = new HashMap<String, String>();
-							map.put("name", name);
-							map.put("uri", uri);
-							List<Map<String, String>> temp = new ArrayList<Map<String, String>>();
-							temp.add(map);
-							resources.setValue(resources.getValue()
-									+ "\n"
-									+ FormatUtil
-											.convertResourcesToEditString(temp));
+					(name, uri) -> {
+						Map<String, String> map = new HashMap<>();
+						map.put("name", name);
+						map.put("uri", uri);
+						List<Map<String, String>> temp = new ArrayList<>();
+						temp.add(map);
+						resources.setValue(resources.getValue()
+								+ "\n"
+								+ FormatUtil
+										.convertResourcesToEditString(temp));
 
-						}
 					}).show();
 		}
 	});
@@ -110,13 +102,13 @@ public class CardEditJob extends CenterTemplate implements
 				String depJobStr = baseDepJobs.getValue();
 				if (depJobStr != null && !"".equals(depJobStr.trim())) {
 					String[] value = depJobStr.split(",");
-					List<String> v = new ArrayList<String>();
+					List<String> v = new ArrayList<>();
 					for (String s : value) {
 						v.add(s);
 					}
 					model.setDependencies(v);
 				} else {
-					model.setDependencies(new ArrayList<String>());
+					model.setDependencies(new ArrayList<>());
 				}
 				if (baseDepCycle.getValue().get("value")
 						.equalsIgnoreCase("sameday")) {
@@ -280,12 +272,7 @@ public class CardEditJob extends CenterTemplate implements
 		centerContainer.setScrollMode(ScrollMode.AUTO);
 		setCenter(centerContainer);
 
-		addButton(new TextButton("返回", new SelectHandler() {
-			@Override
-			public void onSelect(final SelectEvent event) {
-				presenter.display(presenter.getJobModel());
-			}
-		}));
+		addButton(new TextButton("返回", event -> presenter.display(presenter.getJobModel())));
 		/*
 		 * zk.addBeforeSelectHandler(new BeforeSelectHandler() {
 		 * 
@@ -532,7 +519,7 @@ public class CardEditJob extends CenterTemplate implements
 	public FieldSet getBaseFieldSet() {
 		if (baseFieldSet == null) {
 			baseFieldSet = new FieldSet();
-			baseFieldSet.setHeadingText("基本信息");
+			baseFieldSet.setHeading("基本信息");
 			baseFieldSet.setHeight(260);
 
 			HorizontalLayoutContainer layoutContainer = new HorizontalLayoutContainer();
@@ -563,24 +550,16 @@ public class CardEditJob extends CenterTemplate implements
 			hostGroupField = new TextField();
 			hostGroupField.setWidth(150);
 			hostGroupField.setReadOnly(true);
-			hostGroupField.addHandler(new ClickHandler(){
-
-				@Override
-				public void onClick(ClickEvent event) {
-					final HostGroupWindow chdwnd = new HostGroupWindow();
-					chdwnd.setSelectHandler(new SelectHandler() {
-						
-						@Override
-						public void onSelect(SelectEvent event) {
-							if (chdwnd.getGrid().getSelectionModel()!=null) {
-								String id = chdwnd.getGrid().getSelectionModel().getSelectedItem().getId();
-								hostGroupField.setValue(id);
-							}
-							chdwnd.hide();
-						}
-					});
-					chdwnd.show();
-				}
+			hostGroupField.addHandler(event -> {
+				final HostGroupWindow chdwnd = new HostGroupWindow();
+				chdwnd.setSelectHandler(event14 -> {
+					if (chdwnd.getGrid().getSelectionModel()!=null) {
+						String id = chdwnd.getGrid().getSelectionModel().getSelectedItem().getId();
+						hostGroupField.setValue(id);
+					}
+					chdwnd.hide();
+				});
+				chdwnd.show();
 			},  ClickEvent.getType());
 		
 			maxTimeField = new TextField();
@@ -588,97 +567,73 @@ public class CardEditJob extends CenterTemplate implements
 			maxTimeField.addValidator(new RegExValidator(CardInfo.POSITIVE_INTEGER, "请输入正整数"));
 			maxTimeField.setAutoValidate(true);
 			
-			ListStore<String> scheduleTypeStore = new ListStore<String>(
-					new ModelKeyProvider<String>() {
-						@Override
-						public String getKey(final String item) {
-							return item;
-						}
-					});
+			ListStore<String> scheduleTypeStore = new ListStore<>(
+					item -> item);
 			scheduleTypeStore.add(JobModel.INDEPEN_JOB);
 			scheduleTypeStore.add(JobModel.DEPEND_JOB);
 			// scheduleTypeStore.add(JobModel.CYCLE_JOB);
 
-			baseScheduleType = new ComboBox<String>(scheduleTypeStore,
-					new LabelProvider<String>() {
-						@Override
-						public String getLabel(final String item) {
-							return item;
-						}
-					});
+			baseScheduleType = new ComboBox<>(scheduleTypeStore,
+					item -> item);
 			baseScheduleType.setWidth(150);
 			baseScheduleType.setTriggerAction(TriggerAction.ALL);
 			baseScheduleType.setAllowBlank(false);
 			baseScheduleType.setEditable(false);
 			baseScheduleType
-					.addValueChangeHandler(new ValueChangeHandler<String>() {
-						@Override
-						public void onValueChange(
-								final ValueChangeEvent<String> event) {
-							if (event.getValue().equals(JobModel.INDEPEN_JOB)) {
-								cronWapper.show();
-								baseCron.setAllowBlank(false);
-								depCycleWapper.hide();
-								depJobsWapper.hide();
-								baseDepJobs.setAllowBlank(true);
-								tzWapper.hide();
-								offWapper.hide();
-								cycleWapper.hide();
+					.addValueChangeHandler(event -> {
+						if (event.getValue().equals(JobModel.INDEPEN_JOB)) {
+							cronWapper.show();
+							baseCron.setAllowBlank(false);
+							depCycleWapper.hide();
+							depJobsWapper.hide();
+							baseDepJobs.setAllowBlank(true);
+							tzWapper.hide();
+							offWapper.hide();
+							cycleWapper.hide();
 //								hostField.show();
-								hostGroupField.show();
-							}
-							if (event.getValue().equals(JobModel.DEPEND_JOB)) {
-								cronWapper.hide();
-								tzWapper.hide();
-								offWapper.hide();
-								cycleWapper.hide();
-								baseCron.setAllowBlank(true);
-								depCycleWapper.show();
-								depJobsWapper.show();
-								baseDepJobs.setAllowBlank(false);
+							hostGroupField.show();
+						}
+						if (event.getValue().equals(JobModel.DEPEND_JOB)) {
+							cronWapper.hide();
+							tzWapper.hide();
+							offWapper.hide();
+							cycleWapper.hide();
+							baseCron.setAllowBlank(true);
+							depCycleWapper.show();
+							depJobsWapper.show();
+							baseDepJobs.setAllowBlank(false);
 //								hostField.show();
-								hostGroupField.show();
-							}
-							if (event.getValue().equals(JobModel.CYCLE_JOB)) {
-								cronWapper.hide();
-								depCycleWapper.hide();
-								tzWapper.show();
-								offWapper.show();
-								cycleWapper.show();
-								baseCron.setAllowBlank(true);
-								depJobsWapper.show();
-								baseDepJobs.setAllowBlank(true);
+							hostGroupField.show();
+						}
+						if (event.getValue().equals(JobModel.CYCLE_JOB)) {
+							cronWapper.hide();
+							depCycleWapper.hide();
+							tzWapper.show();
+							offWapper.show();
+							cycleWapper.show();
+							baseCron.setAllowBlank(true);
+							depJobsWapper.show();
+							baseDepJobs.setAllowBlank(true);
 //								hostField.show();
-								hostGroupField.show();
-							}
+							hostGroupField.show();
 						}
 					});
 
-			ListStore<Map<String, String>> jobCycleStore = new ListStore<Map<String, String>>(
-					new ModelKeyProvider<Map<String, String>>() {
-						@Override
-						public String getKey(final Map<String, String> item) {
-							return item.get("key");
-						}
-					});
+			ListStore<Map<String, String>> jobCycleStore = new ListStore<>(
+					item -> item.get("key"));
 
-			Map<String, String> day = new HashMap<String, String>();
+			Map<String, String> day = new HashMap<>();
 			day.put("key", JobModel.JOB_CYCLE_DAY);
 			day.put("value", "day");
-			Map<String, String> hour = new HashMap<String, String>();
+			Map<String, String> hour = new HashMap<>();
 			hour.put("key", JobModel.JOB_CYCLE_HOUR);
 			hour.put("value", "hour");
 
 			jobCycleStore.add(day);
 			jobCycleStore.add(hour);
 
-			jobCycle = new ComboBox<Map<String, String>>(jobCycleStore,
-					new LabelProvider<Map<String, String>>() {
-						@Override
-						public String getLabel(final Map<String, String> item) {
-							return item.get("key");
-						}
-					}, new AbstractSafeHtmlRenderer<Map<String, String>>() {
+			jobCycle = new ComboBox<>(jobCycleStore,
+					item -> item.get("key"), new AbstractSafeHtmlRenderer<Map<String, String>>() {
 						@Override
 						public SafeHtml render(final Map<String, String> object) {
 							ComboBoxTemplates t = GWT
@@ -696,31 +651,20 @@ public class CardEditJob extends CenterTemplate implements
 			baseCron = new TextField();
 			baseCron.setWidth(150);
 			baseCron.setReadOnly(true);
-			baseCron.addHandler(new ClickHandler() {
-				
-				@Override
-				public void onClick(ClickEvent event) {
-					String before_cron = baseCron.getCurrentValue();
-					final CardEditCron chd = new CardEditCron(before_cron);
-					chd.setSelectHandler(new SelectHandler(){
-
-						@Override
-						public void onSelect(SelectEvent event) {
-							String after_cron = chd.getCronExpress();
-							baseCron.setValue(after_cron);
-						}
-						
-					});
-					chd.show();
-				}
+			baseCron.addHandler(event -> {
+				String before_cron = baseCron.getCurrentValue();
+				final CardEditCron chd = new CardEditCron(before_cron);
+				chd.setSelectHandler(event13 -> {
+					String after_cron = chd.getCronExpress();
+					baseCron.setValue(after_cron);
+				});
+				chd.show();
 			},ClickEvent.getType());
 			
 			baseDepJobs = new TextField();
 			baseDepJobs.setWidth(150);
 			baseDepJobs.setReadOnly(true);
-			baseDepJobs.addHandler(new ClickHandler() {
-				@Override
-				public void onClick(final ClickEvent event) {
+			baseDepJobs.addHandler(event -> {
 //					final CheckableJobTree tree = new CheckableJobTree();
 //					tree.setSelectHandler(new SelectHandler() {
 //						@Override
@@ -748,95 +692,72 @@ public class CardEditJob extends CenterTemplate implements
 //							tree.init(baseDepJobs.getValue());
 //						}
 //					});
-					final DependencyConfigWindow config = new DependencyConfigWindow(presenter.getJobModel().getId());
-					config.getCheckablePanel().setSelectHandler(
-							new SelectHandler() {
-								@Override
-								public void onSelect(final SelectEvent event) {
-									List<GroupJobTreeModel> list = config.getCheckablePanel().getTree()
-											.getCheckedSelection();// .getSelectionModel().getSelectedItems();
-									String result = "";
-									for (GroupJobTreeModel m : list) {
-										if (m.isJob()) {
-											result += m.getId() + ",";
+				final DependencyConfigWindow config = new DependencyConfigWindow(presenter.getJobModel().getId());
+				config.getCheckablePanel().setSelectHandler(
+						event12 -> {
+							List<GroupJobTreeModel> list = config.getCheckablePanel().getTree()
+									.getCheckedSelection();// .getSelectionModel().getSelectedItems();
+							String result = "";
+							for (GroupJobTreeModel m : list) {
+								if (m.isJob()) {
+									result += m.getId() + ",";
+								}
+							}
+							if (result.endsWith(",")) {
+								result = result.substring(0,
+										result.length() - 1);
+							}
+							baseDepJobs.setValue(result.toString(), true);
+							baseDepJobs.validate();
+							config.hide();
+						});
+				config.getCheckablePanel().refresh(
+						() -> config.getCheckablePanel().init(baseDepJobs.getValue()));
+				config.getCopyPanel().setSelectHandler(
+						event1 -> {
+							GroupJobTreeModel job = config.getCopyPanel().getTree()
+									.getSelectionModel()
+									.getSelectedItem();
+							if (job != null) {
+								if (job.isGroup()) {
+									new AlertMessageBox("错误","不能选择组").show();
+								} else {
+									RPCS.getJobService().getJobDependencies(job.getId(), new AbstractAsyncCallback<List<String>>() {
+
+										@Override
+										public void onSuccess(List<String> result) {
+											String depsStr = "";
+											for (String dep : result) {
+													depsStr += dep + ",";
+											}
+											if (depsStr.endsWith(",")) {
+												depsStr = depsStr.substring(0,
+														depsStr.length() - 1);
+											}
+											baseDepJobs.setValue(depsStr.toString(), true);
+											baseDepJobs.validate();
+											config.hide();
 										}
-									}
-									if (result.endsWith(",")) {
-										result = result.substring(0,
-												result.length() - 1);
-									}
-									baseDepJobs.setValue(result.toString(), true);
-									baseDepJobs.validate();
-									config.hide();
+									});
 								}
-							});
-					config.getCheckablePanel().refresh(
-							new Callback() {
-								@Override
-								public void callback() {
-									config.getCheckablePanel().init(baseDepJobs.getValue());
-								}
-							});
-					config.getCopyPanel().setSelectHandler(
-							new SelectHandler() {
-								
-								@Override
-								public void onSelect(SelectEvent event) {
-									GroupJobTreeModel job = config.getCopyPanel().getTree()
-											.getSelectionModel()
-											.getSelectedItem();
-									if (job != null) {
-										if (job.isGroup()) {
-											new AlertMessageBox("错误","不能选择组").show();
-										} else {
-											RPCS.getJobService().getJobDependencies(job.getId(), new AbstractAsyncCallback<List<String>>() {
-				
-												@Override
-												public void onSuccess(List<String> result) {
-													String depsStr = "";
-													for (String dep : result) {
-															depsStr += dep + ",";
-													}
-													if (depsStr.endsWith(",")) {
-														depsStr = depsStr.substring(0,
-																depsStr.length() - 1);
-													}
-													baseDepJobs.setValue(depsStr.toString(), true);
-													baseDepJobs.validate();
-													config.hide();
-												}
-											});
-										}
-									}
-									
-								}
-							});
-					config.show();
-				}
+							}
+
+						});
+				config.show();
 			}, ClickEvent.getType());
-			ListStore<Map<String, String>> cycleStore = new ListStore<Map<String, String>>(
-					new ModelKeyProvider<Map<String, String>>() {
-						@Override
-						public String getKey(final Map<String, String> item) {
-							return item.get("key");
-						}
-					});
-			Map<String, String> sameday = new HashMap<String, String>();
+			ListStore<Map<String, String>> cycleStore = new ListStore<>(
+					item -> item.get("key"));
+			Map<String, String> sameday = new HashMap<>();
 			sameday.put("key", "同一天");
 			sameday.put("value", "sameday");
-			Map<String, String> nolimit = new HashMap<String, String>();
+			Map<String, String> nolimit = new HashMap<>();
 			nolimit.put("key", "无限制");
 			nolimit.put("value", " ");
 
 			cycleStore.add(sameday);
 			cycleStore.add(nolimit);
-			baseDepCycle = new ComboBox<Map<String, String>>(cycleStore,
-					new LabelProvider<Map<String, String>>() {
-						@Override
-						public String getLabel(final Map<String, String> item) {
-							return item.get("key");
-						}
-					}, new AbstractSafeHtmlRenderer<Map<String, String>>() {
+			baseDepCycle = new ComboBox<>(cycleStore,
+					item -> item.get("key"), new AbstractSafeHtmlRenderer<Map<String, String>>() {
 						@Override
 						public SafeHtml render(final Map<String, String> object) {
 							ComboBoxTemplates t = GWT
@@ -846,34 +767,25 @@ public class CardEditJob extends CenterTemplate implements
 
 					});
 
-			ListStore<Map<String, String>> levelStore = new ListStore<Map<String, String>>(
-					new ModelKeyProvider<Map<String, String>>() {
-						@Override
-						public String getKey(final Map<String, String> item) {
-							return item.get("key");
-						}
-					});
+			ListStore<Map<String, String>> levelStore = new ListStore<>(
+					item -> item.get("key"));
 
-			Map<String, String> highmap = new HashMap<String, String>();
+			Map<String, String> highmap = new HashMap<>();
 			highmap.put("key", "high");
 			highmap.put("value", "3");
-			Map<String, String> mediummap = new HashMap<String, String>();
+			Map<String, String> mediummap = new HashMap<>();
 			mediummap.put("key", "medium");
 			mediummap.put("value", "2");
-			Map<String, String> lowmap = new HashMap<String, String>();
+			Map<String, String> lowmap = new HashMap<>();
 			lowmap.put("key", "low");
 			lowmap.put("value", "1");
 			levelStore.add(highmap);
 			levelStore.add(mediummap);
 			levelStore.add(lowmap);
-			jobPriorityBox = new ComboBox<Map<String, String>>(levelStore,
-					new LabelProvider<Map<String, String>>() {
-
-						@Override
-						public String getLabel(Map<String, String> item) {
-							// TODO Auto-generated method stub
-							return item.get("key");
-						}
+			jobPriorityBox = new ComboBox<>(levelStore,
+					item -> {
+						// TODO Auto-generated method stub
+						return item.get("key");
 					}, new AbstractSafeHtmlRenderer<Map<String, String>>() {
 
 						@Override
@@ -883,24 +795,15 @@ public class CardEditJob extends CenterTemplate implements
 							return t.display(object.get("key"));
 						}
 					});
-			ListStore<Integer> rollTimeStore = new ListStore<Integer>(
-					new ModelKeyProvider<Integer>() {
-						@Override
-						public String getKey(Integer item) {
-							return item.toString();
-						}
-					});
+			ListStore<Integer> rollTimeStore = new ListStore<>(
+					item -> item.toString());
 			rollTimeStore.add(0);
 			rollTimeStore.add(1);
 			rollTimeStore.add(2);
 			rollTimeStore.add(3);
 			rollTimeStore.add(4);
-			rollTimeBox = new ComboBox<Integer>(rollTimeStore,
-					new LabelProvider<Integer>() {
-						public String getLabel(Integer item) {
-							return item.toString();
-						}
-					}, new AbstractSafeHtmlRenderer<Integer>() {
+			rollTimeBox = new ComboBox<>(rollTimeStore,
+					item -> item.toString(), new AbstractSafeHtmlRenderer<Integer>() {
 						@Override
 						public SafeHtml render(Integer object) {
 							ComboBoxTemplates t = GWT
@@ -908,24 +811,15 @@ public class CardEditJob extends CenterTemplate implements
 							return t.display(object.toString());
 						}
 					});
-			ListStore<String> rollIntervalStore = new ListStore<String>(
-					new ModelKeyProvider<String>() {
-						@Override
-						public String getKey(String item) {
-							return item.toString();
-						}
-					});
+			ListStore<String> rollIntervalStore = new ListStore<>(
+					item -> item.toString());
 			rollIntervalStore.add("1");
 			rollIntervalStore.add("10");
 			rollIntervalStore.add("30");
 			rollIntervalStore.add("60");
 			rollIntervalStore.add("120");
-			rollIntervalBox = new ComboBox<String>(rollIntervalStore,
-					new LabelProvider<String>() {
-						public String getLabel(String item) {
-							return item;
-						}
-					}, new AbstractSafeHtmlRenderer<String>() {
+			rollIntervalBox = new ComboBox<>(rollIntervalStore,
+					item -> item, new AbstractSafeHtmlRenderer<String>() {
 						@Override
 						public SafeHtml render(String object) {
 							ComboBoxTemplates t = GWT
@@ -934,30 +828,21 @@ public class CardEditJob extends CenterTemplate implements
 						}
 					});
 
-			ListStore<Map<String, String>> isEncryptionStore = new ListStore<Map<String, String>>(
-					new ModelKeyProvider<Map<String, String>>() {
-						@Override
-						public String getKey(Map<String, String> item) {
-							return item.get("key");
-						}
-					});
-			Map<String, String> isEncryptionItem = new HashMap<String, String>();
+			ListStore<Map<String, String>> isEncryptionStore = new ListStore<>(
+					item -> item.get("key"));
+			Map<String, String> isEncryptionItem = new HashMap<>();
 			isEncryptionItem.put("key", isVisible);
 			isEncryptionItem.put("value", "yes");
-			Map<String, String> isEncryptionItem1 = new HashMap<String, String>();
+			Map<String, String> isEncryptionItem1 = new HashMap<>();
 			isEncryptionItem1.put("key", isNotVisible);
 			isEncryptionItem1.put("value", "no");
 			isEncryptionStore.add(isEncryptionItem);
 			isEncryptionStore.add(isEncryptionItem1);
-			isEncryptionBox = new ComboBox<Map<String, String>>(isEncryptionStore,
-					new LabelProvider<Map<String, String>>() {
-
-				@Override
-				public String getLabel(Map<String, String> item) {
-					// TODO Auto-generated method stub
-					return item.get("key");
-				}
-			}, new AbstractSafeHtmlRenderer<Map<String, String>>() {
+			isEncryptionBox = new ComboBox<>(isEncryptionStore,
+					item -> {
+						// TODO Auto-generated method stub
+						return item.get("key");
+					}, new AbstractSafeHtmlRenderer<Map<String, String>>() {
 
 				@Override
 				public SafeHtml render(Map<String, String> object) {
@@ -1036,7 +921,7 @@ public class CardEditJob extends CenterTemplate implements
 		if (configFieldSet == null) {
 			configFieldSet = new FieldSet();
 			configFieldSet.setCollapsible(true);
-			configFieldSet.setHeadingText("配置项信息");
+			configFieldSet.setHeading("配置项信息");
 			configFieldSet.setWidth("96%");
 			configFieldSet.setResize(false);
 			configs = new TextArea();
@@ -1051,7 +936,7 @@ public class CardEditJob extends CenterTemplate implements
 		if (resourceField == null) {
 			resourceField = new FieldSet();
 			resourceField.setCollapsible(true);
-			resourceField.setHeadingText("资源信息");
+			resourceField.setHeading("资源信息");
 			resourceField.setWidth("96%");
 			resourceField.setResize(false);
 			resources = new TextArea();
@@ -1066,7 +951,7 @@ public class CardEditJob extends CenterTemplate implements
 		if (scriptFieldSet == null) {
 			scriptFieldSet = new FieldSet();
 			scriptFieldSet.setCollapsible(true);
-			scriptFieldSet.setHeadingText("脚本");
+			scriptFieldSet.setHeading("脚本");
 			CodeMirrorConfig cmc = new CodeMirrorConfig();
 			cmc.readOnly = false;
 			script = new CodeMirror(cmc);

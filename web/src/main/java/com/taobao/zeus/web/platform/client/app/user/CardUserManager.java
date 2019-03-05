@@ -7,14 +7,11 @@ import java.util.List;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfigBean;
@@ -63,17 +60,17 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			.create(ZUserPropertiesAction.class);
 
 	public CardUserManager(final UserPresenter presenter) {
-		ColumnConfig<ZUser, String> isEffective = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> isEffective = new ColumnConfig<>(
 				prop.isEffective(), 30, "用户状态");
-		ColumnConfig<ZUser, String> userType = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> userType = new ColumnConfig<>(
 				prop.userType(), 30, "用户类型");
-		ColumnConfig<ZUser, String> uid = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> uid = new ColumnConfig<>(
 				prop.uid(), 30, "用户账号");
-		ColumnConfig<ZUser, String> name = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> name = new ColumnConfig<>(
 				prop.name(), 30, "用户姓名");
-		ColumnConfig<ZUser, String> email = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> email = new ColumnConfig<>(
 				prop.email(), 60, "用户邮箱");
-		ColumnConfig<ZUser, String> phone = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> phone = new ColumnConfig<>(
 				prop.phone(), 60, "手机号码");
 		phone.setCell(new AbstractCell<String>() {
 
@@ -87,7 +84,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 				}
 			}
 		});
-		ColumnConfig<ZUser, String> description = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> description = new ColumnConfig<>(
 				prop.description(), 60, "描述");
 		description.setCell(new AbstractCell<String>() {
 
@@ -101,7 +98,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 				}
 			}
 		});
-		ColumnConfig<ZUser, String> gmtModified = new ColumnConfig<ZUser, String>(
+		ColumnConfig<ZUser, String> gmtModified = new ColumnConfig<>(
 				prop.gmtModified(), 30, "更新日期");
 		ColumnModel cm = new ColumnModel(Arrays.asList(isEffective, userType,
 				uid, name, email, phone, description, gmtModified));
@@ -110,21 +107,17 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			@Override
 			public void load(PagingLoadConfig loadConfig,
 					AsyncCallback<PagingLoadResult<ZUser>> callback) {
-				PagingLoadConfig config = (PagingLoadConfig) loadConfig;
+				PagingLoadConfig config = loadConfig;
 				String filter = query_text.getValue();
 				RPCS.getUserService().getUsersPaging(config, filter, callback);
 			}
 
 		};
 
-		store = new ListStore<ZUser>(new ModelKeyProvider<ZUser>() {
-			public String getKey(ZUser item) {
-				return item.getUid();
-			}
-		});
-		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<ZUser>>(proxy);
+		store = new ListStore<>(ZUser::getUid);
+		loader = new PagingLoader<>(proxy);
 		loader.setLimit(50);
-		loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, ZUser, PagingLoadResult<ZUser>>(
+		loader.addLoadHandler(new LoadResultListStoreBinding<>(
 				store));
 		grid = new Grid<ZUser>(store, cm);
 		grid.setLoadMask(true);
@@ -134,39 +127,31 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 		query_text = new TextField();
 		query_text.setWidth(280);
 		query_text.setEmptyText("请输入用户账号、用户姓名或者用户邮箱");
-		query_text.addKeyDownHandler(new KeyDownHandler() {
-			public void onKeyDown(KeyDownEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					String filter = query_text.getText();
-					query_text.setValue(filter);
-					load();
-				}
+		query_text.addKeyDownHandler(event -> {
+			if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+				String filter = query_text.getText();
+				query_text.setValue(filter);
+				load();
 			}
 		});
 		
-		btn_return = new TextButton("返回", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				presenter.display(presenter.getZuser());
+		btn_return = new TextButton("返回", event -> presenter.display(presenter.getZuser()));
+		btn_edit = new TextButton("编辑", event -> {
+			ZUser zu = grid.getSelectionModel().getSelectedItem();
+			if (zu != null) {
+				CardEditUser edit = new CardEditUser(presenter, zu);
+				edit.setCallback(new AbstractAsyncCallback<ZUser>() {
+
+					@Override
+					public void onSuccess(ZUser result) {
+						presenter.displayCheckUser();
+					}
+				});
+				edit.show();
+			}else {
+				AlertMessageBox alert=new AlertMessageBox("警告", "请选中一条记录");
+				alert.show();
 			}
-		});
-		btn_edit = new TextButton("编辑", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				ZUser zu = grid.getSelectionModel().getSelectedItem();
-				if (zu != null) {
-					CardEditUser edit = new CardEditUser(presenter, zu);
-					edit.setCallback(new AbstractAsyncCallback<ZUser>() {
-						
-						@Override
-						public void onSuccess(ZUser result) {
-							presenter.displayCheckUser();
-						}
-					});
-					edit.show();
-				}else {
-					AlertMessageBox alert=new AlertMessageBox("警告", "请选中一条记录");
-					alert.show();
-				}
-			};
 		});
 		
 		btn_cancel = new TextButton("删除",new SelectHandler(){
@@ -175,7 +160,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			public void onSelect(SelectEvent event) {
 				List<ZUser> zulst = grid.getSelectionModel().getSelectedItems();
 				if (zulst != null && zulst.size()>0) {
-					final List<String> uids = new ArrayList<String>();
+					final List<String> uids = new ArrayList<>();
 					for(ZUser zu : zulst){
 						uids.add(zu.getUid());
 					}
@@ -184,7 +169,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 					box.addHideHandler(new HideHandler() {
 						public void onHide(HideEvent event) {
 							Dialog btn = (Dialog) event.getSource();
-							if (btn.getHideButton().getText()
+							if (btn.getButton(Dialog.PredefinedButton.YES).getText()
 									.equalsIgnoreCase("yes")) {
 								grid.mask("操作中，请稍后...");
 								RPCS.getUserService().delete(uids, new AbstractAsyncCallback<Void>() {
@@ -219,7 +204,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			public void onSelect(SelectEvent event) {
 				List<ZUser> zulst = grid.getSelectionModel().getSelectedItems();
 				if (zulst != null && zulst.size()>0) {
-					final List<String> uids = new ArrayList<String>();
+					final List<String> uids = new ArrayList<>();
 					for(ZUser zu : zulst){
 						uids.add(zu.getUid());
 					}
@@ -228,7 +213,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 					box.addHideHandler(new HideHandler() {
 						public void onHide(HideEvent event) {
 							Dialog btn = (Dialog) event.getSource();
-							if (btn.getHideButton().getText()
+							if (btn.getButton(Dialog.PredefinedButton.YES).getText()
 									.equalsIgnoreCase("yes")) {
 								grid.mask("操作中，请稍后...");
 								RPCS.getUserService().checkpass(uids, new AbstractAsyncCallback<Void>() {
@@ -263,7 +248,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			public void onSelect(SelectEvent event) {
 				List<ZUser> zulst = grid.getSelectionModel().getSelectedItems();
 				if (zulst != null && zulst.size()>0) {
-					final List<String> uids = new ArrayList<String>();
+					final List<String> uids = new ArrayList<>();
 					for(ZUser zu : zulst){
 						uids.add(zu.getUid());
 					}
@@ -272,7 +257,7 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 					box.addHideHandler(new HideHandler() {
 						public void onHide(HideEvent event) {
 							Dialog btn = (Dialog) event.getSource();
-							if (btn.getHideButton().getText()
+							if (btn.getButton(Dialog.PredefinedButton.YES).getText()
 									.equalsIgnoreCase("yes")) {
 								grid.mask("操作中，请稍后...");
 								RPCS.getUserService().checknotpass(uids, new AbstractAsyncCallback<Void>() {
@@ -301,20 +286,8 @@ public class CardUserManager extends CenterTemplate implements Refreshable<ZUser
 			}
 		});
 		
-		btn_query = new TextButton("查询",new SelectHandler(){
-
-			@Override
-			public void onSelect(SelectEvent event) {
-				load();
-			}
-		});
-		btn_refresh = new TextButton("刷新",new SelectHandler(){
-
-			@Override
-			public void onSelect(SelectEvent event) {
-				load();
-			}
-		});
+		btn_query = new TextButton("查询", event -> load());
+		btn_refresh = new TextButton("刷新", event -> load());
 		
 		toolArea=new HorizontalLayoutContainer();
 		toolArea.add(query_text,new HorizontalLayoutData(-1,-1,new Margins(5)));

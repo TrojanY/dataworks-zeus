@@ -7,22 +7,15 @@ import java.util.Map;
 
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
-import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.info.Info;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
-import com.taobao.zeus.util.Tuple;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.JobPresenter;
-import com.taobao.zeus.web.platform.client.module.jobmanager.GroupModel;
 import com.taobao.zeus.web.platform.client.module.jobmanager.JobModel;
 import com.taobao.zeus.web.platform.client.util.RPCS;
 import com.taobao.zeus.web.platform.client.util.ZUser;
@@ -33,11 +26,7 @@ public class ImportantContactConfigWindow extends Window{
 	private JobPresenter jobPresenter;
 	private TextButton add = new TextButton("添加",new SelectHandler() {
 		private ComboBox<Map<String, String>> combo;
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("name"));
 		private TextButton submit = new TextButton("添加",new SelectHandler() {
 			
 			@Override
@@ -61,14 +50,10 @@ public class ImportantContactConfigWindow extends Window{
 		);
 		private Window window = new Window();
 		{
-			window.setHeadingText("添加重要联系人");
+			window.setHeading("添加重要联系人");
 			window.setSize("350", "100");
 			window.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setForceSelection(true);
 			combo.setTriggerAction(TriggerAction.QUERY);
 			combo.setStore(store);
@@ -79,7 +64,7 @@ public class ImportantContactConfigWindow extends Window{
 		public void onSelect(SelectEvent event) {
 			store.clear();
 			for(ZUser user : notImportantContactList){
-				Map<String, String> md=new HashMap<String, String>();
+				Map<String, String> md=new HashMap<>();
 				md.put("name", user.getName()+"("+user.getUid()+")");
 				md.put("uid", user.getUid());
 				store.add(md);
@@ -92,11 +77,7 @@ public class ImportantContactConfigWindow extends Window{
 	private TextButton delete = new TextButton("撤销", new SelectHandler() {
 		
 		private ComboBox<Map<String, String>> combo;
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("name"));
 		private TextButton submit = new TextButton("撤销",new SelectHandler() {
 			
 			@Override
@@ -120,14 +101,10 @@ public class ImportantContactConfigWindow extends Window{
 		);
 		private Window window = new Window();
 		{
-			window.setHeadingText("撤销重要联系人");
+			window.setHeading("撤销重要联系人");
 			window.setSize("350", "100");
 			window.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setForceSelection(true);
 			combo.setTriggerAction(TriggerAction.QUERY);
 			combo.setStore(store);
@@ -138,7 +115,7 @@ public class ImportantContactConfigWindow extends Window{
 		public void onSelect(SelectEvent event) {
 			store.clear();
 			for(ZUser user : importantContactList){
-				Map<String, String> md=new HashMap<String, String>();
+				Map<String, String> md=new HashMap<>();
 				md.put("name", user.getName()+"("+user.getUid()+")");
 				md.put("uid", user.getUid());
 				store.add(md);
@@ -159,24 +136,22 @@ public class ImportantContactConfigWindow extends Window{
 	}
 	
 	public ImportantContactConfigWindow(){
-		importantContactList = new ArrayList<ZUser>();
-		notImportantContactList = new ArrayList<ZUser>();
-		setHeadingText("管理重要联系人");
+		importantContactList = new ArrayList<>();
+		notImportantContactList = new ArrayList<>();
+		setHeading("管理重要联系人");
 		setModal(true);
 		setSize("300", "200");
 		add(panel);
 		addButton(add);
 		addButton(delete);
-		addHideHandler(new HideHandler() {
-			public void onHide(HideEvent event) {
-				if(jobPresenter!=null){
-					RPCS.getJobService().getUpstreamJob(jobPresenter.getJobModel().getId(), new AbstractAsyncCallback<JobModel>() {
-						@Override
-						public void onSuccess(JobModel result) {
-							jobPresenter.display(result);
-						}
-					});
-				}
+		addHideHandler(event -> {
+			if(jobPresenter!=null){
+				RPCS.getJobService().getUpstreamJob(jobPresenter.getJobModel().getId(), new AbstractAsyncCallback<JobModel>() {
+					@Override
+					public void onSuccess(JobModel result) {
+						jobPresenter.display(result);
+					}
+				});
 			}
 		});
 	}
@@ -194,7 +169,7 @@ public class ImportantContactConfigWindow extends Window{
 						notImportantContactList.add(tuple.getZuser());
 					}
 				}
-				StringBuffer buffer=new StringBuffer();
+				StringBuilder buffer=new StringBuilder();
 				for(ZUser user:importantContactList){
 					buffer.append("<span title='"+user.getUid()+"'>"+user.getName()+",</span>");
 				}

@@ -23,11 +23,17 @@
 		<java.version>1.8</java.version>
 		<java.encoding>UTF-8</java.encoding>
 
+        <hadoop.version>2.7.6</hadoop.version>
+        <hive.version>3.1.1</hive.version>
+        <thrift.version>0.9.0</thrift.version>
+        <log4j.version>1.2.17</log4j.version>
+
 		<javax.transaction.version>1.1</javax.transaction.version>
 		<slf4j.version>1.6.0</slf4j.version>
 		<xerces2j.version>2.12.0</xerces2j.version>
 		<quartz.version>2.3.0</quartz.version>
-		<springframework.version>2.5.6</springframework.version>
+		<spring.version>5.1.5.RELEASE</spring.version>
+        <hibernate.version>5.4.1.Final</hibernate.version>
 		<cglib.version>3.2.9</cglib.version>
 		<asm.version>3.3.1</asm.version>
 		<joda-time.version>2.9.9</joda-time.version>
@@ -38,10 +44,81 @@
 		<io.netty.version>4.1.33.Final</io.netty.version>
 		<commons-fileupload.version>1.1.1</commons-fileupload.version>
         <protobuf-java.version>3.6.1</protobuf-java.version>
+		<mysql-connector.version>8.0.15</mysql-connector.version>
+
+        <servlet.version>4.0.1</servlet.version>
+        <jetty.version>6.1.22</jetty.version>
+        <gwt.version>2.8.2</gwt.version>
     </properties>
 
 	<dependencyManagement>
 		<dependencies>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${servlet.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-client</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hive</groupId>
+                <artifactId>hive-metastore</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hive</groupId>
+                <artifactId>hive-exec</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aop</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-annotations</artifactId>
+                <version>3.5.6-Final</version>
+            </dependency>
 			<!-- ================================================= -->
 			<!-- 1.0.1B不可用，用1.1替代    -->
 			<!-- ================================================= -->
@@ -79,12 +156,12 @@
 			</dependency>
 
             <!-- ======================================== -->
-            <!-- 其它第三方依赖                             -->
+            <!-- 数据库依赖                             -->
             <!-- ======================================== -->
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>8.0.15</version>
+                <version>${mysql-connector.version}</version>
             </dependency>
 
 			<!-- ======================================== -->

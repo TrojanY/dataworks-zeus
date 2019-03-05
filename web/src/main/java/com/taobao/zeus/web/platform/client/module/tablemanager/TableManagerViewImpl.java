@@ -7,7 +7,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -27,7 +26,6 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
-import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
@@ -35,7 +33,6 @@ import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
-import com.taobao.zeus.web.login_out;
 import com.taobao.zeus.web.platform.client.module.tablemanager.component.DataPreviewGrid;
 import com.taobao.zeus.web.platform.client.module.tablemanager.component.TableInfoPanel;
 import com.taobao.zeus.web.platform.client.module.tablemanager.model.PartitionModel;
@@ -139,7 +136,7 @@ public class TableManagerViewImpl implements TableManagerView {
 			list.add(name);
 			ColumnModel<TableModel> cm = new ColumnModel<TableModel>(list);
 
-			commonGrid = new Grid<TableModel>(getCommonStore(), cm);
+			commonGrid = new Grid<>(getCommonStore(), cm);
 			commonGrid.getView().setForceFit(true);
 			commonGrid.setAllowTextSelection(true);
 			commonGrid.setLoader(getLoader());
@@ -149,7 +146,7 @@ public class TableManagerViewImpl implements TableManagerView {
 			commonGrid.getView().setAutoFill(true);
 			commonGrid.getView().setEmptyText("没有查询结果！");
 
-			final GridFilters<TableModel> filters = new GridFilters<TableModel>(
+			final GridFilters<TableModel> filters = new GridFilters<>(
 					loader);
 			filters.initPlugin(commonGrid);
 			final MyStringFilter<TableModel> myFilter = new MyStringFilter<TableModel>(
@@ -171,13 +168,8 @@ public class TableManagerViewImpl implements TableManagerView {
 					new Margins(3)));
 			commonTableContainer.add(filterText, new VerticalLayoutData(1, 30,
 					new Margins(3)));
-			GridSelectionModel<TableModel> gs = new GridSelectionModel<TableModel>();
-			gs.addSelectionHandler(new SelectionHandler<TableModel>() {
-				@Override
-				public void onSelection(SelectionEvent<TableModel> event) {
-					getTableInfoPanel().load(event.getSelectedItem());
-				}
-			});
+			GridSelectionModel<TableModel> gs = new GridSelectionModel<>();
+			gs.addSelectionHandler(event -> getTableInfoPanel().load(event.getSelectedItem()));
 			commonGrid.setSelectionModel(gs);
 		}
 		return commonGrid;
@@ -216,22 +208,16 @@ public class TableManagerViewImpl implements TableManagerView {
 					return new FilterPagingLoadConfigBean();
 				}
 			};
-			loader.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, TableModel, PagingLoadResult<TableModel>>(
+			loader.addLoadHandler(new LoadResultListStoreBinding<>(
 					getCommonStore()));
 
 			loader.setRemoteSort(true);
 
-			loader.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<TableModel>>() {
-
-				@Override
-				public void onLoad(
-						LoadEvent<FilterPagingLoadConfig, PagingLoadResult<TableModel>> event) {
-					if (event.getLoadResult().getData().isEmpty())
-						return;
-					getTableInfoPanel().load(
-							event.getLoadResult().getData().get(0));
-				}
-
+			loader.addLoadHandler(event -> {
+				if (event.getLoadResult().getData().isEmpty())
+					return;
+				getTableInfoPanel().load(
+						event.getLoadResult().getData().get(0));
 			});
 		}
 		return this.loader;
@@ -239,13 +225,8 @@ public class TableManagerViewImpl implements TableManagerView {
 
 	public ListStore<TableModel> getCommonStore() {
 		if (commonStore == null) {
-			commonStore = new ListStore<TableModel>(
-					new ModelKeyProvider<TableModel>() {
-						@Override
-						public String getKey(TableModel item) {
-							return item.getName();
-						}
-					});
+			commonStore = new ListStore<>(
+					item -> item.getName());
 		}
 
 		return commonStore;

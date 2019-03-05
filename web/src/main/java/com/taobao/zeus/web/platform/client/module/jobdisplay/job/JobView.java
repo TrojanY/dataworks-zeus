@@ -25,7 +25,7 @@ public class JobView extends CardLayoutContainer implements IsWidget{
 
 	public void display(){
 		setActiveWidget(info);
-		info.setHeadingText(getBaseTitle());
+		info.setHeading(getBaseTitle());
 		info.refresh(presenter.getJobModel());
 		info.getCenter().getElement().setScrollTop(0);
 	}
@@ -34,13 +34,13 @@ public class JobView extends CardLayoutContainer implements IsWidget{
 		setActiveWidget(editJob);
 		editJob.refresh(presenter.getJobModel());
 		editJob.getCenter().getElement().setScrollTop(0);
-		editJob.setHeadingText(getBaseTitle()+" > 编辑任务");
+		editJob.setHeading(getBaseTitle()+" > 编辑任务");
 	}
 	
 	public void displayHistory(){
 		setActiveWidget(history);
 		history.refresh(presenter.getJobModel());
-		history.setHeadingText(getBaseTitle()+" > 历史运行日志");
+		history.setHeading(getBaseTitle()+" > 历史运行日志");
 	}
 	
 	private String getBaseTitle(){
@@ -49,7 +49,7 @@ public class JobView extends CardLayoutContainer implements IsWidget{
 
 	public void displayDepGraph() {
 		setActiveWidget(depGraph);
-		depGraph.setHeadingText(getBaseTitle()+" > 依赖图");
+		depGraph.setHeading(getBaseTitle()+" > 依赖图");
 		depGraph.refresh(presenter.getJobModel());
 	}
 }

@@ -26,7 +26,7 @@ public class GroupView extends CardLayoutContainer implements IsWidget{
 		if(getWidgetIndex(info)==-1){
 			add(info);
 		}
-		info.setHeadingText(getBaseTitle());
+		info.setHeading(getBaseTitle());
 		setActiveWidget(info);
 		info.refresh(presenter.getGroupModel());
 	}
@@ -34,7 +34,7 @@ public class GroupView extends CardLayoutContainer implements IsWidget{
 		if(getWidgetIndex(editGroup)==-1){
 			add(editGroup);
 		}
-		editGroup.setHeadingText(getBaseTitle()+" > "+"编辑组");
+		editGroup.setHeading(getBaseTitle()+" > "+"编辑组");
 		setActiveWidget(editGroup);
 		editGroup.refresh(presenter.getGroupModel());
 	}
@@ -43,7 +43,7 @@ public class GroupView extends CardLayoutContainer implements IsWidget{
 		if(getWidgetIndex(running)==-1){
 			add(running);
 		}
-		running.setHeadingText(getBaseTitle()+" > "+"正在运行的自动任务");
+		running.setHeading(getBaseTitle()+" > "+"正在运行的自动任务");
 		setActiveWidget(running);
 		running.refresh(presenter.getGroupModel());
 	}
@@ -52,7 +52,7 @@ public class GroupView extends CardLayoutContainer implements IsWidget{
 		if(getWidgetIndex(manual)==-1){
 			add(manual);
 		}
-		manual.setHeadingText(getBaseTitle()+" > "+"正在运行的手动任务");
+		manual.setHeading(getBaseTitle()+" > "+"正在运行的手动任务");
 		setActiveWidget(manual);
 		manual.refresh(presenter.getGroupModel());
 	}
@@ -63,7 +63,7 @@ public class GroupView extends CardLayoutContainer implements IsWidget{
 
 	public void displayOverall() {
 		setActiveWidget(overall);
-		overall.setHeadingText(getBaseTitle()+" > "+"组下所有的任务总览");
+		overall.setHeading(getBaseTitle()+" > "+"组下所有的任务总览");
 		overall.refresh(presenter.getGroupModel());
 	}
 }

@@ -6,8 +6,6 @@ import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
@@ -32,7 +30,7 @@ public class CardEditUser extends Window {
 	
 	
 	public CardEditUser(final UserPresenter presenter,final ZUser user) {
-		setHeadingText("编辑用户信息");
+		setHeading("编辑用户信息");
 		setModal(true);
 		setHeight(560);
 		setWidth(420);
@@ -42,26 +40,26 @@ public class CardEditUser extends Window {
 		luid=new Label();
 		name_text=new TextField();
 		name_text.setWidth(150);
-		name_text.addValidator(new EmptyValidator<String>());
+		name_text.addValidator(new EmptyValidator<>());
 		name_text.setAutoValidate(true);
 		luserType=new Label();
 		leffective=new Label();
 		
 		lemail = new TextField();
 		lemail.setWidth(350);
-		lemail.addValidator(new EmptyValidator<String>());
+		lemail.addValidator(new EmptyValidator<>());
 		lemail.setAutoValidate(true);
 		
 		phone_text = new TextArea();
 		phone_text.setWidth(350);
 		phone_text.setHeight(148);
-		phone_text.addValidator(new EmptyValidator<String>());
+		phone_text.addValidator(new EmptyValidator<>());
 		phone_text.setAutoValidate(true);
 		
 		description_text = new TextArea();
 		description_text.setWidth(350);
 		description_text.setHeight(148);
-		description_text.addValidator(new EmptyValidator<String>());
+		description_text.addValidator(new EmptyValidator<>());
 		description_text.setAutoValidate(true);
 		
 		p.add(new FieldLabel(luid, "用户账号"),new VerticalLayoutContainer.VerticalLayoutData(1, -1,new Margins(10)));
@@ -73,17 +71,13 @@ public class CardEditUser extends Window {
 		p.add(new FieldLabel(description_text,"描述"),new VerticalLayoutContainer.VerticalLayoutData(1, -1,new Margins(10)));
 		
 		getLayoutContainer().add(p);
-		addButton(new TextButton("保存",new SelectHandler() {
-			
-			@Override
-			public void onSelect(SelectEvent event) {
-				user.setDescription(description_text.getValue());
-				user.setEmail(lemail.getValue());
-				user.setName(name_text.getValue());
-				user.setPhone(phone_text.getValue());
-				RPCS.getUserService().updateUser(user, callback);
-				CardEditUser.this.hide();
-			}
+		addButton(new TextButton("保存", event -> {
+			user.setDescription(description_text.getValue());
+			user.setEmail(lemail.getValue());
+			user.setName(name_text.getValue());
+			user.setPhone(phone_text.getValue());
+			RPCS.getUserService().updateUser(user, callback);
+			CardEditUser.this.hide();
 		}));
 		refresh(user);
 	}

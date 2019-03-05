@@ -34,7 +34,7 @@ public class DocumentViewImpl implements DocumentView {
 			final ContentPanel fileManagerPanel = new ContentPanel();
 			fileManagerPanel.setHeaderVisible(false);
 			fileManagerPanel.setCollapsible(true);
-			fileManagerPanel.setHeadingText("文件管理");
+			fileManagerPanel.setHeading("文件管理");
 			// TODO 动画效果
 			fileManagerPanel.setAnimCollapse(true);
 			fileManagerPanel.setAnimationDuration(1000);

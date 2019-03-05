@@ -7,6 +7,11 @@
     <when-type-is class="com.taobao.zeus.web.platform.client.widget.ShortcutCell.ShortcutCellAppearance" />
   </replace-with>
 
+  <set-configuration-property name="CssResource.enableGss" value="true" />
+  <set-configuration-property name="CssResource.gssDefaultInUiBinder" value="true" />
+  <set-configuration-property name="CssResource.conversionMode" value="strict" />
+
+
   <entry-point class='com.taobao.zeus.web.platform.client.PlatformEntry'/>
 	
   <source path='client'/>

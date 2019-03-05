@@ -78,7 +78,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 
 	@Override
 	public List<ZUser> getAllUsers() {
-		List<ZUser> result = new ArrayList<ZUser>();
+		List<ZUser> result = new ArrayList<>();
 		List<ZeusUser> list = userManager.getAllUsers();
 		for (ZeusUser u : list) {
 			// ZUser zu=new ZUser();
@@ -152,7 +152,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 			// System.out.println("MD5(" + sourceStr + ",16) = " +
 			// buf.toString().substring(8, 24));
 		} catch (NoSuchAlgorithmException e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return result;
 	}
@@ -162,9 +162,8 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 		if (null == u) {
 			return "null";
 		}
-		String uid = u.getUid();
 
-		return uid;
+		return u.getUid();
 
 	}
 
@@ -185,24 +184,17 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 	}
 
 	private boolean hasPermission(String uid) {
-		if (LoginUser.getUser().getUid().equals(uid)
-				|| ZeusUser.ADMIN.getUid().equals(LoginUser.getUser().getUid())) {
-			return true;
-		} else {
-			return false;
-		}
+		return LoginUser.getUser().getUid().equals(uid)
+				|| ZeusUser.ADMIN.getUid().equals(LoginUser.getUser().getUid());
 	}
 	
 	private boolean hasAdminPermission() {
-		if (ZeusUser.ADMIN.getUid().equals(LoginUser.getUser().getUid())){
-			return true;
-		}
-		return false;
+		return ZeusUser.ADMIN.getUid().equals(LoginUser.getUser().getUid());
 	}
 
 	@Override
 	public List<ZUser> getAllGroupUsers() {
-		List<ZUser> result = new ArrayList<ZUser>();
+		List<ZUser> result = new ArrayList<>();
 		List<ZeusUser> list = userManager.getAllUsers();
 		for (ZeusUser u : list) {
 			if (u.getUserType() == 0) {
@@ -251,7 +243,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 			int limit = config.getLimit();
 			String field = "gmtModified";
 			String order = "desc";
-			List<ZeusUser> list = null;
+			List<ZeusUser> list;
 			if (filter != null && filter.trim().length() > 0) {
 				list = userManager.findListByFilter(filter, field, order);
 			}else{
@@ -262,7 +254,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 				start = 0;
 			}
 			list = list.subList(start,Math.min(start + limit, total));
-			List<ZUser> result = new ArrayList<ZUser>();
+			List<ZUser> result = new ArrayList<>();
 			for (ZeusUser u : list) {
 				result.add(transform(u));
 			}
@@ -293,7 +285,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 					}
 				}
 				//2.给用户发邮件，告知审核已通过
-				List<String> mailUsers = new ArrayList<String>();
+				List<String> mailUsers = new ArrayList<>();
 				mailUsers.add(ZeusUser.ADMIN.getUid());
 				mailUsers.add(newUser.getUid());
 				MailAlarm mailAlarm = new MailAlarm();
@@ -316,7 +308,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 		user.setIsEffective(UserStatus.CHECK_FAILED.value());
 		userManager.update(user);
 		ZeusUser newUser = userManager.findByUid(uid);
-		List<String> mailUsers = new ArrayList<String>();
+		List<String> mailUsers = new ArrayList<>();
 		mailUsers.add(ZeusUser.ADMIN.getUid());
 		mailUsers.add(newUser.getUid());
 		MailAlarm mailAlarm = new MailAlarm();
@@ -335,7 +327,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 	}
 	
 	private List<String> getEmailsByUsers(List<String> users){
-		List<String> emails = new ArrayList<String>();
+		List<String> emails = new ArrayList<>();
 		try{
 			List<ZeusUser> userList = userManager.findListByUid(users);
 			if (userList != null && userList.size() > 0) {
@@ -367,7 +359,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 		user.setIsEffective(UserStatus.Cancel.value());
 		userManager.update(user);
 		ZeusUser newUser = userManager.findByUid(uid);
-		List<String> mailUsers = new ArrayList<String>();
+		List<String> mailUsers = new ArrayList<>();
 		mailUsers.add(ZeusUser.ADMIN.getUid());
 		mailUsers.add(newUser.getUid());
 		MailAlarm mailAlarm = new MailAlarm();

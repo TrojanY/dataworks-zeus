@@ -47,12 +47,12 @@ public class CardRunning extends CenterTemplate implements Refreshable<GroupMode
 	private ListStore<JobHistoryModel> store;
 	
 	public CardRunning(final GroupPresenter presenter){
-		IdentityValueProvider<JobHistoryModel> identity = new IdentityValueProvider<JobHistoryModel>();
-		RowNumberer<JobHistoryModel> numberer = new RowNumberer<JobHistoryModel>(identity);
-		ColumnConfig<JobHistoryModel,String> jobId=new ColumnConfig<JobHistoryModel, String>(prop.jobId(), 30, "ActionId");
-		ColumnConfig<JobHistoryModel,String> toJobId=new ColumnConfig<JobHistoryModel, String>(prop.toJobId(), 30, "JobId");
-		ColumnConfig<JobHistoryModel,String> name=new ColumnConfig<JobHistoryModel, String>(prop.name(),100,"任务名称");
-		ColumnConfig<JobHistoryModel,String> owner=new ColumnConfig<JobHistoryModel,String>(prop.owner(),50,"所有人");
+		IdentityValueProvider<JobHistoryModel> identity = new IdentityValueProvider<>();
+		RowNumberer<JobHistoryModel> numberer = new RowNumberer<>(identity);
+		ColumnConfig<JobHistoryModel,String> jobId=new ColumnConfig<>(prop.jobId(), 30, "ActionId");
+		ColumnConfig<JobHistoryModel,String> toJobId=new ColumnConfig<>(prop.toJobId(), 30, "JobId");
+		ColumnConfig<JobHistoryModel,String> name=new ColumnConfig<>(prop.name(),100,"任务名称");
+		ColumnConfig<JobHistoryModel,String> owner=new ColumnConfig<>(prop.owner(),50,"所有人");
 		owner.setCell(new AbstractCell<String>(){
 			public void render(com.google.gwt.cell.client.Cell.Context context,
 					String value, SafeHtmlBuilder sb) {
@@ -80,8 +80,8 @@ public class CardRunning extends CenterTemplate implements Refreshable<GroupMode
 				}
 			}
 		});
-		ColumnConfig<JobHistoryModel,String> executeHost=new ColumnConfig<JobHistoryModel, String>(prop.executeHost(),70,"执行服务器");
-		ColumnConfig<JobHistoryModel,String> triggerType=new ColumnConfig<JobHistoryModel, String>(prop.triggerType(),40,"触发类型");
+		ColumnConfig<JobHistoryModel,String> executeHost=new ColumnConfig<>(prop.executeHost(),70,"执行服务器");
+		ColumnConfig<JobHistoryModel,String> triggerType=new ColumnConfig<>(prop.triggerType(),40,"触发类型");
 		triggerType.setCell(new AbstractCell<String>() {
 			public void render(com.google.gwt.cell.client.Cell.Context context,
 					String value, SafeHtmlBuilder sb) {
@@ -128,7 +128,7 @@ public class CardRunning extends CenterTemplate implements Refreshable<GroupMode
 							box.addHideHandler(new HideHandler() {
 								public void onHide(HideEvent event) {
 									Dialog btn = (Dialog) event.getSource();
-									if(btn.getHideButton().getText().equalsIgnoreCase("yes")){
+									if(btn.getButton(Dialog.PredefinedButton.YES).getText().equalsIgnoreCase("yes")){
 										grid.mask("取消任务中");
 										RPCS.getJobService().cancel(value.getId(),new AbstractAsyncCallback<Void>(){
 											public void onSuccess(Void result) {
@@ -155,37 +155,26 @@ public class CardRunning extends CenterTemplate implements Refreshable<GroupMode
 		ColumnModel<JobHistoryModel> cm=new ColumnModel(Arrays.asList(numberer,jobId,toJobId,name,owner,startTime,executeHost,triggerType,illustrate,operate));
 		
 		
-		store=new ListStore<JobHistoryModel>(prop.key());
+		store=new ListStore<>(prop.key());
 
-		grid=new Grid<JobHistoryModel>(store, cm);
+		grid=new Grid<>(store, cm);
 		grid.setLoadMask(true);
 		grid.getView().setForceFit(true);
 		
-		grid.addCellDoubleClickHandler(new CellDoubleClickHandler() {
-			@Override
-			public void onCellClick(CellDoubleClickEvent event) {
-				int row=event.getRowIndex();
-				JobHistoryModel model=grid.getStore().get(row);
-				if(model!=null){
-					TreeNodeSelectEvent te=new TreeNodeSelectEvent(TreeKeyProviderTool.genJobProviderKey(model.getJobId()));
-					presenter.getPlatformContext().getPlatformBus().fireEvent(te);
-				}
+		grid.addCellDoubleClickHandler(event -> {
+			int row=event.getRowIndex();
+			JobHistoryModel model=grid.getStore().get(row);
+			if(model!=null){
+				TreeNodeSelectEvent te=new TreeNodeSelectEvent(TreeKeyProviderTool.genJobProviderKey(model.getJobId()));
+				presenter.getPlatformContext().getPlatformBus().fireEvent(te);
 			}
 		});
 		
 		setCenter(grid);
 		
-		addButton(new TextButton("返回", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				presenter.display(presenter.getGroupModel());
-			}
-		}));
+		addButton(new TextButton("返回", event -> presenter.display(presenter.getGroupModel())));
 		
-		addButton(new TextButton("刷新",new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				refresh(presenter.getGroupModel());
-			}
-		}));
+		addButton(new TextButton("刷新", event -> refresh(presenter.getGroupModel())));
 	}
 	@Override
 	public void refresh(GroupModel groupModel) {

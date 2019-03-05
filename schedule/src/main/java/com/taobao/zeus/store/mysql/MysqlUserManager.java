@@ -1,17 +1,14 @@
 package com.taobao.zeus.store.mysql;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Expression;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.store.UserManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
@@ -19,51 +16,40 @@ import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 public class MysqlUserManager extends HibernateDaoSupport implements UserManager{
 	
 	public List<ZeusUser> getAllUsers(){
-		return (List<ZeusUser>) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where isEffective=1 ");
-				return query.list();
-			}
+		return (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where isEffective=1 ");
+			return query.list();
 		});
 	}
 
 	
 	public ZeusUser findByUid(String uid){
 		DetachedCriteria criteria=DetachedCriteria.forClass(ZeusUser.class);
-		criteria.add(Expression.eq("uid", uid));
-		List<ZeusUser> users=getHibernateTemplate().findByCriteria(criteria);
+		criteria.add(Restrictions.eq("uid", uid));
+		List<?> users=getHibernateTemplate().findByCriteria(criteria);
 		if(users!=null && !users.isEmpty()){
-			return users.get(0);
+			return (ZeusUser)users.get(0);
 		}
 		return null;
 	}
 	
 	public List<ZeusUser> findListByUid(final List<String> uids){
 		if(uids.isEmpty()){
-			return new ArrayList<ZeusUser>();
+			return new ArrayList<>();
 		}
-		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid in (:idList)");
-				query.setParameterList("idList", uids);
-				return query.list();
-			}
+		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid in (:idList)");
+			query.setParameterList("idList", uids);
+			return query.list();
 		});
 		return list;
 	} 
 	
 	public ZeusUser addOrUpdateUser(final ZeusUser user){
-		List<ZeusUser> list=(List<ZeusUser>) getHibernateTemplate().execute(new HibernateCallback() {
-			
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid=?");
-				query.setParameter(0, user.getUid());
-				return query.list();
-			}
+		List<ZeusUser> list=(List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid=?");
+			query.setParameter(0, user.getUid());
+			return query.list();
 		});
 		if(list!=null && !list.isEmpty()){
 			ZeusUser zu=list.get(0);
@@ -106,39 +92,33 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 	/**2015-02-04**/
 	public ZeusUser findByUidFilter(String uid){
 		DetachedCriteria criteria=DetachedCriteria.forClass(ZeusUser.class);
-		criteria.add(Expression.eq("uid", uid));
-		criteria.add(Expression.eq("isEffective", 1));
-		List<ZeusUser> users=getHibernateTemplate().findByCriteria(criteria);
+		criteria.add(Restrictions.eq("uid", uid));
+		criteria.add(Restrictions.eq("isEffective", 1));
+		List<?> users=getHibernateTemplate().findByCriteria(criteria);
 		if(users!=null && !users.isEmpty()){
-			return users.get(0);
+			return (ZeusUser)users.get(0);
 		}
 		return null;
 	}
 	
 	public List<ZeusUser> findAllUsers(final String sortField, final String sortOrder){
-		return (List<ZeusUser>) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser order by " + sortField + " " + sortOrder);
-				return query.list();
-			}
+		return (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser order by " + sortField + " " + sortOrder);
+			return query.list();
 		});
 	}
 	
 	public List<ZeusUser> findListByFilter(final String filter, final String sortField, final String sortOrder){
 		if(filter.isEmpty()){
-			return new ArrayList<ZeusUser>();
+			return new ArrayList<>();
 		}
-		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser "+
-					"where uid like :uid or name like :name or email like :email order by " + sortField + " " + sortOrder);
-				query.setString("uid", "%"+filter+"%");
-				query.setString("name", "%"+filter+"%");
-				query.setString("email", "%"+filter+"%");
-				return query.list();
-			}
+		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser "+
+				"where uid like :uid or name like :name or email like :email order by " + sortField + " " + sortOrder);
+			query.setParameter("uid", "%"+filter+"%");
+			query.setParameter("name", "%"+filter+"%");
+			query.setParameter("email", "%"+filter+"%");
+			return query.list();
 		});
 		return list;
 	} 

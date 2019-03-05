@@ -11,10 +11,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.schedule.mvc.ScheduleInfoLog;
 import com.taobao.zeus.socket.worker.ClientWorker;
@@ -61,7 +61,7 @@ public class DistributeLocker extends HibernateDaoSupport{
 		}
 	}
 	
-	public void init() throws Exception{
+	public void init(){
 		zeusSchedule=new ZeusSchedule(applicationContext);
 		ScheduledExecutorService service=Executors.newScheduledThreadPool(3);
 		service.scheduleAtFixedRate(() -> {
@@ -80,7 +80,7 @@ public class DistributeLocker extends HibernateDaoSupport{
 	 *
 	 */
 	private void update(){
-		DistributeLock lock=(DistributeLock) getHibernateTemplate().execute(session -> {
+		DistributeLock lock=getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.DistributeLock where subgroup=? order by id desc");
 			query.setParameter(0, Environment.getScheduleGroup());
 			query.setMaxResults(1);

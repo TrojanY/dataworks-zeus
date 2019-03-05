@@ -1,6 +1,5 @@
 package com.taobao.zeus.store.mysql;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,13 +15,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.GroupDescriptor;
@@ -37,7 +33,6 @@ import com.taobao.zeus.store.GroupManagerTool;
 import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.mysql.persistence.GroupPersistence;
 import com.taobao.zeus.store.mysql.persistence.JobPersistence;
-import com.taobao.zeus.store.mysql.persistence.JobPersistenceOld;
 import com.taobao.zeus.store.mysql.persistence.Worker;
 import com.taobao.zeus.store.mysql.tool.Judge;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
@@ -79,41 +74,33 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		final GroupBean ignoreGlobe=this.ignoreGlobe;
 		
 		boolean jobChanged;
-		Judge jobrealtime=null;
-		jobrealtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(job_id),max(gmt_modified) from zeus_action where id>=date_format(now(),'20%y%m%d0000000000')").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=o[1]==null?0:((Number)o[1]).intValue();
-					j.lastModified=o[2]==null?new Date(0):(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
+		Judge jobrealtime;
+		jobrealtime=getHibernateTemplate().execute(session -> {
+			Object[] o=(Object[]) session.createSQLQuery("select count(*),max(job_id),max(gmt_modified) from zeus_action where id>=date_format(now(),'20%y%m%d0000000000')").uniqueResult();
+			if(o!=null){
+				Judge j=new Judge();
+				j.count=((Number) o[0]).intValue();
+				j.maxId=o[1]==null?0:((Number)o[1]).intValue();
+				j.lastModified=o[2]==null?new Date(0):(Date) o[2];
+				j.stamp=new Date();
+				return j;
 			}
+			return null;
 		});
 		
 		List<JobDescriptor> changedJobs;
-		changedJobs=(List<JobDescriptor>) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistence where gmt_modified>?");
-				query.setDate(0, ignoreContentJobJudge.lastModified);
-				List<Object[]> list=query.list();
-				List<JobDescriptor> result=new ArrayList<JobDescriptor>();
-				for(Object[] o:list){
-					JobDescriptor jd=new JobDescriptor();
-					jd.setId(String.valueOf(o[0]));
-					jd.setGroupId(String.valueOf(o[1]));
-					result.add(jd);
-				}
-				return result;
+		changedJobs=getHibernateTemplate().execute(session -> {
+			Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistence where gmt_modified>?");
+			query.setParameter(0, ignoreContentJobJudge.lastModified);
+			List<Object[]> list=query.list();
+			List<JobDescriptor> result=new ArrayList<>();
+			for(Object[] o:list){
+				JobDescriptor jd=new JobDescriptor();
+				jd.setId(String.valueOf(o[0]));
+				jd.setGroupId(String.valueOf(o[1]));
+				result.add(jd);
 			}
+			return result;
 		});
 		
 		if(jobrealtime!=null && jobrealtime.count.equals(ignoreContentJobJudge.count) && jobrealtime.maxId.equals(ignoreContentJobJudge.maxId)
@@ -129,39 +116,31 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		
 		//Group
 		boolean groupChanged;
-		Judge grouprealtime=null;
-		grouprealtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=o[1]==null?0:((Number)o[1]).intValue();
-					j.lastModified=o[2]==null?new Date(0):(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
+		Judge grouprealtime;
+		grouprealtime= getHibernateTemplate().execute(session -> {
+			Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
+			if(o!=null){
+				Judge j=new Judge();
+				j.count=((Number) o[0]).intValue();
+				j.maxId=o[1]==null?0:((Number)o[1]).intValue();
+				j.lastModified=o[2]==null?new Date(0):(Date) o[2];
+				j.stamp=new Date();
+				return j;
 			}
+			return null;
 		});
 		
 		
-		List<GroupDescriptor> changedGroups=null;
-		changedGroups=(List<GroupDescriptor>) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>?");
-				query.setDate(0, ignoreContentGroupJudge.lastModified);
-				List<GroupPersistence> list=query.list();
-				List<GroupDescriptor> result=new ArrayList<GroupDescriptor>();
-				for(GroupPersistence p:list){
-					result.add(PersistenceAndBeanConvert.convert(p));
-				}
-				return result;
+		List<GroupDescriptor> changedGroups;
+		changedGroups=getHibernateTemplate().execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>?");
+			query.setParameter(0, ignoreContentGroupJudge.lastModified);
+			List<GroupPersistence> list=query.list();
+			List<GroupDescriptor> result=new ArrayList<>();
+			for(GroupPersistence p:list){
+				result.add(PersistenceAndBeanConvert.convert(p));
 			}
+			return result;
 		});
 		
 		if(grouprealtime!=null && grouprealtime.count.equals(ignoreContentGroupJudge.count) && grouprealtime.maxId.equals(ignoreContentGroupJudge.maxId)
@@ -238,21 +217,17 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		final Judge groupjudge=this.groupjudge;
 		
 		boolean jobChanged;
-		Judge jobrealtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(job_id),max(gmt_modified) from zeus_action where id>=date_format(now(),'20%y%m%d0000000000')").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=((Number)o[1]).intValue();
-					j.lastModified=(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
+		Judge jobrealtime=getHibernateTemplate().execute(session -> {
+			Object[] o=(Object[]) session.createSQLQuery("select count(*),max(job_id),max(gmt_modified) from zeus_action where id>=date_format(now(),'20%y%m%d0000000000')").uniqueResult();
+			if(o!=null){
+				Judge j=new Judge();
+				j.count=((Number) o[0]).intValue();
+				j.maxId=((Number)o[1]).intValue();
+				j.lastModified=(Date) o[2];
+				j.stamp=new Date();
+				return j;
 			}
+			return null;
 		});
 		
 		if(jobrealtime!=null && jobrealtime.count.equals(jobjudge.count) && jobrealtime.maxId.equals(jobjudge.maxId) && jobrealtime.lastModified.equals(jobjudge.lastModified)){
@@ -264,21 +239,17 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		}
 		
 		boolean groupChanged;
-		Judge grouprealtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=((Number)o[1]).intValue();
-					j.lastModified=(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
+		Judge grouprealtime=getHibernateTemplate().execute(session -> {
+			Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
+			if(o!=null){
+				Judge j=new Judge();
+				j.count=((Number) o[0]).intValue();
+				j.maxId=((Number)o[1]).intValue();
+				j.lastModified=(Date) o[2];
+				j.stamp=new Date();
+				return j;
 			}
+			return null;
 		});
 		if(grouprealtime!=null && grouprealtime.count.equals(groupjudge.count) && grouprealtime.maxId.equals(groupjudge.maxId) && grouprealtime.lastModified.equals(groupjudge.lastModified)){
 			groupjudge.stamp=new Date();
@@ -332,13 +303,13 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		}
 		@Override
 		public List<GroupDescriptor> getChildrenGroup(String groupId) {
-			List<GroupBean> list=null;
+			List<GroupBean> list;
 			if(globe.getGroupDescriptor().getId().equals(groupId)){
 				list=globe.getChildrenGroupBeans();
 			}else{
 				list=globe.getAllSubGroupBeans().get(groupId).getChildrenGroupBeans();
 			}
-			List<GroupDescriptor> result=new ArrayList<GroupDescriptor>();
+			List<GroupDescriptor> result=new ArrayList();
 			if(list!=null){
 				for(GroupBean gb:list){
 					result.add(gb.getGroupDescriptor());
@@ -358,9 +329,9 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		public List<Tuple<JobDescriptor, JobStatus>> getChildrenJob(
 				String groupId) {
 			Map<String, JobBean> map=globe.getAllSubGroupBeans().get(groupId).getJobBeans();
-			List<Tuple<JobDescriptor, JobStatus>> result=new ArrayList<Tuple<JobDescriptor,JobStatus>>();
+			List<Tuple<JobDescriptor, JobStatus>> result=new ArrayList<>();
 			for(JobBean jb:map.values()){
-				result.add(new Tuple<JobDescriptor, JobStatus>(jb.getJobDescriptor(), jb.getJobStatus()));
+				result.add(new Tuple<>(jb.getJobDescriptor(), jb.getJobStatus()));
 			}
 			return result;
 		}
@@ -374,27 +345,27 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public GroupDescriptor createGroup(String user, String groupName,
 				String parentGroup, boolean isDirectory) throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public JobDescriptor createJob(String user, String jobName,
 				String parentGroup, JobRunType jobType) throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void deleteGroup(String user, String groupId)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void deleteJob(String user, String jobId) throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 
 		@Override
 		public List<GroupDescriptor> getChildrenGroup(String groupId) {
 			List<GroupDescriptor> list= groupManager.getChildrenGroup(groupId);
-			List<GroupDescriptor> result=new ArrayList<GroupDescriptor>();
+			List<GroupDescriptor> result=new ArrayList<>();
 			for(GroupDescriptor gd:list){
 				result.add(new ReadOnlyGroupDescriptor(gd));
 			}
@@ -405,9 +376,9 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		public List<Tuple<JobDescriptor, JobStatus>> getChildrenJob(
 				String groupId) {
 			List<Tuple<JobDescriptor, JobStatus>> list=groupManager.getChildrenJob(groupId);
-			List<Tuple<JobDescriptor, JobStatus>> result=new ArrayList<Tuple<JobDescriptor,JobStatus>>();
+			List<Tuple<JobDescriptor, JobStatus>> result=new ArrayList<>();
 			for(Tuple<JobDescriptor, JobStatus> tuple:list){
-				Tuple<JobDescriptor, JobStatus> t=new Tuple<JobDescriptor, JobStatus>(new ReadOnlyJobDescriptor(tuple.getX()),new ReadOnlyJobStatus(tuple.getY()));
+				Tuple<JobDescriptor, JobStatus> t=new Tuple<>(new ReadOnlyJobDescriptor(tuple.getX()),new ReadOnlyJobStatus(tuple.getY()));
 				result.add(t);
 			}
 			return result;
@@ -415,7 +386,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 
 		@Override
 		public GroupBean getDownstreamGroupBean(String groupId) {
-			ReadOnlyGroupDescriptor readGd=null;
+			ReadOnlyGroupDescriptor readGd;
 			GroupDescriptor group=getGroupDescriptor(groupId);
 			if(group instanceof ReadOnlyGroupDescriptor){
 				readGd=(ReadOnlyGroupDescriptor) group;
@@ -437,42 +408,38 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		}
 		
 		private Future<GroupBean> getDownstreamGroupBean(final GroupBean parent, final int depth) throws Exception{
-			Callable<GroupBean> callable = new Callable<GroupBean>(){
-				
-				@Override
-				public GroupBean call() throws Exception {
-					if(parent.isDirectory()){
-						List<GroupDescriptor> children=getChildrenGroup(parent.getGroupDescriptor().getId());
-						ArrayList<Future<GroupBean>> futures = new ArrayList<Future<GroupBean>>(children.size());
-						for(GroupDescriptor child:children){
-							ReadOnlyGroupDescriptor readGd=null;
-							if(child instanceof ReadOnlyGroupDescriptor){
-								readGd=(ReadOnlyGroupDescriptor) child;
-							}else{
-								readGd=new ReadOnlyGroupDescriptor(child);
-							}
-							GroupBean childBean=new GroupBean(readGd);
-							if(pool.getActiveCount()<15) {
-								futures.add(getDownstreamGroupBean(childBean, 99));
-							}else{
-								getDownstreamGroupBean(childBean, 0);
-							}
-							childBean.setParentGroupBean(parent);
-							parent.getChildrenGroupBeans().add(childBean);
+			Callable<GroupBean> callable = () -> {
+				if(parent.isDirectory()){
+					List<GroupDescriptor> children=getChildrenGroup(parent.getGroupDescriptor().getId());
+					ArrayList<Future<GroupBean>> futures = new ArrayList<>(children.size());
+					for(GroupDescriptor child:children){
+						ReadOnlyGroupDescriptor readGd;
+						if(child instanceof ReadOnlyGroupDescriptor){
+							readGd=(ReadOnlyGroupDescriptor) child;
+						}else{
+							readGd=new ReadOnlyGroupDescriptor(child);
 						}
-						for(Future<GroupBean> f:futures){
-							f.get(10,TimeUnit.SECONDS);
+						GroupBean childBean=new GroupBean(readGd);
+						if(pool.getActiveCount()<15) {
+							futures.add(getDownstreamGroupBean(childBean, 99));
+						}else{
+							getDownstreamGroupBean(childBean, 0);
 						}
-					}else{
-						List<Tuple<JobDescriptor, JobStatus>> jobs=getChildrenJob(parent.getGroupDescriptor().getId());
-						for(Tuple<JobDescriptor, JobStatus> tuple:jobs){
-							JobBean jobBean=new JobBean(tuple.getX(),tuple.getY());
-							jobBean.setGroupBean(parent);
-							parent.getJobBeans().put(tuple.getX().getId(), jobBean);
-						}
+						childBean.setParentGroupBean(parent);
+						parent.getChildrenGroupBeans().add(childBean);
 					}
-					return parent;
+					for(Future<GroupBean> f:futures){
+						f.get(10,TimeUnit.SECONDS);
+					}
+				}else{
+					List<Tuple<JobDescriptor, JobStatus>> jobs=getChildrenJob(parent.getGroupDescriptor().getId());
+					for(Tuple<JobDescriptor, JobStatus> tuple:jobs){
+						JobBean jobBean=new JobBean(tuple.getX(),tuple.getY());
+						jobBean.setGroupBean(parent);
+						parent.getJobBeans().put(tuple.getX().getId(), jobBean);
+					}
 				}
+				return parent;
 			};
 			if(depth>0) {
 				return pool.submit(callable);
@@ -541,32 +508,32 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public void grantGroupOwner(String granter, String uid, String groupId)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void grantJobOwner(String granter, String uid, String jobId)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void moveGroup(String uid, String groupId,
 				String newParentGroupId) throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void moveJob(String uid, String jobId, String groupId)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void updateGroup(String user, GroupDescriptor group)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void updateJob(String user, JobDescriptor job)
 				throws ZeusException {
-			throw new UnsupportedOperationException();
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void updateJobStatus(JobStatus jobStatus) {
@@ -579,17 +546,17 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public void replaceWorker(Worker worker) throws ZeusException {
 			// TODO Auto-generated method stub
-			
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void removeWorker(String host) throws ZeusException {
 			// TODO Auto-generated method stub
-			
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public void saveJob(JobPersistence actionPer) throws ZeusException {
 			// TODO Auto-generated method stub
-			
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public List<JobPersistence> getLastJobAction(String jobId){
@@ -599,7 +566,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public void updateAction(JobDescriptor actionPer) throws ZeusException {
 			// TODO Auto-generated method stub
-			
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public List<Tuple<JobDescriptor, JobStatus>> getActionList(String jobId) {
@@ -610,7 +577,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public void removeJob(Long actionId) throws ZeusException {
 			// TODO Auto-generated method stub
-			
+			throw new ZeusException(new UnsupportedOperationException());
 		}
 		@Override
 		public boolean IsExistedBelowRootGroup(String GroupName) {
@@ -684,9 +651,9 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public List<Map<String, String>> getResources() {
 			List<Map<String, String>> list=gd.getResources();
-			List<Map<String, String>> result=new ArrayList<Map<String,String>>();
+			List<Map<String, String>> result=new ArrayList<>();
 			for(Map<String, String> map:list){
-				result.add(new HashMap<String, String>(map));
+				result.add(new HashMap<>(map));
 			}
 			return result;
 		}
@@ -709,7 +676,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 
 		@Override
 		public Map<String, String> getProperties() {
-			return new HashMap<String, String>(gd.getProperties());
+			return new HashMap<>(gd.getProperties());
 		}
 
 		@Override
@@ -732,9 +699,9 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		@Override
 		public List<Map<String, String>> getResources() {
 			List<Map<String, String>> list=jd.getResources();
-			List<Map<String, String>> result=new ArrayList<Map<String,String>>();
+			List<Map<String, String>> result=new ArrayList<>();
 			for(Map<String, String> map:list){
-				result.add(new HashMap<String, String>(map));
+				result.add(new HashMap<>(map));
 			}
 			return result;
 		}
@@ -745,7 +712,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 
 		@Override
 		public List<String> getDependencies() {
-			return new ArrayList<String>(jd.getDependencies());
+			return new ArrayList<>(jd.getDependencies());
 		}
 
 		@Override
@@ -841,7 +808,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 
 		@Override
 		public Map<String, String> getProperties() {
-			return new HashMap<String, String>(jd.getProperties());
+			return new HashMap<>(jd.getProperties());
 		}
 
 		@Override
@@ -870,7 +837,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		}*/
 		@Override
 		public List<Processer> getPreProcessers() {
-			return new ArrayList<Processer>(jd.getPreProcessers());
+			return new ArrayList<>(jd.getPreProcessers());
 		}
 
 		@Override
@@ -880,7 +847,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 
 		@Override
 		public List<Processer> getPostProcessers() {
-			return new ArrayList<Processer>(jd.getPostProcessers());
+			return new ArrayList<>(jd.getPostProcessers());
 		}
 
 		@Override
@@ -918,7 +885,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		}
 		@Override
 		public Map<String, String> getReadyDependency() {
-			return new HashMap<String, String>(jobStatus.getReadyDependency());
+			return new HashMap<>(jobStatus.getReadyDependency());
 		}
 		@Override
 		public void setReadyDependency(Map<String, String> readyDependency){

@@ -1,38 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 package com.taobao.zeus.web.platform.client.module.jobdisplay;
 
 import java.util.ArrayList;
@@ -41,28 +6,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gwt.user.client.ui.HTMLPanel;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
-import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.info.Info;
-import com.taobao.zeus.web.platform.client.module.jobdisplay.group.GroupPresenter;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.JobPresenter;
-import com.taobao.zeus.web.platform.client.module.jobmanager.GroupModel;
-import com.taobao.zeus.web.platform.client.module.jobmanager.JobModel;
 import com.taobao.zeus.web.platform.client.util.RPCS;
-import com.taobao.zeus.web.platform.client.util.ZUser;
 import com.taobao.zeus.web.platform.client.util.async.AbstractAsyncCallback;
 
 public class ChooseConfigWindow extends Window{
@@ -87,11 +43,7 @@ public class ChooseConfigWindow extends Window{
 	    add("手动执行任务失败");
 	    add("手动恢复任务失败");
 	}};	
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name")+"("+item.get("uid")+")";
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("name")+"("+item.get("uid")+")");
 		private ComboBox<Map<String, String>> combo;
 		private TextButton submit=new TextButton("执行", new SelectHandler() {
 			public void onSelect(SelectEvent event) {
@@ -123,14 +75,10 @@ public class ChooseConfigWindow extends Window{
 		});
 		private Window win=new Window();
 		{
-			win.setHeadingText("选择JOB版本");
+			win.setHeading("选择JOB版本");
 			win.setSize("350", "100");
 			win.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setForceSelection(true);
 			combo.setTriggerAction(TriggerAction.QUERY);
 			combo.setStore(store);
@@ -150,14 +98,10 @@ public class ChooseConfigWindow extends Window{
 		refresh();
 	}
 	public ChooseConfigWindow() {
-		setHeadingText("选择JOB版本");
+		setHeading("选择JOB版本");
 		setSize("350", "100");
 		setModal(true);
-		combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-			public String getLabel(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
+		combo=new ComboBox<>(store, item -> item.get("name"));
 		combo.setForceSelection(true);
 		combo.setTriggerAction(TriggerAction.QUERY);
 		combo.setStore(store);
@@ -177,7 +121,7 @@ public class ChooseConfigWindow extends Window{
 						Iterator<Long> itr = result.iterator();
 						while (itr.hasNext()) {
 						    Object nextObj = itr.next();
-						    Map<String, String> md=new HashMap<String, String>();
+						    Map<String, String> md=new HashMap<>();
 						    Long actionid = (Long) nextObj;
 						    String str = Long.toString(actionid);
 							md.put("name",str);

@@ -8,8 +8,6 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.FormPanel;
 import com.sencha.gxt.widget.core.client.form.Radio;
@@ -32,7 +30,7 @@ public class NewGroupWindow extends Window{
 
 	public NewGroupWindow(GroupPresenter presenter) {
 		this.presenter=presenter;
-		setHeadingText("新建组");
+		setHeading("新建组");
 		setWidth(350);
 		setHeight(150);
 		setModal(true);
@@ -61,22 +59,16 @@ public class NewGroupWindow extends Window{
 
 		add(panel,new MarginData(5));
 
-		addButton(new TextButton("确定", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				if (name.getValue()==null || name.getValue().trim().equals("")
-						|| group.getValue() == null) {
-					AlertMessageBox alert=new AlertMessageBox("警告", "必填项不能为空");
-					alert.show();
-				}else{
-					submit();
-				}
+		addButton(new TextButton("确定", event -> {
+			if (name.getValue()==null || name.getValue().trim().equals("")
+					|| group.getValue() == null) {
+				AlertMessageBox alert=new AlertMessageBox("警告", "必填项不能为空");
+				alert.show();
+			}else{
+				submit();
 			}
 		}));
-		addButton(new TextButton("取消", new SelectHandler() {
-			public void onSelect(SelectEvent event) {
-				NewGroupWindow.this.hide();
-			}
-		}));
+		addButton(new TextButton("取消", event -> NewGroupWindow.this.hide()));
 	}
 	
 	

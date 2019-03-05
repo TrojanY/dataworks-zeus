@@ -7,14 +7,11 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.logical.shared.AttachEvent;
-import com.google.gwt.event.logical.shared.AttachEvent.Handler;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.CssResource.NotStrict;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
-import com.google.gwt.user.client.ui.MouseListener;
 import com.google.gwt.user.client.ui.Widget;
 
 public class CodeMirror extends Widget{
@@ -26,19 +23,17 @@ public class CodeMirror extends Widget{
 	}
 	private JavaScriptObject cm;
 	
-	public static interface OnChangeListener{
+	public interface OnChangeListener{
 		void onChange();
 	}
 	
-	private List<OnChangeListener> listeners=new ArrayList<OnChangeListener>();
-	private List<MouseUpHandler> mouseListeners=new ArrayList<MouseUpHandler>();
+	private List<OnChangeListener> listeners=new ArrayList<>();
+	private List<MouseUpHandler> mouseListeners=new ArrayList<>();
 	public CodeMirror(final CodeMirrorConfig config){
 		setElement(DOM.createDiv());
-		addAttachHandler(new Handler() {
-			public void onAttachOrDetach(AttachEvent event) {
-				if(event.isAttached()){
-					cm=create(getElement(), config.toJsObject(CodeMirror.this));
-				}
+		addAttachHandler(event -> {
+			if(event.isAttached()){
+				cm=create(getElement(), config.toJsObject(CodeMirror.this));
 			}
 		});
 		sinkEvents(Event.MOUSEEVENTS|Event.ONCLICK);

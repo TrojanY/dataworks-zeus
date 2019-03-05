@@ -14,25 +14,25 @@ public class GuideTip extends ToolTip {
 	}
 
 	public void initTarget(final Widget target) {
-		this.target = target;
+		this.target = target.getElement();
 
 	}
 
 	public void setTitleHtml(String html) {
-		titleHtml = html;
+		title = SafeHtmlUtils.fromString(html);
 	}
 
-	public void setTitleText(String text) {
-		titleHtml = SafeHtmlUtils.htmlEscape(text);
-	}
+//	public void setTitleText(String text) {
+//		title = SafeHtmlUtils.htmlEscape(text);
+//	}
 
 	public void setBodyHtml(String html) {
-		bodyHtml = html;
+		this.body = SafeHtmlUtils.fromString(html);
 	}
 
-	public void setBodyText(String text) {
+	/*public void setBodyText(String text) {
 		bodyHtml = SafeHtmlUtils.htmlEscape(text);
-	}
+	}*/
 
 	public void setAnchor(Side side) {
 		toolTipConfig.setAnchor(side);

@@ -18,8 +18,8 @@
 	</ui:with>
 	
 	<container:AccordionLayoutContainer >
-		<gxt:ContentPanel headingText="我的文档" ui:field="myDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
-		<gxt:ContentPanel headingText="公共文档" ui:field="commonDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
+		<gxt:ContentPanel heading="我的文档" ui:field="myDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
+		<gxt:ContentPanel heading="公共文档" ui:field="commonDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
 	</container:AccordionLayoutContainer>
 	
 </ui:UiBinder> 

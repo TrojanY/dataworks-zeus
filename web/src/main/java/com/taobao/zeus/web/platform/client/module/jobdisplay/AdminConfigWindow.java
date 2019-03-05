@@ -7,14 +7,10 @@ import java.util.Map;
 
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
-import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
@@ -31,16 +27,12 @@ public class AdminConfigWindow extends Window{
 
 	private JobPresenter jobPresenter;
 	private GroupPresenter groupPresenter;
-	private List<ZUser> admins=new ArrayList<ZUser>();
-	private List<ZUser> allUsers=new ArrayList<ZUser>();
-	private List<ZUser> allGroupAdminUsers = new ArrayList<ZUser>();
+	private List<ZUser> admins = new ArrayList<>();
+	private List<ZUser> allUsers=new ArrayList<>();
+	private List<ZUser> allGroupAdminUsers = new ArrayList<>();
 	private HTMLPanel label=new HTMLPanel("");
 	private TextButton add=new TextButton("添加管理员", new SelectHandler() {
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name")+"("+item.get("uid")+")";
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("name")+"("+item.get("uid")+")");
 		private ComboBox<Map<String, String>> combo;
 		private TextButton submit=new TextButton("添加", new SelectHandler() {
 			public void onSelect(SelectEvent event) {
@@ -68,14 +60,10 @@ public class AdminConfigWindow extends Window{
 		});
 		private Window win=new Window();
 		{
-			win.setHeadingText("添加管理员");
+			win.setHeading("添加管理员");
 			win.setSize("350", "100");
 			win.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setForceSelection(true);
 			combo.setTriggerAction(TriggerAction.QUERY);
 			combo.setStore(store);
@@ -85,7 +73,7 @@ public class AdminConfigWindow extends Window{
 		public void onSelect(SelectEvent event) {
 			store.clear();
 			for(ZUser s:allUsers){
-				Map<String, String> md=new HashMap<String, String>();
+				Map<String, String> md=new HashMap<>();
 				md.put("name", s.getName()+"("+s.getUid()+")");
 				md.put("uid", s.getUid());
 				store.add(md);
@@ -96,11 +84,7 @@ public class AdminConfigWindow extends Window{
 	});
 	private TextButton remove=new TextButton("删除管理员", new SelectHandler() {
 		private ComboBox<Map<String, String>> combo;
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("uid");
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("uid"));
 		private TextButton submit=new TextButton("删除", new SelectHandler() {
 			public void onSelect(SelectEvent event) {
 				Map<String, String> md=combo.getValue();
@@ -129,14 +113,10 @@ public class AdminConfigWindow extends Window{
 		});
 		private Window win=new Window();
 		{
-			win.setHeadingText("删除管理员");
+			win.setHeading("删除管理员");
 			win.setSize("350", "100");
 			win.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setTriggerAction(TriggerAction.ALL);
 			combo.setEditable(false);
 			combo.setStore(store);
@@ -146,7 +126,7 @@ public class AdminConfigWindow extends Window{
 		public void onSelect(SelectEvent event) {
 			store.clear();
 			for(ZUser u:admins){
-				Map<String, String> md=new HashMap<String, String>();
+				Map<String, String> md=new HashMap<>();
 				md.put("name", u.getName()+"("+u.getUid()+")");
 				md.put("uid", u.getUid());
 				store.add(md);
@@ -155,13 +135,9 @@ public class AdminConfigWindow extends Window{
 			win.show();
 		}
 	});
-	
+
 	private TextButton transfer=new TextButton("转让所有权", new SelectHandler() {
-		private ListStore<Map<String, String>> store=new ListStore<Map<String, String>>(new ModelKeyProvider<Map<String, String>>() {
-			public String getKey(Map<String, String> item) {
-				return item.get("name");
-			}
-		});
+		private ListStore<Map<String, String>> store=new ListStore<>(item -> item.get("name"));
 		private ComboBox<Map<String, String>> combo;
 		private TextButton submit=new TextButton("转让", new SelectHandler() {
 			public void onSelect(SelectEvent event) {
@@ -190,14 +166,10 @@ public class AdminConfigWindow extends Window{
 		});
 		private Window win=new Window();
 		{
-			win.setHeadingText("转让所有权");
+			win.setHeading("转让所有权");
 			win.setSize("350", "100");
 			win.setModal(true);
-			combo=new ComboBox<Map<String, String>>(store,new LabelProvider<Map<String, String>>() {
-				public String getLabel(Map<String, String> item) {
-					return item.get("name");
-				}
-			});
+			combo=new ComboBox<>(store, item -> item.get("name"));
 			combo.setForceSelection(true);
 			combo.setTriggerAction(TriggerAction.QUERY);
 			combo.setStore(store);
@@ -217,7 +189,7 @@ public class AdminConfigWindow extends Window{
 		}
 	});
 	private AdminConfigWindow(){
-		setHeadingText("管理员配置");
+		setHeading("管理员配置");
 		setModal(true);
 		setSize("400", "250");
 		add(label);
@@ -232,22 +204,20 @@ public class AdminConfigWindow extends Window{
 				}
 			}
 		});
-		addHideHandler(new HideHandler() {
-			public void onHide(HideEvent event) {
-				if(jobPresenter!=null){
-					RPCS.getJobService().getUpstreamJob(jobPresenter.getJobModel().getId(), new AbstractAsyncCallback<JobModel>() {
-						@Override
-						public void onSuccess(JobModel result) {
-							jobPresenter.display(result);
-						}
-					});
-				}else{
-					RPCS.getGroupService().getUpstreamGroup(groupPresenter.getGroupModel().getId(), new AbstractAsyncCallback<GroupModel>() {
-						public void onSuccess(GroupModel result) {
-							groupPresenter.display(result);
-						}
-					});
-				}
+		addHideHandler(event -> {
+			if(jobPresenter!=null){
+				RPCS.getJobService().getUpstreamJob(jobPresenter.getJobModel().getId(), new AbstractAsyncCallback<JobModel>() {
+					@Override
+					public void onSuccess(JobModel result) {
+						jobPresenter.display(result);
+					}
+				});
+			}else{
+				RPCS.getGroupService().getUpstreamGroup(groupPresenter.getGroupModel().getId(), new AbstractAsyncCallback<GroupModel>() {
+					public void onSuccess(GroupModel result) {
+						groupPresenter.display(result);
+					}
+				});
 			}
 		});
 	}
@@ -261,7 +231,7 @@ public class AdminConfigWindow extends Window{
 			RPCS.getJobService().getJobAdmins(jobPresenter.getJobModel().getId(), new AbstractAsyncCallback<List<ZUser>>() {
 				public void onSuccess(List<ZUser> result) {
 					admins=result;
-					StringBuffer sb=new StringBuffer();
+					StringBuilder sb=new StringBuilder();
 					for(ZUser u:admins){
 						sb.append("<span title='"+u.getUid()+"'>"+u.getName()+",</span>");
 					}
@@ -272,7 +242,7 @@ public class AdminConfigWindow extends Window{
 			RPCS.getGroupService().getGroupAdmins(groupPresenter.getGroupModel().getId(), new AbstractAsyncCallback<List<ZUser>>() {
 				public void onSuccess(List<ZUser> result) {
 					admins=result;
-					StringBuffer sb=new StringBuffer();
+					StringBuilder sb=new StringBuilder();
 					for(ZUser u:admins){
 						sb.append("<span title='"+u.getUid()+"'>"+u.getName()+",</span>");
 					}

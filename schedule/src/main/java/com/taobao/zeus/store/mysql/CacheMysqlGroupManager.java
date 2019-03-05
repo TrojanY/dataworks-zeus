@@ -1,6 +1,5 @@
 package com.taobao.zeus.store.mysql;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,10 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.GroupDescriptor;
@@ -25,7 +21,6 @@ import com.taobao.zeus.store.GroupManagerTool;
 import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.mysql.persistence.GroupPersistence;
 import com.taobao.zeus.store.mysql.persistence.JobPersistence;
-import com.taobao.zeus.store.mysql.persistence.JobPersistenceOld;
 import com.taobao.zeus.store.mysql.persistence.Worker;
 import com.taobao.zeus.store.mysql.tool.Judge;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
@@ -34,34 +29,33 @@ import com.taobao.zeus.util.Tuple;
 public class CacheMysqlGroupManager extends HibernateDaoSupport implements GroupManager{
 	private Judge jobjudge=new Judge();
 	private Judge groupjudge=new Judge();
-	private Map<String, JobPersistence> cacheJobMap=new HashMap<String,JobPersistence>();
-	private Map<String, GroupPersistence> cacheGroupMap=new HashMap<String, GroupPersistence>();
+	private Map<String, JobPersistence> cacheJobMap=new HashMap<>();
+	private Map<String, GroupPersistence> cacheGroupMap=new HashMap<>();
 	
 	private GroupManager groupManager;
 	private Map<String, JobPersistence> getCacheJobs(){
-		Judge realtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_action").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=((Number)o[1]).intValue();
-					j.lastModified=(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
-			}
-		});
+		Judge realtime=getHibernateTemplate()
+				.execute(session -> {
+					Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_action").uniqueResult();
+					if(o!=null){
+						Judge j=new Judge();
+						j.count=((Number) o[0]).intValue();
+						j.maxId=((Number)o[1]).intValue();
+						j.lastModified=(Date) o[2];
+						j.stamp=new Date();
+						return j;
+					}
+					return null;
+				});
 		
-		if(realtime!=null && realtime.count.equals(jobjudge.count) && realtime.maxId.equals(jobjudge.maxId) && realtime.lastModified.equals(jobjudge.lastModified)){
+		if(realtime!=null && realtime.count.equals(jobjudge.count)
+                && realtime.maxId.equals(jobjudge.maxId)
+                && realtime.lastModified.equals(jobjudge.lastModified)){
 			jobjudge.stamp=new Date();
 			return cacheJobMap;
 		}else{
-			List<JobPersistence> list=getHibernateTemplate().find("from com.taobao.zeus.store.mysql.persistence.JobPersistence");
-			Map<String, JobPersistence> newmap=new HashMap<String, JobPersistence>();
+			List<JobPersistence> list=(List<JobPersistence>)getHibernateTemplate().find("from JobPersistence");
+			Map<String, JobPersistence> newmap=new HashMap<>();
 			for(JobPersistence p:list){
 				newmap.put(p.getId().toString(), p);
 			}
@@ -71,28 +65,25 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 		}
 	}
 	private Map<String, GroupPersistence> getCacheGroups(){
-		Judge realtime=(Judge) getHibernateTemplate().execute(new HibernateCallback() {
-			@Override
-			public Object doInHibernate(Session session) throws HibernateException,
-					SQLException {
-				Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
-				if(o!=null){
-					Judge j=new Judge();
-					j.count=((Number) o[0]).intValue();
-					j.maxId=((Number)o[1]).intValue();
-					j.lastModified=(Date) o[2];
-					j.stamp=new Date();
-					return j;
-				}
-				return null;
-			}
-		});
+		Judge realtime=getHibernateTemplate()
+				.execute(session -> {
+					Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
+					if(o!=null){
+						Judge j=new Judge();
+						j.count=((Number) o[0]).intValue();
+						j.maxId=((Number)o[1]).intValue();
+						j.lastModified=(Date) o[2];
+						j.stamp=new Date();
+						return j;
+					}
+					return null;
+				});
 		if(realtime!=null && realtime.count.equals(groupjudge.count) && realtime.maxId.equals(groupjudge.maxId) && realtime.lastModified.equals(groupjudge.lastModified)){
 			groupjudge.stamp=new Date();
 			return cacheGroupMap;
 		}else{
-			List<GroupPersistence> list=getHibernateTemplate().find("from com.taobao.zeus.store.mysql.persistence.GroupPersistence");
-			Map<String, GroupPersistence> newmap=new HashMap<String, GroupPersistence>();
+			List<GroupPersistence> list=(List<GroupPersistence>)getHibernateTemplate().find("from com.taobao.zeus.store.mysql.persistence.GroupPersistence");
+			Map<String, GroupPersistence> newmap=new HashMap<>();
 			for(GroupPersistence p:list){
 				newmap.put(p.getId().toString(),p);
 			}
@@ -126,7 +117,7 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 
 	@Override
 	public List<GroupDescriptor> getChildrenGroup(String groupId) {
-		List<GroupDescriptor> list=new ArrayList<GroupDescriptor>();
+		List<GroupDescriptor> list=new ArrayList<>();
 		Map<String, GroupPersistence> map=getCacheGroups();
 		for(GroupPersistence p:map.values()){
 			if(p.getParent()!=null && p.getParent().toString().equals(groupId)){
@@ -138,7 +129,7 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 
 	@Override
 	public List<Tuple<JobDescriptor, JobStatus>> getChildrenJob(String groupId) {
-		List<Tuple<JobDescriptor, JobStatus>> list=new ArrayList<Tuple<JobDescriptor,JobStatus>>();
+		List<Tuple<JobDescriptor, JobStatus>> list=new ArrayList<>();
 		Map<String, JobPersistence> map=getCacheJobs();
 		for(JobPersistence p:map.values()){
 			if(p.getGroupId().toString().equals(groupId)){
@@ -197,7 +188,7 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 	public Map<String, Tuple<JobDescriptor, JobStatus>> getJobDescriptor(
 			Collection<String> jobIds) {
 		Map<String, JobPersistence> map=getCacheJobs();
-		Map<String, Tuple<JobDescriptor, JobStatus>> result=new HashMap<String, Tuple<JobDescriptor,JobStatus>>();
+		Map<String, Tuple<JobDescriptor, JobStatus>> result=new HashMap<>();
 		for(String id:jobIds){
 			result.put(id,PersistenceAndBeanConvert.convert(map.get(id)));
 		}
@@ -275,17 +266,18 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 	@Override
 	public void replaceWorker(Worker worker) throws ZeusException {
 		// TODO Auto-generated method stub
-		
+        throw new ZeusException(new UnsupportedOperationException());
 	}
 	@Override
 	public void removeWorker(String host) throws ZeusException {
 		// TODO Auto-generated method stub
-		
+        throw new ZeusException(new UnsupportedOperationException());
 	}
 	
 	@Override
 	public void saveJob(JobPersistence actionPer) throws ZeusException {
 		// TODO Auto-generated method stub
+        throw new ZeusException(new UnsupportedOperationException());
 	}
 	
 	@Override
@@ -296,7 +288,7 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 	@Override
 	public void updateAction(JobDescriptor actionPer) throws ZeusException {
 		// TODO Auto-generated method stub
-		
+        throw new ZeusException(new UnsupportedOperationException());
 	}
 	@Override
 	public List<Tuple<JobDescriptor, JobStatus>> getActionList(String jobId) {
@@ -306,7 +298,7 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 	@Override
 	public void removeJob(Long actionId) throws ZeusException {
 		// TODO Auto-generated method stub
-		
+        throw new ZeusException(new UnsupportedOperationException());
 	}
 	@Override
 	public boolean IsExistedBelowRootGroup(String GroupName) {

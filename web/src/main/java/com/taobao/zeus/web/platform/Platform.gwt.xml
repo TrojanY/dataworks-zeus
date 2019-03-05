@@ -20,7 +20,7 @@
     <!-- <img src="images/theme-triton.png" /> -->
     <!-- Be sure to include Neptunes gxt-theme-neptune.jar in the classpath -->
     <inherits name='com.sencha.gxt.theme.neptune.Theme' />
-    <img src="images/theme-neptune.png" />
+    <!--<img src="images/theme-neptune.png" />-->
 
     <inherits name='com.google.gwt.place.Place' />
 

@@ -16,6 +16,7 @@
         <local.gxt>${basedir}/libs/gxt-4.0.0.jar</local.gxt>
         <local.gxt-chart>${basedir}/libs/gxt-chart-4.0.0.jar</local.gxt-chart>
 		<local.gxt-theme-triton>${basedir}/libs/gxt-theme-triton-4.0.0.jar</local.gxt-theme-triton>
+		<local.gxt-theme-neptune>${basedir}/libs/gxt-theme-neptune-4.0.0.jar</local.gxt-theme-neptune>
 	</properties>
 
 	<name>ZEUS-Web</name>
@@ -144,6 +145,13 @@
 			<version>4.0.0</version>
 			<scope>system</scope>
 			<systemPath>${local.gxt-theme-triton}</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.sencha.gxt</groupId>
+			<artifactId>gxt-theme-neptune</artifactId>
+			<version>4.0.0</version>
+			<scope>system</scope>
+			<systemPath>${local.gxt-theme-neptune}</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.moxiegroup.gwt</groupId>

@@ -45,7 +45,7 @@ public class ShortcutCell extends TextButtonCell {
    * {@code Desktop.gwt.xml} for more information.
    */
   public ShortcutCell() {
-    this(GWT.<ShortcutCellAppearance<String>> create(ShortcutCellAppearance.class));
+    this(GWT. create(ShortcutCellAppearance.class));
   }
 
   /**

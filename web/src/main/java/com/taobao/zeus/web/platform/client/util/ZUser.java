@@ -1,7 +1,6 @@
 package com.taobao.zeus.web.platform.client.util;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class ZUser implements Serializable{
 

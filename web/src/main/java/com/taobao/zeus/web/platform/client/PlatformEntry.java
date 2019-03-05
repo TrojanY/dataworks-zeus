@@ -86,18 +86,18 @@ public class PlatformEntry implements EntryPoint {
 		RPCS.getUserService().getUser(new AsyncCallback<ZUser>() {
 			@Override
 			public void onSuccess(ZUser result) {
-				Platform s=new Platform(result);
-				final HomeApp home=new HomeApp(s.getPlatformContext());
-				final UserApp user=new UserApp(s.getPlatformContext(),result);
-				s.addApp(home);
-				s.addApp(new DocumentApp(s.getPlatformContext()));
-				s.addApp(new ScheduleApp(s.getPlatformContext()));
-				s.addApp(new ReportApp(s.getPlatformContext()));
-				s.addApp(user);
+				Platform platform=new Platform(result);
+				final HomeApp home=new HomeApp(platform.getPlatformContext());
+				final UserApp user=new UserApp(platform.getPlatformContext(),result);
+				platform.addApp(home);
+				platform.addApp(new DocumentApp(platform.getPlatformContext()));
+				platform.addApp(new ScheduleApp(platform.getPlatformContext()));
+				platform.addApp(new ReportApp(platform.getPlatformContext()));
+				platform.addApp(user);
 				
-				RootPanel.get().add(s);
-				
-				s.getPlatformContext().getPlatformBus().fireEvent(new StartEvent());
+				RootPanel.get().add(platform);
+
+				platform.getPlatformContext().getPlatformBus().fireEvent(new StartEvent());
 				
 				String id=GWTEnvironment.getNoticeTemplateId();
 				RPCS.getFileManagerService().getFile(id, new AbstractAsyncCallback<FileModel>() {

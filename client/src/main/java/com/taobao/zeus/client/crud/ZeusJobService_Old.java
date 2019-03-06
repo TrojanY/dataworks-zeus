@@ -6,12 +6,12 @@ import com.taobao.zeus.model.JobDescriptor.JobRunType;
 
 public interface ZeusJobService_Old {
 
-	public JobDescriptor createJob(String uid,String jobName,String parentGroup,JobRunType jobType) throws ZeusException;
+	JobDescriptor createJob(String uid,String jobName,String parentGroup,JobRunType jobType) throws ZeusException;
 	
-	public void updateJob(String uid,JobDescriptor jobDescriptor) throws ZeusException;
+	void updateJob(String uid,JobDescriptor jobDescriptor) throws ZeusException;
 	
-	public void deleteJob(String uid,String jobId) throws ZeusException;
+	void deleteJob(String uid,String jobId) throws ZeusException;
 	
-	public JobDescriptor getJobDescriptor(String jobId);
+	JobDescriptor getJobDescriptor(String jobId);
 	
 }

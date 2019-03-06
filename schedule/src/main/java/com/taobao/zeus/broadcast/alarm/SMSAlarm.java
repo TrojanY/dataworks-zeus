@@ -68,20 +68,22 @@ public class SMSAlarm extends AbstractZeusAlarm{
 
 	@SuppressWarnings("deprecation")
 	public void sendNOCAlarm(String jobId, String sendUrl, String accessToken, String srcId, String devId, String itemId, String level, String message) {
-		log.info("jobId: " + jobId + " begin to send the noc, the srcId is " + srcId + ", the devId is " + devId + ", the itemId is " + itemId + ". the message is " + message + ". the sendUrl is " + sendUrl);
+		log.info("jobId: " + jobId + " begin to send the noc, the srcId is "
+				+ srcId + ", the devId is " + devId + ", the itemId is " + itemId
+				+ ". the message is " + message + ". the sendUrl is " + sendUrl);
         HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(sendUrl);
 		Gson gson = new Gson();
 		method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		try {
-			Map<String, String> bodyMap = new HashMap<String, String>();
+			Map<String, String> bodyMap = new HashMap<>();
 			bodyMap.put("access_token", accessToken);
 			String requestBody = getRequestBody(srcId, devId, itemId, level, message);
 			bodyMap.put("request_body", "njson=" + requestBody);
-			method.setRequestBody(JsonUtil.map2json(bodyMap).toString());
+			method.setRequestBody(JsonUtil.map2json(bodyMap));
 			int code = client.executeMethod(method);
 			log.info("jobId: " + jobId + " the return code is " + HttpStatus.SC_OK);
-			String responseBodyAsString = method.getResponseBodyAsString(2000);
+			String responseBodyAsString = method.getResponseBodyAsString();
 			log.info("jobId: " + jobId + " the response body is " + responseBodyAsString);
 			ResponseJson rJ = null;
 			if (responseBodyAsString != null) {
@@ -92,25 +94,20 @@ public class SMSAlarm extends AbstractZeusAlarm{
 				return;
 			}
 			log.info("jobId: " + jobId + " send noc successfully!");
-		} catch(HttpException  e) {
-			log.error("jobId: " + jobId +" send noc fail,", e);
 		} catch (IOException e) {
-			log.error("jobId: " + jobId + " send noc fail,", e);
-		} catch (Exception e) {
 			log.error("jobId: " + jobId + " send noc fail,", e);
 		}
    }
    
 	private String getRequestBody(String srcId, String devId, String itemId, String level, String message) throws UnsupportedEncodingException {
-		Map<String, String> param = new HashMap<String, String>();
+		Map<String, String> param = new HashMap<>();
 		param.put("src_id",  srcId);
 		param.put("dev_id",  devId);
 		param.put("item_id", itemId);
 		param.put("level",   level);
 		param.put("message", message);
 		param.put("fields",  "");
-//		System.out.println(JsonUtil.map2json(param).toString());
-		return URLEncoder.encode(JsonUtil.map2json(param).toString(), "utf-8");
+		return URLEncoder.encode(JsonUtil.map2json(param), "utf-8");
 	}
 	
 	class ResponseJson{

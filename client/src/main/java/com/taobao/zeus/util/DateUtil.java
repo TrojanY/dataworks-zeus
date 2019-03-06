@@ -125,7 +125,7 @@ public class DateUtil {
 
 	public static String timestamp2DataTime(long timestamp) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return sdf.format(Long.valueOf(timestamp));
+		return sdf.format(timestamp);
 	}
 
 	public static long string2Timestamp(String dateString, String timezone)
@@ -135,8 +135,7 @@ public class DateUtil {
 			df.setTimeZone(TimeZone.getTimeZone(timezone));
 		}
 		Date date1 = df.parse(dateString);
-		long temp = date1.getTime();
-		return temp;
+		return date1.getTime();
 	}
 
 	public static Date string2Date(String dateString) throws ParseException {
@@ -149,9 +148,7 @@ public class DateUtil {
 
 	public static String getDefaultTZStr() {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("Z");
-		StringBuilder sb = new StringBuilder("GMT");
-		sb.append(dateFormat.format(new Date()));
-		return sb.toString();
+		return "GMT" + dateFormat.format(new Date());
 	}
 
 	public static String getToday() {

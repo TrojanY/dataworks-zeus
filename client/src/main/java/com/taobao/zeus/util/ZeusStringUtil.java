@@ -6,13 +6,7 @@ import java.util.List;
 
 public class ZeusStringUtil {
 
-	/**
-	 * 获得str中倒数第n个c的index
-	 * @param str
-	 * @param c
-	 * @param n
-	 * @return
-	 */
+
 	public static int nthLastIndexOf(String str, char c, int n) {
 		if (str == null) {
 			return -1;
@@ -24,16 +18,7 @@ public class ZeusStringUtil {
 		return pos;
 	}
 
-	/**
-	 * 修改自 {@link com.alibaba.common.lang.StringUtil#split(String, char)}
-	 * <br>连续分隔符处理成空字符串
-	 * <br>如：
-	 * split("aabad",'a')={"","","b","d"}
-	 * @param str
-	 * @param separatorChar
-	 *            分隔符
-	 * @return
-	 */
+
 	public static String[] split(String str, char separatorChar) {
 		if (str == null) {
 			return null;
@@ -45,7 +30,7 @@ public class ZeusStringUtil {
 			return new String[0];
 		}
 	
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		int i = 0;
 		int start = 0;
 	

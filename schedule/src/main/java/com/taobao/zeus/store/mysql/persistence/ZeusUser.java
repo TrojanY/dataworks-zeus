@@ -35,10 +35,10 @@ public class ZeusUser{
 	}
 	
 	public static final ZeusUser ADMIN=new ZeusUser(){
-		public String getEmail() {return "DataInfrastructure@Ctrip.com";};
-		public String getName() {return "biadmin";};
+		public String getEmail() {return "zeusadmin@bigdata.com";};
+		public String getName() {return "zeusadmin";};
 		public String getPhone() {return "";};
-		public String getUid() {return "biadmin";};
+		public String getUid() {return "zeusadmin";};
 	};
 	public static ZeusUser USER=new ZeusUser(null,null,null,null);
 

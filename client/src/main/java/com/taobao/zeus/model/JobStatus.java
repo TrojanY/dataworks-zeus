@@ -24,7 +24,7 @@ public class JobStatus implements Serializable{
 	 * key 依赖的jobId
 	 * value 依赖的Job的完成时间
 	 */
-	private Map<String, String> readyDependency=new HashMap<String, String>();
+	private Map<String, String> readyDependency=new HashMap<>();
 	
 	
 	public String getJobId(){
@@ -49,7 +49,7 @@ public class JobStatus implements Serializable{
 		WAIT("wait"),RUNNING("running"),SUCCESS("success"),FAILED("failed");
 		
 		private final String id;
-		private Status(String id){
+		Status(String id){
 			this.id=id;
 		}
 		@Override
@@ -80,7 +80,7 @@ public class JobStatus implements Serializable{
 	public enum TriggerType{
 		SCHEDULE(1),MANUAL(2),MANUAL_RECOVER(3);
 		private Integer id;
-		private TriggerType(Integer id){
+		TriggerType(Integer id){
 			this.id=id;
 		}
 		@Override

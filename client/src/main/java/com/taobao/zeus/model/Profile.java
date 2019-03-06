@@ -10,7 +10,7 @@ public class Profile {
 
 	private String uid;
 	
-	private Map<String, String> hadoopConf=new HashMap<String, String>();
+	private Map<String, String> hadoopConf=new HashMap<>();
 	
 	private Date gmtCreate=new Date();
 	

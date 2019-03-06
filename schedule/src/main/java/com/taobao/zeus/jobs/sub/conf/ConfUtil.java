@@ -18,7 +18,7 @@ public class ConfUtil {
 		if(dir==null || "".equals(dir.trim())){
 			dir = Environment.getHadoopHome();
 		}
-		return dir == null ? null : "";
+		return dir;
 	}
 	
 	public static String getHiveHome(){
@@ -26,7 +26,7 @@ public class ConfUtil {
 		if(dir==null || "".equals(dir.trim())){
 			dir = Environment.getHiveHome();
 		}
-		return dir == null ? null : "";
+		return dir;
 	}
 	
 	public static String getHadoopConfDir(){
@@ -34,7 +34,6 @@ public class ConfUtil {
 		//2014-09-19增加配置文件的读取
 		if(dir==null || "".equals(dir.trim())){
 			dir=Environment.getHadoopConfDir();
-//			System.out.println("from environment hadoop_conf_dir:"+dir);
 		}
 		if(dir==null || "".equals(dir.trim())){
 			//hadoop2中，配置的默认地址已经修改
@@ -47,7 +46,6 @@ public class ConfUtil {
 				dir=getHadoopHome()+File.separator+"conf";
 			}
 		}
-//		System.out.println(dir);
 		return dir;
 	}
 	
@@ -56,12 +54,10 @@ public class ConfUtil {
 		//2014-09-19增加配置文件的读取
 		if(dir==null || "".equals(dir.trim())){
 			dir=Environment.getHiveConfDir();
-//			System.out.println("from environment hive_conf_dir:"+dir);
 		}
 		if(dir==null || "".equals(dir.trim())){
 			dir=getHiveHome()+File.separator+"conf";
 		}
-//		System.out.println(dir);
 		return dir;
 	}
 	

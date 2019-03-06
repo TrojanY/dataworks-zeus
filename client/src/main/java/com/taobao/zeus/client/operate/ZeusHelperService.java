@@ -10,13 +10,12 @@ public interface ZeusHelperService {
 	 * @param jobId
 	 * @return
 	 */
-	public Map<String, String> getJobAllProperties(String jobId);
+	Map<String, String> getJobAllProperties(String jobId);
 	/**
 	 * 获取Job的一次运行记录
-	 * @param jobId
 	 * @param historyId
 	 * @return
 	 */
-	public JobHistory getJobHistory(String historyId);
+	JobHistory getJobHistory(String historyId);
 	
 }

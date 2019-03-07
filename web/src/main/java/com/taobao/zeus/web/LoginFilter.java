@@ -98,12 +98,12 @@ public class LoginFilter implements Filter {
  
             }
            if(!check){
-        	   httpResponse.sendRedirect("/zeus-web/login.do");
+        	   httpResponse.sendRedirect("login.do");
         	   return;  
            }
 			
 		}else{//不存在user
-			 httpResponse.sendRedirect("/zeus-web/login.do");
+			 httpResponse.sendRedirect("login.do");
 			 return;  
 		}
 		

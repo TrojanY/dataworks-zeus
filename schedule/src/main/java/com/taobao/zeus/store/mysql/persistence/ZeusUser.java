@@ -1,16 +1,11 @@
 package com.taobao.zeus.store.mysql.persistence;
 
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Query;
 
 /**
  * 用户信息
@@ -22,7 +17,7 @@ public class ZeusUser{
 	public enum UserStatus {
 	       WAIT_CHECK (0), CHECK_SUCCESS (1), Cancel (-1), CHECK_FAILED (-2);
 	       private int nCode ;
-	       private UserStatus( int _nCode) {
+	       UserStatus(int _nCode) {
 	           this.nCode = _nCode;
 	       }
 	       @Override
@@ -35,10 +30,10 @@ public class ZeusUser{
 	}
 	
 	public static final ZeusUser ADMIN=new ZeusUser(){
-		public String getEmail() {return "zeusadmin@bigdata.com";};
-		public String getName() {return "zeusadmin";};
-		public String getPhone() {return "";};
-		public String getUid() {return "zeusadmin";};
+		public String getEmail() {return "zeusadmin@bigdata.com";}
+		public String getName() {return "zeusadmin";}
+		public String getPhone() {return "";}
+		public String getUid() {return "zeusadmin";}
 	};
 	public static ZeusUser USER=new ZeusUser(null,null,null,null);
 

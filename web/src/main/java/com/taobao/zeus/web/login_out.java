@@ -23,7 +23,7 @@ public class login_out extends HttpServlet {
 		Cookie cookie = new Cookie("LOGIN_USERNAME", null); 
 		cookie.setMaxAge(0);
 		response.addCookie(cookie); 
-		response.sendRedirect("/zeus-web/login.do");
+		response.sendRedirect("login.do");
 			
         }
 	

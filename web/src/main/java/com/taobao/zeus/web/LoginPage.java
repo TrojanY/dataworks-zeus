@@ -25,7 +25,7 @@ public class LoginPage  extends HttpServlet  {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		String url  = "/login2.html";
+		String url  = "login2.html";
 		request.getRequestDispatcher(url).forward(request,response);
 		return;  
 		
@@ -51,9 +51,7 @@ public class LoginPage  extends HttpServlet  {
 			out.print("null");
 		}else{
 			String ps = u.getPassword();
-//			System.out.println(password);
-//			System.out.println(ps);
-//			System.out.println(MD5(password));
+
 			if(null !=ps){
 				if(!MD5(password).toUpperCase().equals(ps.toUpperCase())){
 					out.print("error");
@@ -61,8 +59,6 @@ public class LoginPage  extends HttpServlet  {
 				}
 			}
 
-
-			  
 			String uid = u.getUid();
 
 			ZeusUser.USER.setUid(uid);
@@ -76,17 +72,11 @@ public class LoginPage  extends HttpServlet  {
 			//cookie.setDomain(host);  
 			response.addCookie(cookie);
 			request.getSession().setAttribute("user", uid);
-			
-//			Cookie[] cookies = request.getCookies();//这样便可以获取一个cookie数组
-//			for(Cookie c : cookies){
-//			   System.out.println( c.getName());// get the cookie name
-//			   System.out.println( c.getValue()); // get the cookie value
-//			}
-//			System.out.println("ZeusUser.USER-----------------"+ZeusUser.USER.toString());
 			LoginUser.user.set(ZeusUser.USER);
 			out.print(uid);
 		}
 	}
+
 	private static String MD5(String sourceStr) {
         String result = "";
         try {
@@ -104,9 +94,6 @@ public class LoginPage  extends HttpServlet  {
                 buf.append(Integer.toHexString(i));
             }
             result = buf.toString();
-            //System.out.println("MD5(" + sourceStr + ",32) = " + result);
-            
-            //System.out.println("MD5(" + sourceStr + ",16) = " + buf.toString().substring(8, 24));
         } catch (NoSuchAlgorithmException e) {
             System.out.println(e);
         }

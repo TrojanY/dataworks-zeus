@@ -7,16 +7,20 @@ import java.util.List;
 import org.hibernate.query.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.store.UserManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+
+import javax.transaction.Transactional;
+
 @SuppressWarnings("unchecked")
+@Transactional
 public class MysqlUserManager extends HibernateDaoSupport implements UserManager{
 	
 	public List<ZeusUser> getAllUsers(){
-		return (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+		assert getHibernateTemplate() != null;
+		return (List<ZeusUser>) getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where isEffective=1 ");
 			return query.list();
 		});
@@ -26,8 +30,9 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 	public ZeusUser findByUid(String uid){
 		DetachedCriteria criteria=DetachedCriteria.forClass(ZeusUser.class);
 		criteria.add(Restrictions.eq("uid", uid));
+		assert getHibernateTemplate() != null;
 		List<?> users=getHibernateTemplate().findByCriteria(criteria);
-		if(users!=null && !users.isEmpty()){
+		if(!users.isEmpty()){
 			return (ZeusUser)users.get(0);
 		}
 		return null;
@@ -37,18 +42,19 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 		if(uids.isEmpty()){
 			return new ArrayList<>();
 		}
-		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid in (:idList)");
 			query.setParameterList("idList", uids);
 			return query.list();
 		});
-		return list;
 	} 
 	
 	public ZeusUser addOrUpdateUser(final ZeusUser user){
-		List<ZeusUser> list=(List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid=?");
-			query.setParameter(0, user.getUid());
+		assert getHibernateTemplate() != null;
+		List<ZeusUser> list=getHibernateTemplate().execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser where uid= :uid");
+			query.setParameter("uid", user.getUid());
 			return query.list();
 		});
 		if(list!=null && !list.isEmpty()){
@@ -74,7 +80,7 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 
 	@Override
 	public List<ZeusUser> findListByUidByOrder(final List<String> uids) {
-		List<ZeusUser> result = new ArrayList<ZeusUser>();
+		List<ZeusUser> result = new ArrayList<>();
 		if(uids.isEmpty()){
 			return result;
 		}
@@ -94,15 +100,17 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 		DetachedCriteria criteria=DetachedCriteria.forClass(ZeusUser.class);
 		criteria.add(Restrictions.eq("uid", uid));
 		criteria.add(Restrictions.eq("isEffective", 1));
+		assert getHibernateTemplate() != null;
 		List<?> users=getHibernateTemplate().findByCriteria(criteria);
-		if(users!=null && !users.isEmpty()){
+		if(!users.isEmpty()){
 			return (ZeusUser)users.get(0);
 		}
 		return null;
 	}
 	
 	public List<ZeusUser> findAllUsers(final String sortField, final String sortOrder){
-		return (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser order by " + sortField + " " + sortOrder);
 			return query.list();
 		});
@@ -112,7 +120,8 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 		if(filter.isEmpty()){
 			return new ArrayList<>();
 		}
-		List<ZeusUser> list = (List<ZeusUser>) getHibernateTemplate().execute((HibernateCallback) session -> {
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusUser "+
 				"where uid like :uid or name like :name or email like :email order by " + sortField + " " + sortOrder);
 			query.setParameter("uid", "%"+filter+"%");
@@ -120,12 +129,12 @@ public class MysqlUserManager extends HibernateDaoSupport implements UserManager
 			query.setParameter("email", "%"+filter+"%");
 			return query.list();
 		});
-		return list;
 	} 
 
 	@Override
 	public void update(ZeusUser user) {
 		user.setGmtModified(new Date());
+		assert getHibernateTemplate() != null;
 		getHibernateTemplate().update(user);
 	}
 }

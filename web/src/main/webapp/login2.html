@@ -9,7 +9,7 @@
 </head>
 <body>
 	<h1>
-		数据管理平台<sup>V2015</sup>
+		数据管理平台<sup>V2019</sup>
 	</h1>
 
 	<div class="login" style="margin-top: 50px;">
@@ -72,16 +72,17 @@
 			<div class="web_login">
 				<form name="form2" id="regUser" accept-charset="utf-8"
 					action="register.do" method="post">
-					<input type="hidden" name="to" value="reg" /> <input type="hidden"
-						name="did" value="0" />
+					<input type="hidden" name="to" value="reg" />
+					<input type="hidden" name="did" value="0" />
 					<ul class="reg_form" id="reg-ul">
 						<div id="userCue" class="cue"><font color='green'>提醒：Zeus帐号与Hive帐号必须相同</font></div>
-						<li style="display:none"><label for="userType" class="input-tips2">用户类型：</label>
+						<li style="display:none">
+							<label for="userType" class="input-tips2">用户类型：</label>
 							<div class="inputOuter2" style="margin-top:15px">
 								<input type="radio" name="userTypes" value="0" checked="checked"/> 组用户&nbsp;&nbsp;&nbsp;&nbsp;
 								<input type="radio" name="userTypes" value="1" /> 个人用户
-							</div></li>
-							
+							</div>
+						</li>
 						<li><label for="user" class="input-tips2">帐号：</label>
 							<div class="inputOuter2">
 								<input type="text" id="user" name="user" maxlength="16"

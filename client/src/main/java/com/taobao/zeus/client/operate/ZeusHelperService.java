@@ -7,14 +7,14 @@ import com.taobao.zeus.model.JobHistory;
 public interface ZeusHelperService {
 	/**
 	 * 获取Job所有的配置项(包含继承下来的配置项)
-	 * @param jobId
-	 * @return
+	 * @param jobId 任务ID
+	 * @return map
 	 */
-	Map<String, String> getJobAllProperties(String jobId);
+	Map<String, String> getJobAllConfigurations(String jobId);
 	/**
 	 * 获取Job的一次运行记录
-	 * @param historyId
-	 * @return
+	 * @param historyId 历史任务ID
+	 * @return jobHistory
 	 */
 	JobHistory getJobHistory(String historyId);
 	

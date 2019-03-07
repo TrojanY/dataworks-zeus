@@ -11,16 +11,16 @@ import com.taobao.zeus.model.processer.Processer;
 public class JobDescriptorOld implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private Map<String, String> properties = new HashMap<String, String>();
+	private Map<String, String> properties = new HashMap<>();
 	private String cronExpression;
-	private List<String> dependencies = new ArrayList<String>();
+	private List<String> dependencies = new ArrayList<>();
 	private String id;
 	private String name;
 	private String desc;
 	private String groupId;
 	private String owner;
 	private Boolean auto = false;
-	private List<Map<String, String>> resources = new ArrayList<Map<String, String>>();
+	private List<Map<String, String>> resources = new ArrayList<>();
 
 	private JobRunTypeOld jobRunType;
 	private JobScheduleTypeOld jobScheduleType;
@@ -29,12 +29,12 @@ public class JobDescriptorOld implements Serializable {
 
 	private String timezone;
 
-	private List<Processer> preProcessers = new ArrayList<Processer>();
-	private List<Processer> postProcessers = new ArrayList<Processer>();
+	private List<Processer> preProcessers = new ArrayList<>();
+	private List<Processer> postProcessers = new ArrayList<>();
 	private String offRaw="0";
 	private String cycle;
 	// 周期任务的依赖，key为任务ID，value为任务周期
-	private Map<String, String> depdCycleJob = new HashMap<String, String>();
+	private Map<String, String> depdCycleJob = new HashMap<>();
 
 	private long startTimestamp;
 

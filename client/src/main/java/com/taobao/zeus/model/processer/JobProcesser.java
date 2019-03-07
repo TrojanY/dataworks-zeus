@@ -15,7 +15,7 @@ public class JobProcesser implements Processer{
 
 	private static final long serialVersionUID = 1L;
 	private String jobId;
-	private Map<String, String> kvConfig=new HashMap<String, String>();
+	private Map<String, String> kvConfig=new HashMap<>();
 	@Override
 	public String getConfig() {
 		JSONObject o=new JSONObject();
@@ -42,7 +42,7 @@ public class JobProcesser implements Processer{
 		JSONObject o=JSONObject.fromObject(config);
 		jobId=o.getString("jobId");
 		JSONObject kvc=o.getJSONObject("kvConfig");
-		Map<String, String> map=new HashMap<String, String>();
+		Map<String, String> map=new HashMap<>();
 		for(Iterator<Object> it=kvc.keys();it.hasNext();){
 			Object key=it.next();
 			if(kvc.getString(key.toString())!=null){

@@ -14,7 +14,7 @@ public interface ZeusJobOperateService {
 	 * @param jobId
 	 * @param auto
 	 */
-	public void autoScheduleJob(String uid,String jobId,Boolean auto) throws ZeusException;
+	void autoScheduleJob(String uid,String jobId,Boolean auto) throws ZeusException;
 	/**
 	 * 执行一个任务
 	 * 触发类型只能设置  手动触发  或者  手动恢复
@@ -24,7 +24,7 @@ public interface ZeusJobOperateService {
 	 * @throws ZeusException
 	 */
 	@Deprecated
-	public void executeJob(String uid,String jobId,TriggerType type) throws ZeusException;
+	void executeJob(String uid,String jobId,TriggerType type) throws ZeusException;
 	
 	/**
 	 * 手动执行任务，并且返回该任务的historyId
@@ -34,5 +34,5 @@ public interface ZeusJobOperateService {
 	 * @throws ZeusException
 	 */
 	@Deprecated
-	public String executeJob(String uid,String jobId) throws ZeusException;
+	String executeJob(String uid,String jobId) throws ZeusException;
 }

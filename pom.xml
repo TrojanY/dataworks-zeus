@@ -23,8 +23,9 @@
 		<java.version>1.8</java.version>
 		<java.encoding>UTF-8</java.encoding>
 
-        <hadoop.version>2.7.6</hadoop.version>
-        <hive.version>3.1.1</hive.version>
+        <hadoop.version>2.9.2</hadoop.version>
+        <hive.version>2.3.4</hive.version>
+
         <thrift.version>0.9.0</thrift.version>
         <log4j.version>1.2.17</log4j.version>
 
@@ -114,11 +115,6 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
             </dependency>
-            <!--<dependency>-->
-                <!--<groupId>org.hibernate</groupId>-->
-                <!--<artifactId>hibernate-annotations</artifactId>-->
-                <!--<version>${hibernate.version}</version>-->
-            <!--</dependency>-->
 			<!-- ================================================= -->
 			<!-- 1.0.1B不可用，用1.1替代    -->
 			<!-- ================================================= -->

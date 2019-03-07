@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Super {
 
-	private static final List<String> supers = Arrays.asList("biadmin");
+	private static final List<String> supers = Arrays.asList("biadmin","zeusadmin");
 
 	public static List<String> getSupers() {
 		return supers;

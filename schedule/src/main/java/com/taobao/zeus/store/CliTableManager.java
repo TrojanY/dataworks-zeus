@@ -34,7 +34,7 @@ public class CliTableManager implements TableManager {
 		if(f.exists()){
 			conf.addResource(f.toURI().toURL());
 		}
-		client=new HiveMetaStoreClient(conf);
+		client=null ;//new HiveMetaStoreClient(conf);
 	}
 
 	public CliTableManager(Configuration conf) throws Exception {
@@ -56,11 +56,6 @@ public class CliTableManager implements TableManager {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taobao.zeus.store.TableManager#getAllTables()
-	 */
 	@Override
 	public List<String> getAllTables(String dbName) throws ZeusException {
 		try {
@@ -79,9 +74,9 @@ public class CliTableManager implements TableManager {
 		if (pattern == null) {
 			pattern = "";
 		}
-		List<Table> tables = new ArrayList<Table>();
+		List<Table> tables = new ArrayList<>();
 		try {
-			List<String> tbs = null;
+			List<String> tbs;
 			tbs = client.getTables(dbName,getPatternFromQuery(pattern));
 			limit = offset + limit > tbs.size() ? tbs.size() - offset : limit;
 			for (String t : tbs.subList(offset, offset + limit)) {
@@ -94,11 +89,6 @@ public class CliTableManager implements TableManager {
 		return tables;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.taobao.zeus.store.TableManager#getTable(java.lang.String)
-	 */
 	@Override
 	public Table getTable(String dbName, String tableName) {
 		try {
@@ -113,7 +103,7 @@ public class CliTableManager implements TableManager {
 	@Override
 	public List<Partition> getPartitions(String dbName, String tableName, Integer limit)
 			throws ZeusException {
-		List<Partition> l = null;
+		List<Partition> l;
 		try {
 				l = client.listPartitions(dbName, tableName, (short) -1);
 			if (limit != null && limit > 0) {
@@ -137,7 +127,7 @@ public class CliTableManager implements TableManager {
 			throw new ZeusException("参数不正确");
 		}
 		try {
-			int size = 0;
+			int size;
 		    size = client.getTables(dbName, getPatternFromQuery(pattern)).size();
 			return size;
 		} catch (Exception e) {
@@ -196,8 +186,6 @@ public class CliTableManager implements TableManager {
 
 	/**
 	 * 指定HiveMetaStoreClient
-	 * 
-	 * @param client
 	 */
 	public void setClient(HiveMetaStoreClient client) {
 		this.client = client;

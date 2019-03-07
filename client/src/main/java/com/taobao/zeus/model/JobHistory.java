@@ -26,7 +26,7 @@ public class JobHistory{
 	private String cycle;
 	private String hostGroupId;
 
-	private Map<String, String> properties=new HashMap<String, String>();
+	private Map<String, String> properties=new HashMap<>();
 	
 	public String getId() {
 		return id;

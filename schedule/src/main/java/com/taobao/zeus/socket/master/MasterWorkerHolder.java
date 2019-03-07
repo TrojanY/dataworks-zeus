@@ -19,13 +19,13 @@ public class MasterWorkerHolder{
 	}
 	private final Channel channel;
 	/** 布尔值标记是不是已经发送过超时报警 */
-	private ConcurrentHashMap<String, Boolean> runnings=new ConcurrentHashMap<String,Boolean>();
+	private ConcurrentHashMap<String, Boolean> runnings=new ConcurrentHashMap<>();
 	/** 布尔值标记是不是已经发送过超时报警 */
-	private ConcurrentHashMap<String, Boolean> manualRunnings=new ConcurrentHashMap<String,Boolean>();
+	private ConcurrentHashMap<String, Boolean> manualRunnings=new ConcurrentHashMap<>();
 	/** 布尔值标记是不是已经发送过超时报警 */
-	private ConcurrentHashMap<String, Boolean> debugRunnings=new ConcurrentHashMap<String,Boolean>();
+	private ConcurrentHashMap<String, Boolean> debugRunnings=new ConcurrentHashMap<>();
 	public HeartBeatInfo heart;
-	public MasterWorkerHolder(Channel channel){
+	MasterWorkerHolder(Channel channel){
 		this.channel=channel;
 	}
 	public Channel getChannel() {

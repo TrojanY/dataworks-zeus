@@ -1,6 +1,5 @@
 package com.taobao.zeus.socket.master;
 
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;

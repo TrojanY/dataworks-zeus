@@ -84,7 +84,8 @@ public class Master {
 		context.getDispatcher().addDispatcherListener(
 				new DebugListener(context));
 		context.getDispatcher().addDispatcherListener(
-				new JobSuccessListener(context));		
+				new JobSuccessListener(context));
+
 		Map<String, JobBean> allJobBeans = root.getAllSubJobBeans();
 		for (String id : allJobBeans.keySet()) {
 			context.getDispatcher().addController(
@@ -308,7 +309,6 @@ public class Master {
 							context.getDispatcher().forwardEvent(
 									new JobLostEvent(Events.UpdateJob, id.toString()));
 							rollBackActionId.add(id);
-//							System.out.println("roll back lost jobID :" + id.toString());
 //							log.info("roll back lost jobID :" + id.toString());
 						}
 					}
@@ -317,7 +317,6 @@ public class Master {
 						context.getDispatcher().forwardEvent(
 								new JobLostEvent(Events.UpdateJob, id.toString()));
 						rollBackActionId.add(id);
-//						System.out.println("roll back lost jobID :" + id.toString());
 //						log.info("roll back lost jobID :" + id.toString());
 					}
 				}

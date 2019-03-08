@@ -22,6 +22,6 @@ public interface Listener<E extends BaseEvent> extends EventListener {
    * 
    * @param be the event which occurred
    */
-  public void handleEvent(E be);
+  void handleEvent(E be);
 
 }

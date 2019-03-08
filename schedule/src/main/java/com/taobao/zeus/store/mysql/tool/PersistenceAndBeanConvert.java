@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.zeus.model.processor.Processor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -25,7 +26,6 @@ import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobDescriptor.JobScheduleType;
 import com.taobao.zeus.model.JobStatus.Status;
 import com.taobao.zeus.model.JobStatus.TriggerType;
-import com.taobao.zeus.model.processer.Processer;
 import com.taobao.zeus.store.mysql.persistence.DebugHistoryPersistence;
 import com.taobao.zeus.store.mysql.persistence.FilePersistence;
 import com.taobao.zeus.store.mysql.persistence.GroupPersistence;
@@ -136,28 +136,28 @@ public class PersistenceAndBeanConvert {
 				&& !"".equals(persist.getPreProcessers().trim())) {
 			JSONArray preArray = JSONArray.fromObject(persist
 					.getPreProcessers());
-			List<Processer> preProcessers = new ArrayList<Processer>();
+			List<Processor> preProcessors = new ArrayList<Processor>();
 			for (int i = 0; i < preArray.size(); i++) {
-				Processer p = ProcesserUtil.parse(preArray.getJSONObject(i));
+				Processor p = ProcesserUtil.parse(preArray.getJSONObject(i));
 				if (p != null) {
-					preProcessers.add(p);
+					preProcessors.add(p);
 				}
 
 			}
-			jd.setPreProcessers(preProcessers);
+			jd.setPreProcessors(preProcessors);
 		}
 		if (persist.getPostProcessers() != null
 				&& !"".equals(persist.getPostProcessers().trim())) {
 			JSONArray postArray = JSONArray.fromObject(persist
 					.getPostProcessers());
-			List<Processer> postProcessers = new ArrayList<Processer>();
+			List<Processor> postProcessors = new ArrayList<Processor>();
 			for (int i = 0; i < postArray.size(); i++) {
-				Processer p = ProcesserUtil.parse(postArray.getJSONObject(i));
+				Processor p = ProcesserUtil.parse(postArray.getJSONObject(i));
 				if (p != null) {
-					postProcessers.add(p);
+					postProcessors.add(p);
 				}
 			}
-			jd.setPostProcessers(postProcessers);
+			jd.setPostProcessors(postProcessors);
 		}
 		jd.setTimezone(persist.getTimezone());
 		jd.setCycle(persist.getCycle());
@@ -248,7 +248,7 @@ public class PersistenceAndBeanConvert {
 		persist.setTimezone(jd.getTimezone());
 
 		JSONArray preArray = new JSONArray();
-		for (Processer p : jd.getPreProcessers()) {
+		for (Processor p : jd.getPreProcessors()) {
 			JSONObject o = new JSONObject();
 			o.put("id", p.getId());
 			o.put("config", p.getConfig());
@@ -257,7 +257,7 @@ public class PersistenceAndBeanConvert {
 		persist.setPreProcessers(preArray.toString());
 
 		JSONArray postArray = new JSONArray();
-		for (Processer p : jd.getPostProcessers()) {
+		for (Processor p : jd.getPostProcessors()) {
 			JSONObject o = new JSONObject();
 			o.put("id", p.getId());
 			o.put("config", p.getConfig());

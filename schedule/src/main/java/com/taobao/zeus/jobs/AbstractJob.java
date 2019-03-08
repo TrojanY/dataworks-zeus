@@ -32,7 +32,7 @@ public abstract class AbstractJob implements Job {
 		return jobContext;
 	}
 
-	protected void logConsole(String log){
+	void logConsole(String log){
 		if(jobContext.getJobHistory()!=null){
 			jobContext.getJobHistory().getLog().appendConsole(log);
 		}

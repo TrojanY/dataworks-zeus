@@ -1289,8 +1289,8 @@ public class Master {
 							actionPer.setName(jobDetail.getName());
 							actionPer.setOffset(jobDetail.getOffset());
 							actionPer.setOwner(jobDetail.getOwner());
-							actionPer.setPostProcessers(jobDetail.getPostProcessers());
-							actionPer.setPreProcessers(jobDetail.getPreProcessers());
+							actionPer.setPostProcessors(jobDetail.getPostProcessors());
+							actionPer.setPreProcessors(jobDetail.getPreProcessors());
 							actionPer.setReadyDependency(jobDetail.getReadyDependency());
 							actionPer.setResources(jobDetail.getResources());
 							actionPer.setRunType(jobDetail.getRunType());
@@ -1352,8 +1352,8 @@ public class Master {
 								actionPer.setName(jobDetail.getName());
 								actionPer.setOffset(jobDetail.getOffset());
 								actionPer.setOwner(jobDetail.getOwner());
-								actionPer.setPostProcessers(jobDetail.getPostProcessers());
-								actionPer.setPreProcessers(jobDetail.getPreProcessers());
+								actionPer.setPostProcessors(jobDetail.getPostProcessors());
+								actionPer.setPreProcessors(jobDetail.getPreProcessors());
 								actionPer.setReadyDependency(jobDetail.getReadyDependency());
 								actionPer.setResources(jobDetail.getResources());
 								actionPer.setRunType(jobDetail.getRunType());

@@ -36,7 +36,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 	
 	public ProcessJob(JobContext jobContext){
 		super(jobContext);
-		envMap=new HashMap<String, String>(System.getenv());
+		envMap=new HashMap<>(System.getenv());
 	}
 
 	public abstract List<String> getCommandList();
@@ -46,10 +46,10 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 		if(!dir.exists()){
 			dir.mkdirs();
 		}
-		Map<String, String> core=new HashMap<String, String>();
-		Map<String, String> hdfs=new HashMap<String, String>();
-		Map<String, String> mapred=new HashMap<String, String>();
-		Map<String, String> yarn=new HashMap<String, String>();
+		Map<String, String> core=new HashMap<>();
+		Map<String, String> hdfs=new HashMap<>();
+		Map<String, String> mapred=new HashMap<>();
+		Map<String, String> yarn=new HashMap<>();
 		for(String key:jobContext.getProperties().getAllProperties().keySet()){
 			if(key.startsWith("core-site.")){
 				core.put(key.substring("core-site.".length()), jobContext.getProperties().getProperty(key));
@@ -62,10 +62,11 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 				yarn.put(key.substring("yarn-site.".length()), jobContext.getProperties().getProperty(key));
 			}
 		}
-		if(jobType!=null&&(jobType.equals("MapReduceJob")||jobType.equals("HiveJob")))
+		if(jobType!=null&&(jobType.equals(JobType.MapReduceJob.value())||jobType.equals(JobType.HiveJob.value())))
 		{
 			Configuration coreC=ConfUtil.getDefaultCoreSite();
 			for(String key:core.keySet()){
+				assert coreC != null;
 				coreC.set(key, core.get(key));
 			}
 			try {
@@ -74,6 +75,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 					xml.delete();
 				}
 				xml.createNewFile();
+				assert coreC != null;
 				coreC.writeXml(new FileOutputStream(xml));
 			} catch (Exception e) 
 			{
@@ -82,6 +84,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			//hdfs-site.xml
 			Configuration hdfsC=ConfUtil.getDefaultHdfsSite();
 			for(String key:hdfs.keySet()){
+				assert hdfsC != null;
 				hdfsC.set(key, hdfs.get(key));
 			}
 			try {
@@ -90,6 +93,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 					xml.delete();
 				}
 				xml.createNewFile();
+				assert hdfsC != null;
 				hdfsC.writeXml(new FileOutputStream(xml));
 			} catch (Exception e) {
 				log.error("create file hdfs-site.xml error",e);
@@ -97,6 +101,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			//mapred-site.xml
 			Configuration mapredC=ConfUtil.getDefaultMapredSite();
 			for(String key:mapred.keySet()){
+				assert mapredC != null;
 				mapredC.set(key, mapred.get(key));
 			}
 			try {
@@ -105,6 +110,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 					xml.delete();
 				}
 				xml.createNewFile();
+				assert mapredC != null;
 				mapredC.writeXml(new FileOutputStream(xml));
 			} catch (Exception e) {
 				log.error("create file mapred-site.xml error",e);
@@ -112,6 +118,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			//yarn-site.xml
 			Configuration yarnC=ConfUtil.getDefaultYarnSite();
 			for(String key:yarn.keySet()){
+				assert yarnC != null;
 				yarnC.set(key, mapred.get(key));
 			}
 			try {
@@ -120,6 +127,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 					xml.delete();
 				}
 				xml.createNewFile();
+				assert yarnC != null;
 				yarnC.writeXml(new FileOutputStream(xml));
 			} catch (Exception e) {
 				log.error("create file yarn-site.xml error",e);
@@ -136,15 +144,16 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 		if(!dir.exists()){
 			dir.mkdirs();
 		}
-		Map<String, String> hive=new HashMap<String, String>();
+		Map<String, String> hive=new HashMap<>();
 		for(String key:jobContext.getProperties().getAllProperties().keySet()){
 			if(key.startsWith("hive-site.")){
 				hive.put(key.substring("hive-site.".length()), jobContext.getProperties().getProperty(key));
 			}
 		}
-		if(jobType!=null&&jobType.equals("HiveJob")){
+		if(jobType!=null&&jobType.equals(JobType.HiveJob.value())){
 			Configuration hiveC=ConfUtil.getDefaultHiveSite();
 			for(String key:hive.keySet()){
+				assert hiveC != null;
 				hiveC.set(key, hive.get(key));
 			}
 			try {
@@ -153,6 +162,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 					xml.delete();
 				}
 				xml.createNewFile();
+				assert hiveC != null;
 				hiveC.writeXml(new FileOutputStream(xml));
 			} catch (Exception e) {
 				log.error("create file hive-site.xml error",e);
@@ -185,7 +195,6 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 		List<String> commands=getCommandList();
 		for(String s:commands){
 			log("DEBUG Command:"+s);
-//			log("Comments: abctest");
 			ProcessBuilder builder = new ProcessBuilder(partitionCommandLine(s));
 			builder.directory(new File(jobContext.getWorkDir()));
 			builder.environment().putAll(envMap);
@@ -193,7 +202,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			final InputStream inputStream = process.getInputStream();
             final InputStream errorStream = process.getErrorStream();
 			
-			String threadName=null;
+			String threadName;
 			if(jobContext.getJobHistory()!=null && jobContext.getJobHistory().getJobId()!=null){
 				threadName="jobId="+jobContext.getJobHistory().getJobId();
 			}else if(jobContext.getDebugHistory()!=null && jobContext.getDebugHistory().getId()!=null){
@@ -201,36 +210,30 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 			}else{
 				threadName="not-normal-job";
 			}
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try{
-						BufferedReader reader=new BufferedReader(new InputStreamReader(inputStream));
-						String line;
-						while((line=reader.readLine())!=null){
-							logConsole(line);
-						}
-					}catch(Exception e){
-						log(e);
-						log("接收日志出错，推出日志接收");
+			new Thread(() -> {
+				try{
+					BufferedReader reader=new BufferedReader(new InputStreamReader(inputStream));
+					String line;
+					while((line=reader.readLine())!=null){
+						logConsole(line);
 					}
+				}catch(Exception e){
+					log(e);
+					log("接收日志信息出错，推出日志接收");
 				}
 			},threadName).start();
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						BufferedReader reader=new BufferedReader(new InputStreamReader(errorStream));
-						String line;
-						while((line=reader.readLine())!=null){
-								logConsole(line);
-							
-						}
-					} catch (Exception e) {
-							log(e);
-							log("接收日志出错，推出日志接收");
-						}
-				}
+			new Thread(() -> {
+				try {
+					BufferedReader reader=new BufferedReader(new InputStreamReader(errorStream));
+					String line;
+					while((line=reader.readLine())!=null){
+							logConsole(line);
+
+					}
+				} catch (Exception e) {
+						log(e);
+						log("接收错误信息出错，推出日志接收");
+					}
 			},threadName).start();
 			
 			exitCode = -999;
@@ -277,6 +280,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 
 			processId = f.getInt(process);
 		} catch (Throwable e) {
+			e.printStackTrace();
 		}
 
 		return processId;
@@ -290,16 +294,10 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 		}
 		return value;
 	}
-	/**
-	 * Splits the command into a unix like command line structure. Quotes and
-	 * single quotes are treated as nested strings.
-	 * 
-	 * @param command
-	 * @return
-	 */
-	public static String[] partitionCommandLine(String command) {
+
+	private static String[] partitionCommandLine(String command) {
 		
-		ArrayList<String> commands = new ArrayList<String>();
+		ArrayList<String> commands = new ArrayList<>();
 		
 		String os=System.getProperties().getProperty("os.name");
 		if(os!=null && (os.startsWith("win") || os.startsWith("Win"))){
@@ -354,7 +352,7 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 	            commands.add(arg);
 	        }
 		}
-        return commands.toArray(new String[commands.size()]);
+        return commands.toArray(new String[0]);
 	}
 
 	public HierarchyProperties getProperties(){
@@ -363,5 +361,4 @@ public abstract class ProcessJob extends AbstractJob implements Job {
 	public JobContext getJobContext() {
 		return jobContext;
 	}
-	
 }

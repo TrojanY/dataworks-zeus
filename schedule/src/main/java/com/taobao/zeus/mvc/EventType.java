@@ -9,7 +9,7 @@ public class EventType implements Serializable {
 	private static int count = 0;
 
   // needed to use FastMap for much better speed
-  final String id;
+  final String id = String.valueOf(count++);
 
   private int eventCode = -1;
 
@@ -17,7 +17,6 @@ public class EventType implements Serializable {
    * Creates a new event type.
    */
   public EventType() {
-    id = String.valueOf(count++);
   }
 
   /**
@@ -34,7 +33,7 @@ public class EventType implements Serializable {
    * Returns the event code.
    * 
    * @return the event code
-   * @see Event
+   * @see BaseEvent
    */
   public int getEventCode() {
     return eventCode;

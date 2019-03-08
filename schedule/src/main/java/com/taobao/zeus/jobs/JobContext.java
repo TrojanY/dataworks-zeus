@@ -27,7 +27,7 @@ public class JobContext {
 			f.mkdir();
 		}
 		jobContext.setWorkDir(f.getAbsolutePath());
-		jobContext.setProperties(new HierarchyProperties(new HashMap<String, String>()));
+		jobContext.setProperties(new HierarchyProperties(new HashMap<>()));
 		return jobContext;
 	}
 
@@ -42,14 +42,14 @@ public class JobContext {
 	
 	private final int runType;
 
-	private Map<String, Object> data=new HashMap<String, Object>();
+	private Map<String, Object> data=new HashMap<>();
 	
 	private Integer preExitCode;
 	private Integer coreExitCode;
 	
 	private String workDir;
 	//设置默认值，防止JobUtils.createJob()方法中产生空指针（92行）
-	private HierarchyProperties properties=new HierarchyProperties(new HashMap<String, String>());
+	private HierarchyProperties properties=new HierarchyProperties(new HashMap<>());
 	private List<Map<String, String>> resources;
 	
 	private JobHistory jobHistory;
@@ -70,16 +70,16 @@ public class JobContext {
 	public void putData(String key,Object d){
 		data.put(key, d);
 	}
-	public Integer getPreExitCode() {
+	Integer getPreExitCode() {
 		return preExitCode;
 	}
-	public void setPreExitCode(Integer preExitCode) {
+	void setPreExitCode(Integer preExitCode) {
 		this.preExitCode = preExitCode;
 	}
 	public Integer getCoreExitCode() {
 		return coreExitCode;
 	}
-	public void setCoreExitCode(Integer coreExitCode) {
+	void setCoreExitCode(Integer coreExitCode) {
 		this.coreExitCode = coreExitCode;
 	}
 	public String getWorkDir() {

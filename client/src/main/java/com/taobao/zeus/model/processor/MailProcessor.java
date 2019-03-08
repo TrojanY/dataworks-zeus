@@ -1,4 +1,4 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 
 import net.sf.json.JSONObject;
 
@@ -7,7 +7,7 @@ import net.sf.json.JSONObject;
  * @author zhoufang
  *
  */
-public class MailProcesser implements Processer{
+public class MailProcessor implements Processor {
 	private static final long serialVersionUID = 1L;
 	private String subject;
 	private String template;

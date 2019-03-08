@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import com.taobao.zeus.model.JobDescriptor;
 import org.apache.commons.io.IOUtils;
@@ -30,16 +31,13 @@ import com.taobao.zeus.util.RunningJobKeys;
  * 
  */
 public class HiveJob extends ProcessJob {
-	private static Logger log=LoggerFactory.getLogger(HiveJob.class);
 	public static final String UDF_SQL_NAME = "zeus_udf.sql";
 	private FileManager fileManager;
-	private ApplicationContext applicationContext;
 
 	@SuppressWarnings("unused")
 	public HiveJob(JobContext jobContext, ApplicationContext applicationContext) {
 		super(jobContext);
-		this.applicationContext = applicationContext;
-		fileManager = (FileManager) this.applicationContext
+		fileManager = (FileManager) applicationContext
 				.getBean("fileManager");
 		jobContext.getProperties().setProperty(RunningJobKeys.JOB_RUN_TYPE, "HiveJob");
 		
@@ -50,12 +48,12 @@ public class HiveJob extends ProcessJob {
 		Date start = new Date();
 		Integer exitCode = runInner();
 		// 如果任务失败，且整个任务执行时间小于10分钟，则进行重试
-//		if (exitCode != 0
-//				&& getJobContext().getRunType() == JobContext.SCHEDULE_RUN
-//				&& new Date().getTime() - start.getTime() < 10 * 60 * 1000L) {
-//			log("Hive Job Fail in 10 min , try to retry");
-//			exitCode = runInner();
-//		}
+		if (exitCode != 0
+				&& getJobContext().getRunType() == JobContext.SCHEDULE_RUN
+				&& new Date().getTime() - start.getTime() < 10 * 60 * 1000L) {
+			log("Hive Job Fail in 10 min , try to retry");
+			exitCode = runInner();
+		}
 		return exitCode;
 	}
 
@@ -87,12 +85,12 @@ public class HiveJob extends ProcessJob {
 	@Override
 	public List<String> getCommandList() {
 		String hiveFilePath = getProperty(PropertyKeys.RUN_HIVE_PATH, "");
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		StringBuffer sb = new StringBuffer();
 		
 		// get operator uid
 		String shellPrefix = "";
-		String user = "";
+		String user;
 		if (jobContext.getRunType() == JobDescriptor.JobScheduleType.Dependent.getType()
 				|| jobContext.getRunType() == JobDescriptor.JobScheduleType.CyleJob.getType()) {
 			user = jobContext.getJobHistory().getOperator();
@@ -109,18 +107,16 @@ public class HiveJob extends ProcessJob {
 		//格式转换
 		String[] excludeFiles = Environment.getExcludeFile().split(";");
 		boolean isDos2unix = true;
-		if(excludeFiles!=null && excludeFiles.length>0){
+		if(excludeFiles.length > 0){
 			for(String excludeFile : excludeFiles){
 				if(hiveFilePath.toLowerCase().endsWith("."+excludeFile.toLowerCase())){
 					isDos2unix = false;
 					break;
 				}
 			}
-//			System.out.println(Environment.getExcludeFile());
 		}
 		if(isDos2unix){
 			list.add("dos2unix " + hiveFilePath);
-//			System.out.println("dos2unix file: " + hiveFilePath);
 			log("dos2unix file: " + hiveFilePath);
 		}
 		
@@ -133,7 +129,7 @@ public class HiveJob extends ProcessJob {
 		sb.append(" -f ").append(hiveFilePath);
 		// 执行shell
 		if(shellPrefix.trim().length() > 0){
-			String envFilePath = this.getClass().getClassLoader().getResource("/").getPath()+"env.sh";
+			String envFilePath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("/")).getPath()+"env.sh";
 			String tmpFilePath = jobContext.getWorkDir()+File.separator+"tmp.sh";
 			String localEnvFilePath = jobContext.getWorkDir()+File.separator+"env.sh";
 			File f=new File(envFilePath);

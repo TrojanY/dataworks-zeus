@@ -7,7 +7,7 @@ package com.taobao.zeus.mvc;
 public abstract class View {
 
   protected Controller controller;
-  protected boolean initialized;
+  boolean initialized;
 
   /**
    * Creates a new view instance.

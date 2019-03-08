@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.taobao.zeus.model.processor.HiveProcessor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -18,7 +19,6 @@ import com.taobao.zeus.broadcast.alarm.ZeusAlarm;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
-import com.taobao.zeus.model.processer.HiveProcesser;
 import com.taobao.zeus.store.CliTableManager;
 import com.taobao.zeus.store.HDFSManager;
 import com.taobao.zeus.store.TableManager;
@@ -27,7 +27,7 @@ import com.taobao.zeus.util.ZeusDateTool;
 public class HiveOutputCheckJob extends AbstractJob {
 
 	@SuppressWarnings("unused")
-	private HiveProcesser processer;
+	private HiveProcessor processer;
 	private List<String> tableNames;
 	private Integer percent;
 	private ZeusAlarm wangWangAlarm;
@@ -37,7 +37,7 @@ public class HiveOutputCheckJob extends AbstractJob {
 	private TableManager tableManager;
 
 	public HiveOutputCheckJob(final JobContext jobContext,
-			final HiveProcesser p, final ApplicationContext applicationContext)
+							  final HiveProcessor p, final ApplicationContext applicationContext)
 			throws Exception {
 		super(jobContext);
 		this.wangWangAlarm = (ZeusAlarm) applicationContext

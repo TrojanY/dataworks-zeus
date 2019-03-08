@@ -1,4 +1,4 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 
 import java.io.Serializable;
 
@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author zhoufang
  *
  */
-public interface Processer extends Serializable{
+public interface Processor extends Serializable{
 
 	String getId();
 	String getConfig();

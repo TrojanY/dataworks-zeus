@@ -1,4 +1,4 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
  * @author gufei.wzy
  * @date 2013-1-11
  */
-public class HiveProcesser implements Processer {
+public class HiveProcessor implements Processor {
 
 	private static final long serialVersionUID = 1L;
 	private List<String> outputTables;

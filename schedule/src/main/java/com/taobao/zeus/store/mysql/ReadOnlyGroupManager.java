@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.taobao.zeus.model.processor.Processor;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,6 @@ import com.taobao.zeus.model.GroupDescriptor;
 import com.taobao.zeus.model.JobDescriptor;
 import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobStatus;
-import com.taobao.zeus.model.processer.Processer;
 import com.taobao.zeus.schedule.mvc.DebugInfoLog;
 import com.taobao.zeus.store.GroupBean;
 import com.taobao.zeus.store.GroupManager;
@@ -836,22 +836,22 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 			throw new UnsupportedOperationException();
 		}*/
 		@Override
-		public List<Processer> getPreProcessers() {
-			return new ArrayList<>(jd.getPreProcessers());
+		public List<Processor> getPreProcessors() {
+			return new ArrayList<>(jd.getPreProcessors());
 		}
 
 		@Override
-		public void setPreProcessers(List<Processer> preProcessers) {
+		public void setPreProcessors(List<Processor> preProcessors) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public List<Processer> getPostProcessers() {
-			return new ArrayList<>(jd.getPostProcessers());
+		public List<Processor> getPostProcessors() {
+			return new ArrayList<>(jd.getPostProcessors());
 		}
 
 		@Override
-		public void setPostProcessers(List<Processer> postProcessers) {
+		public void setPostProcessors(List<Processor> postProcessors) {
 			throw new UnsupportedOperationException();
 		}
 	}

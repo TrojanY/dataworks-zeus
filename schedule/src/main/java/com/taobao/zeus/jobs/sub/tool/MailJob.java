@@ -5,13 +5,13 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.broadcast.alarm.MailAlarm;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
-import com.taobao.zeus.model.processer.MailProcesser;
+import com.taobao.zeus.model.processor.MailProcessor;
 
 public class MailJob extends AbstractJob{
 
 	private MailAlarm mailAlarm;
-	private MailProcesser processer;
-	public MailJob(JobContext jobContext,MailProcesser p,ApplicationContext applicationContext) {
+	private MailProcessor processer;
+	public MailJob(JobContext jobContext, MailProcessor p, ApplicationContext applicationContext) {
 		super(jobContext);
 		mailAlarm=(MailAlarm) applicationContext.getBean("mailAlarm");
 		this.processer=p;

@@ -22,12 +22,12 @@ public class BaseObservable implements Observable {
   public void addListener(EventType eventType, Listener<? extends BaseEvent> listener) {
     if (listener == null) return;
     if (listeners == null) {
-      listeners = new HashMap<String,List<Listener<BaseEvent>>>();
+      listeners = new HashMap<>();
     }
     String key = getKey(eventType);
     List<Listener<BaseEvent>> list = listeners.get(key);
     if (list == null) {
-      list = new ArrayList<Listener<BaseEvent>>();
+      list = new ArrayList<>();
       list.add((Listener) listener);
       listeners.put(key, list);
     } else {
@@ -61,7 +61,7 @@ public class BaseObservable implements Observable {
 
       List<Listener<BaseEvent>> list = listeners.get(getKey(eventType));
       if (list != null) {
-        List<Listener<BaseEvent>> copy = new ArrayList<Listener<BaseEvent>>(list);
+        List<Listener<BaseEvent>> copy = new ArrayList<>(list);
         for (Listener<BaseEvent> l : copy) {
           callListener(l, be);
         }
@@ -84,11 +84,11 @@ public class BaseObservable implements Observable {
   @SuppressWarnings({"unchecked", "rawtypes"})
   public List<Listener<? extends BaseEvent>> getListeners(EventType eventType) {
     if (listeners == null) {
-      return new ArrayList<Listener<? extends BaseEvent>>();
+      return new ArrayList<>();
     }
     List<Listener<BaseEvent>> list = listeners.get(getKey(eventType));
     if (list == null) {
-      return new ArrayList<Listener<? extends BaseEvent>>();
+      return new ArrayList<>();
     }
     return (List) list;
   }
@@ -109,9 +109,7 @@ public class BaseObservable implements Observable {
   public boolean hasListeners(EventType eventType) {
     if (listeners != null) {
       List<Listener<BaseEvent>> list = listeners.get(getKey(eventType));
-      if (list != null && !list.isEmpty()) {
-        return true;
-      }
+      return list != null && !list.isEmpty();
     }
     return false;
   }

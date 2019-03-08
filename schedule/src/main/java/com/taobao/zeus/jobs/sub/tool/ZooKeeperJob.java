@@ -2,6 +2,7 @@ package com.taobao.zeus.jobs.sub.tool;
 
 import java.util.Date;
 
+import com.taobao.zeus.model.processor.ZooKeeperProcessor;
 import net.sf.json.JSONObject;
 
 import org.springframework.context.ApplicationContext;
@@ -9,12 +10,11 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.broadcast.notify.ZKResultNotify;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
-import com.taobao.zeus.model.processer.ZooKeeperProcesser;
 
 public class ZooKeeperJob extends AbstractJob{
 	private ZKResultNotify zkResultNotify;
-	private ZooKeeperProcesser processer;
-	public ZooKeeperJob(JobContext jobContext,ZooKeeperProcesser processer,ApplicationContext applicationContext) {
+	private ZooKeeperProcessor processer;
+	public ZooKeeperJob(JobContext jobContext, ZooKeeperProcessor processer, ApplicationContext applicationContext) {
 		super(jobContext);
 		this.processer=processer;
 		this.zkResultNotify=(ZKResultNotify)applicationContext.getBean("zkResultNotify");

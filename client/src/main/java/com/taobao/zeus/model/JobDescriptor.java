@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.taobao.zeus.model.processer.Processer;
+import com.taobao.zeus.model.processor.Processor;
 
 public class JobDescriptor implements Serializable {
 
@@ -30,8 +30,8 @@ public class JobDescriptor implements Serializable {
 
 	private String timezone;
 
-	private List<Processer> preProcessers = new ArrayList<>();
-	private List<Processer> postProcessers = new ArrayList<>();
+	private List<Processor> preProcessors = new ArrayList<>();
+	private List<Processor> postProcessors = new ArrayList<>();
 	private String offRaw="0";
 	private String cycle;
 	// 周期任务的依赖，key为任务ID，value为任务周期
@@ -64,8 +64,8 @@ public class JobDescriptor implements Serializable {
 		jobDescriptor.setName(this.getName());
 		jobDescriptor.setOffRaw(this.getOffRaw());
 		jobDescriptor.setOwner(this.getOwner());
-		jobDescriptor.setPostProcessers(this.getPostProcessers());
-		jobDescriptor.setPreProcessers(this.getPreProcessers());
+		jobDescriptor.setPostProcessors(this.getPostProcessors());
+		jobDescriptor.setPreProcessors(this.getPreProcessors());
 		jobDescriptor.setProperties(this.getProperties());
 		jobDescriptor.setResources(this.getResources());
 		jobDescriptor.setScheduleType(this.getScheduleType());
@@ -258,20 +258,20 @@ public class JobDescriptor implements Serializable {
 		}
 	}
 
-	public List<Processer> getPreProcessers() {
-		return preProcessers;
+	public List<Processor> getPreProcessors() {
+		return preProcessors;
 	}
 
-	public void setPreProcessers(List<Processer> preProcessers) {
-		this.preProcessers = preProcessers;
+	public void setPreProcessors(List<Processor> preProcessors) {
+		this.preProcessors = preProcessors;
 	}
 
-	public List<Processer> getPostProcessers() {
-		return postProcessers;
+	public List<Processor> getPostProcessors() {
+		return postProcessors;
 	}
 
-	public void setPostProcessers(List<Processer> postProcessers) {
-		this.postProcessers = postProcessers;
+	public void setPostProcessors(List<Processor> postProcessors) {
+		this.postProcessors = postProcessors;
 	}
 
 	public String getTimezone() {

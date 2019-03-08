@@ -1,4 +1,4 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,7 +11,7 @@ import net.sf.json.JSONObject;
  * @author zhoufang
  *
  */
-public class JobProcesser implements Processer{
+public class JobProcessor implements Processor {
 
 	private static final long serialVersionUID = 1L;
 	private String jobId;
@@ -34,7 +34,7 @@ public class JobProcesser implements Processer{
 
 	@Override
 	public String getId() {
-		return "JobProcesser";
+		return "JobProcessor";
 	}
 
 	@Override

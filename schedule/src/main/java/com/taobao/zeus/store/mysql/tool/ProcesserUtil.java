@@ -1,49 +1,41 @@
 package com.taobao.zeus.store.mysql.tool;
 
+import com.taobao.zeus.model.processor.*;
 import net.sf.json.JSONObject;
 
-import com.taobao.zeus.model.processer.DownloadProcesser;
-import com.taobao.zeus.model.processer.HiveProcesser;
-import com.taobao.zeus.model.processer.JobProcesser;
-import com.taobao.zeus.model.processer.MailProcesser;
-import com.taobao.zeus.model.processer.MetaProcesser;
-import com.taobao.zeus.model.processer.OutputCheckProcesser;
-import com.taobao.zeus.model.processer.OutputCleanProcesser;
-import com.taobao.zeus.model.processer.Processer;
-import com.taobao.zeus.model.processer.WangWangProcesser;
-import com.taobao.zeus.model.processer.ZooKeeperProcesser;
+import com.taobao.zeus.model.processor.Processor;
 
 @SuppressWarnings("deprecation")
 public class ProcesserUtil {
 
-	public static Processer parse(JSONObject o){
-		Processer result=null;
+	public static Processor parse(JSONObject o){
+		Processor result=null;
 		String id=o.getString("id");
 		if("download".equals(id)){
-			result= new DownloadProcesser();
+			result= new DownloadProcessor();
 		}else if("zookeeper".equalsIgnoreCase(id)){
-			result=new ZooKeeperProcesser();
+			result=new ZooKeeperProcessor();
 			result.parse(o.getString("config"));
 		}else if("mail".equalsIgnoreCase(id)){
-			result=new MailProcesser();
+			result=new MailProcessor();
 			result.parse(o.getString("config"));
 		}else if("meta".equalsIgnoreCase(id)){
-			result=new MetaProcesser();
+			result=new MetaProcessor();
 			result.parse(o.getString("config"));
 		}else if("wangwang".equalsIgnoreCase(id)){
-			result=new WangWangProcesser();
+			result=new WangWangProcessor();
 			result.parse(o.getString("config"));
 		}else if("OutputCheck".equalsIgnoreCase(id)){
-			result=new OutputCheckProcesser();
+			result=new OutputCheckProcessor();
 			result.parse(o.getString("config"));
 		}else if("OutputClean".equalsIgnoreCase(id)){
-			result=new OutputCleanProcesser();
+			result=new OutputCleanProcessor();
 			result.parse(o.getString("config"));
-		}else if("JobProcesser".equalsIgnoreCase(id)){
-			result=new JobProcesser();
+		}else if("JobProcessor".equalsIgnoreCase(id)){
+			result=new JobProcessor();
 			result.parse(o.getString("config"));
 		}else if("hive".equalsIgnoreCase(id)){
-			result = new HiveProcesser();
+			result = new HiveProcessor();
 			result.parse(o.getString("config"));
 		}
 		

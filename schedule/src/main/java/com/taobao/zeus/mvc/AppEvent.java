@@ -108,7 +108,7 @@ public class AppEvent extends BaseEvent {
    * @param data the new value for the property
    */
   public void setData(String key, Object data) {
-    if (dataMap == null) dataMap = new HashMap<String,Object>();
+    if (dataMap == null) dataMap = new HashMap<>();
     dataMap.put(key, data);
   }
 

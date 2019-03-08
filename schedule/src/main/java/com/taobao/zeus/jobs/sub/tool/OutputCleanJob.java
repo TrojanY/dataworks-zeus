@@ -1,13 +1,11 @@
 package com.taobao.zeus.jobs.sub.tool;
 
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.hadoop.conf.Configuration;
+import com.taobao.zeus.model.processor.OutputCleanProcessor;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -16,12 +14,11 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
-import com.taobao.zeus.model.processer.OutputCleanProcesser;
 
 public class OutputCleanJob extends AbstractJob{
 
-	private OutputCleanProcesser ocp;
-	public OutputCleanJob(JobContext jobContext,OutputCleanProcesser p,ApplicationContext applicationContext) {
+	private OutputCleanProcessor ocp;
+	public OutputCleanJob(JobContext jobContext, OutputCleanProcessor p, ApplicationContext applicationContext) {
 		super(jobContext);
 		this.ocp=p;
 	}

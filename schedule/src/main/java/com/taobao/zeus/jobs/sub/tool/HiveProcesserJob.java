@@ -3,11 +3,11 @@
  */
 package com.taobao.zeus.jobs.sub.tool;
 
+import com.taobao.zeus.model.processor.HiveProcessor;
 import org.springframework.context.ApplicationContext;
 
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
-import com.taobao.zeus.model.processer.HiveProcesser;
 
 /**
  * @author gufei.wzy
@@ -15,12 +15,12 @@ import com.taobao.zeus.model.processer.HiveProcesser;
  */
 public class HiveProcesserJob extends AbstractJob {
 
-	private HiveProcesser processer;
+	private HiveProcessor processer;
 	private int exitCode = 0;
 	private ApplicationContext applicationContext;
 
 	public HiveProcesserJob(final JobContext jobContext,
-			final HiveProcesser processer,
+			final HiveProcessor processer,
 			final ApplicationContext applicationContext) {
 		super(jobContext);
 		this.processer = processer;

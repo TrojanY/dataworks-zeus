@@ -38,20 +38,19 @@ public class JavaJob extends ProcessJob{
 	}
 	
 	
-	protected String getClassPaths() {
+	String getClassPaths() {
 		return getProperty(RUN_CLASSPATH, "");
 	}
 
-	protected String getMainArguments() {
-		String value= getProperty(RUN_JAVA_MAIN_ARGS,"");
-		return value;
+	String getMainArguments() {
+		return getProperty(RUN_JAVA_MAIN_ARGS,"");
 	}
 
-	protected String getJavaClass() {
+	String getJavaClass() {
 		return getProperties().getProperty(RUN_JAVA_MAIN_CLASS);
 	}
 
-	protected String getMaxMemorySize() {
+	private String getMaxMemorySize() {
 		String value= getProperties().getProperty(RUN_MAX_MEMORY_SIZE);
 		if(value==null){
 			value=DEFAULT_MAX_MEMORY_SIZE;
@@ -61,25 +60,25 @@ public class JavaJob extends ProcessJob{
 
 	/**
 	 * Xms 参数
-	 * @return
+	 * @return Xms parameter
 	 */
-	protected String getInitialMemorySize() {
+	private String getInitialMemorySize() {
 		return getProperty(RUN_INITIAL_MEMORY_SIZE, DEFAULT_INITIAL_MEMORY_SIZE);
 	}
 
 	/**
 	 * JVM参数
-	 * @return
+	 * @return jvm parameter
 	 */
-	protected String getJVMArguments() {
+	private String getJVMArguments() {
 		return getProperty(RUN_JVM_PARAMS,"");
 	}
 	/**
 	 * 查找已知class的路径
-	 * @param containedClass
-	 * @return
+	 * @param containedClass containedClass
+	 * @return classpath
 	 */
-	public static String getSourcePathFromClass(Class<?> containedClass) {
+	static String getSourcePathFromClass(Class<?> containedClass) {
 		String path = containedClass.getProtectionDomain().getCodeSource()
 				.getLocation().getPath();
 		File file = new File(path);
@@ -99,7 +98,7 @@ public class JavaJob extends ProcessJob{
 
 	@Override
 	public List<String> getCommandList() {
-		List<String> commands=new ArrayList<String>();
+		List<String> commands=new ArrayList<>();
 		String command = JAVA_COMMAND + " ";
 		command += getJVMArguments() + " ";
 		command += "-Xms" + getInitialMemorySize() + " ";

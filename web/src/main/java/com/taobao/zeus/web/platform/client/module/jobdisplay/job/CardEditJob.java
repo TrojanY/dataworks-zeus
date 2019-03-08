@@ -166,12 +166,12 @@ public class CardEditJob extends CenterTemplate implements
 			 * p.setDriftPercent(driftPercentField.getValue() .toString()); } }
 			 * if (notNullOrEmpty(syncTableField.getValue())) {
 			 * p.setSyncTables(syncTableField.getValue()); }
-			 * model.getPreProcessers().add(p.getJsonObject());
-			 * model.getPostProcessers().add(p.getJsonObject()); }
+			 * model.getPreProcessors().add(p.getJsonObject());
+			 * model.getPostProcessors().add(p.getJsonObject()); }
 			 */
 			// 自定义ZK
 			/*
-			 * if (zkWindow.isOn()) { model.getPostProcessers().add(
+			 * if (zkWindow.isOn()) { model.getPostProcessors().add(
 			 * zkWindow.getProcesserType().getJsonObject()); }
 			 */
 
@@ -460,7 +460,7 @@ public class CardEditJob extends CenterTemplate implements
 		/*
 		 * outputTableField.setValue(null); keepDaysField.setValue(null);
 		 * driftPercentField.setValue(null); syncTableField.setValue(null); for
-		 * (String post : t.getPostProcessers()) { if (post != null) {
+		 * (String post : t.getPostProcessors()) { if (post != null) {
 		 * ProcesserType p = ProcesserType.parse(post); if (p != null) { if
 		 * (p.getId().equalsIgnoreCase("hive")) { HiveP hiveP = (HiveP) p;
 		 * outputTableField.setValue(hiveP.getOutputTables()); if

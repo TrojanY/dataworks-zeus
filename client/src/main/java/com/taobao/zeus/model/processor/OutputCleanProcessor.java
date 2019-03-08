@@ -1,4 +1,4 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 
 import net.sf.json.JSONObject;
 /**
@@ -9,7 +9,7 @@ import net.sf.json.JSONObject;
  * @author zhoufang
  *
  */
-public class OutputCleanProcesser implements Processer{
+public class OutputCleanProcessor implements Processor {
 
 	private static final long serialVersionUID = 1L;
 	private int days=7;

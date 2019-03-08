@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.taobao.zeus.model.processor.*;
 import org.apache.commons.lang.StringUtils;
 import org.mortbay.log.Log;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +17,7 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.jobs.Job;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.RenderHierarchyProperties;
-import com.taobao.zeus.jobs.WithProcesserJob;
+import com.taobao.zeus.jobs.WithProcessorJob;
 import com.taobao.zeus.jobs.sub.HadoopShellJob;
 import com.taobao.zeus.jobs.sub.HiveJob;
 import com.taobao.zeus.jobs.sub.MapReduceJob;
@@ -32,15 +33,7 @@ import com.taobao.zeus.model.FileDescriptor;
 import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobHistory;
 import com.taobao.zeus.model.Profile;
-import com.taobao.zeus.model.processer.DownloadProcesser;
-import com.taobao.zeus.model.processer.HiveProcesser;
-import com.taobao.zeus.model.processer.JobProcesser;
-import com.taobao.zeus.model.processer.MailProcesser;
-import com.taobao.zeus.model.processer.OutputCheckProcesser;
-import com.taobao.zeus.model.processer.OutputCleanProcesser;
-import com.taobao.zeus.model.processer.Processer;
-import com.taobao.zeus.model.processer.WangWangProcesser;
-import com.taobao.zeus.model.processer.ZooKeeperProcesser;
+import com.taobao.zeus.model.processor.Processor;
 import com.taobao.zeus.store.FileManager;
 import com.taobao.zeus.store.GroupManager;
 import com.taobao.zeus.store.GroupManagerOld;
@@ -88,7 +81,7 @@ public class JobUtils {
 		} else if (history.getJobRunType() == JobRunType.Shell) {
 			core = new HadoopShellJob(jobContext);
 		}
-		return new WithProcesserJob(jobContext, pres, new ArrayList<>(),
+		return new WithProcessorJob(jobContext, pres, new ArrayList<>(),
 				core, applicationContext);
 	}
 
@@ -146,11 +139,11 @@ public class JobUtils {
 */
 		// 前置处理Job创建
 		List<Job> pres = parseJobs(jobContext, applicationContext, jobBean,
-				jobBean.getJobDescriptor().getPreProcessers(), history, workDir);
+				jobBean.getJobDescriptor().getPreProcessors(), history, workDir);
 		pres.add(0, new DownloadJob(jobContext));
 		// 后置处理Job创建
 		List<Job> posts = parseJobs(jobContext, applicationContext, jobBean,
-				jobBean.getJobDescriptor().getPostProcessers(), history,
+				jobBean.getJobDescriptor().getPostProcessors(), history,
 				workDir);
 		posts.add(new ZooKeeperJob(jobContext, null, applicationContext));
 		// 核心处理Job创建
@@ -163,7 +156,7 @@ public class JobUtils {
 			core = new HiveJob(jobContext, applicationContext);
 		}
 
-		return new WithProcesserJob(jobContext, pres, posts, core,
+		return new WithProcessorJob(jobContext, pres, posts, core,
 				applicationContext);
 	}
 
@@ -264,8 +257,8 @@ public class JobUtils {
 	}
 
 	private static List<Job> parseJobs(JobContext jobContext,
-			ApplicationContext applicationContext, JobBean jobBean,
-			List<Processer> ps, JobHistory history, String workDir) {
+									   ApplicationContext applicationContext, JobBean jobBean,
+									   List<Processor> ps, JobHistory history, String workDir) {
 		List<Job> jobs = new ArrayList<>();
 		Map<String, String> map = jobContext.getProperties().getAllProperties();
 		Map<String, String> newmap = new HashMap<>();
@@ -291,7 +284,7 @@ public class JobUtils {
 		} catch (ParseException e) {
 			Log.warn("parse job end time to timestamp failed", e);
 		}
-		for (Processer p : ps) {
+		for (Processor p : ps) {
 			String config = p.getConfig();
 			if (config != null && !"".equals(config.trim())) {
 				for (String key : newmap.keySet()) {
@@ -304,35 +297,35 @@ public class JobUtils {
 				}
 				p.parse(config);
 			}
-			if (p instanceof DownloadProcesser) {
+			if (p instanceof DownloadProcessor) {
 				jobs.add(new DownloadJob(jobContext));
-			} else if (p instanceof ZooKeeperProcesser) {
-				ZooKeeperProcesser zkp = (ZooKeeperProcesser) p;
+			} else if (p instanceof ZooKeeperProcessor) {
+				ZooKeeperProcessor zkp = (ZooKeeperProcessor) p;
 				if (!zkp.getUseDefault()) {
 					jobs.add(new ZooKeeperJob(jobContext,
-							(ZooKeeperProcesser) p, applicationContext));
+							(ZooKeeperProcessor) p, applicationContext));
 				}
-			} else if (p instanceof MailProcesser) {
-				jobs.add(new MailJob(jobContext, (MailProcesser) p,
+			} else if (p instanceof MailProcessor) {
+				jobs.add(new MailJob(jobContext, (MailProcessor) p,
 						applicationContext));
-			} else if (p instanceof WangWangProcesser) {
+			} else if (p instanceof WangWangProcessor) {
 				jobs.add(new WangWangJob(jobContext));
-			} else if (p instanceof OutputCheckProcesser) {
+			} else if (p instanceof OutputCheckProcessor) {
 				jobs.add(new OutputCheckJob(jobContext,
-						(OutputCheckProcesser) p, applicationContext));
-			} else if (p instanceof OutputCleanProcesser) {
+						(OutputCheckProcessor) p, applicationContext));
+			} else if (p instanceof OutputCleanProcessor) {
 				jobs.add(new OutputCleanJob(jobContext,
-						(OutputCleanProcesser) p, applicationContext));
-			} else if (p instanceof HiveProcesser) {
-				jobs.add(new HiveProcesserJob(jobContext, (HiveProcesser) p,
+						(OutputCleanProcessor) p, applicationContext));
+			} else if (p instanceof HiveProcessor) {
+				jobs.add(new HiveProcesserJob(jobContext, (HiveProcessor) p,
 						applicationContext));
-			} else if (p instanceof JobProcesser) {
+			} else if (p instanceof JobProcessor) {
 				Integer depth = (Integer) jobContext.getData("depth");
 				if (depth == null) {
 					depth = 0;
 				}
 				if (depth < 2) {// job 的递归深度控制，防止无限递归
-					JobProcesser jobProcesser = (JobProcesser) p;
+					JobProcessor jobProcesser = (JobProcessor) p;
 					GroupManager groupManager = (GroupManager) applicationContext
 							.getBean("groupManager");
 					JobBean jb = groupManager.getUpstreamJobBean(jobProcesser

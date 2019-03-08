@@ -14,19 +14,19 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
-import com.taobao.zeus.model.processer.HiveProcesser;
+import com.taobao.zeus.model.processor.HiveProcessor;
 import com.taobao.zeus.store.CliTableManager;
 import com.taobao.zeus.store.TableManager;
 
 public class HivePartitionCleanJob extends AbstractJob {
 	@SuppressWarnings("unused")
-	private HiveProcesser processer;
+	private HiveProcessor processer;
 	private List<String> tables;
 	private Integer keepDays;
 	private TableManager tableManager;
 
 	public HivePartitionCleanJob(final JobContext jobContext,
-			final HiveProcesser p, final ApplicationContext applicationContext)
+								 final HiveProcessor p, final ApplicationContext applicationContext)
 			throws Exception {
 		super(jobContext);
 		this.processer = p;

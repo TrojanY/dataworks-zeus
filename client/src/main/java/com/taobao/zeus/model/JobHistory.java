@@ -7,7 +7,6 @@ import java.util.Map;
 import com.taobao.zeus.model.JobStatus.Status;
 import com.taobao.zeus.model.JobStatus.TriggerType;
 
-
 public class JobHistory{
 
 	private String id;

@@ -2,22 +2,17 @@ package com.taobao.zeus.jobs.sub;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.ProcessJob;
-import com.taobao.zeus.store.Super;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import com.taobao.zeus.util.Environment;
 import com.taobao.zeus.util.PropertyKeys;
 
@@ -29,7 +24,6 @@ import com.taobao.zeus.util.PropertyKeys;
  */
 public class ShellJob extends ProcessJob{
 
-	private static Logger log=LoggerFactory.getLogger(ShellJob.class);
 	protected String shell;
 
 	public ShellJob(JobContext jobContext) {
@@ -47,7 +41,7 @@ public class ShellJob extends ProcessJob{
 
 	@Override
 	public List<String> getCommandList() {
-		String script=null;
+		String script;
 		if(shell!=null){
 			script=shell;
 		}else{
@@ -71,20 +65,20 @@ public class ShellJob extends ProcessJob{
 		
 		String shellFilePath=getProperty(PropertyKeys.RUN_SHELLPATH, "");
 		
-		List<String> list=new ArrayList<String>();
+		List<String> list=new ArrayList<>();
 		
 		
 		//修改权限
 
 		String shellPrefix = "";
-		String user = "";
-		if (jobContext.getRunType() == 1 || jobContext.getRunType() == 2) {
+		String user;
+		if (jobContext.getRunType() == JobContext.SCHEDULE_RUN || jobContext.getRunType() == JobContext.MANUAL_RUN) {
 			user = jobContext.getJobHistory().getOperator();
 			shellPrefix = "sudo -u " + user;
-		} else if (jobContext.getRunType() == 3) {
+		} else if (jobContext.getRunType() == JobContext.DEBUG_RUN) {
 			user = jobContext.getDebugHistory().getOwner();
 			shellPrefix = "sudo -u " + user;
-		} else if (jobContext.getRunType() == 4) {
+		} else if (jobContext.getRunType() == JobContext.SYSTEM_RUN) {
 			shellPrefix = "";
 		}else{
 			log("没有RunType=" + jobContext.getRunType() + " 的执行类别");
@@ -93,25 +87,23 @@ public class ShellJob extends ProcessJob{
 		//格式转换
 		String[] excludeFiles = Environment.getExcludeFile().split(";");
 		boolean isDos2unix = true;
-		if(excludeFiles!=null && excludeFiles.length>0){
+		if(excludeFiles.length > 0){
 			for(String excludeFile : excludeFiles){
 				if(shellFilePath.toLowerCase().endsWith("."+excludeFile.toLowerCase())){
 					isDos2unix = false;
 					break;
 				}
 			}
-//			System.out.println(Environment.getExcludeFile());
 		}
 		if(isDos2unix){
 			list.add("dos2unix " + shellFilePath);
-//			System.out.println("dos2unix file: " + shellFilePath);
 			log("dos2unix file: " + shellFilePath);
 		}
 
 		//执行shell
 		// run shell as current user
 		if(shellPrefix.trim().length() > 0){
-			String envFilePath = this.getClass().getClassLoader().getResource("/").getPath()+"env.sh";
+			String envFilePath = Objects.requireNonNull(this.getClass().getClassLoader().getResource("/")).getPath()+"env.sh";
 			String tmpFilePath = jobContext.getWorkDir()+File.separator+"tmp.sh";
 			String localEnvFilePath = jobContext.getWorkDir()+File.separator+"env.sh";
 			File f=new File(envFilePath);

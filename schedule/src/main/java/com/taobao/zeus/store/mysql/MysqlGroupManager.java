@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.zeus.model.processor.DownloadProcessor;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,7 @@ import com.taobao.zeus.model.JobDescriptor;
 import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobDescriptor.JobScheduleType;
 import com.taobao.zeus.model.JobStatus;
-import com.taobao.zeus.model.processer.DownloadProcesser;
-import com.taobao.zeus.model.processer.Processer;
+import com.taobao.zeus.model.processor.Processor;
 import com.taobao.zeus.store.GroupBean;
 import com.taobao.zeus.store.GroupManager;
 import com.taobao.zeus.store.GroupManagerTool;
@@ -361,7 +361,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 		job.setName(jobName);
 		job.setGroupId(parentGroup);
 		job.setJobType(jobType);
-		job.setPreProcessers(Arrays.asList((Processer) new DownloadProcesser()));
+		job.setPreProcessors(Arrays.asList((Processor) new DownloadProcessor()));
 		JobPersistence persist = PersistenceAndBeanConvert.convert(job);
 		persist.setGmtCreate(new Date());
 		persist.setGmtModified(new Date());

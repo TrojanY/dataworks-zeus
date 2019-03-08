@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.taobao.zeus.model.processor.Processor;
 import net.sf.json.JSONObject;
 
 import org.apache.log4j.LogManager;
@@ -33,7 +34,6 @@ import com.taobao.zeus.model.JobStatus;
 import com.taobao.zeus.model.JobStatus.Status;
 import com.taobao.zeus.model.JobStatus.TriggerType;
 import com.taobao.zeus.model.ZeusFollow;
-import com.taobao.zeus.model.processer.Processer;
 import com.taobao.zeus.socket.protocol.Protocol.ExecuteKind;
 import com.taobao.zeus.socket.worker.ClientWorker;
 import com.taobao.zeus.store.FollowManagerOld;
@@ -162,8 +162,8 @@ public class JobServiceImpl implements JobService {
 		jobModel.setScript(jobBean.getJobDescriptor().getScript());
 
 		List<String> preList = new ArrayList<String>();
-		if (!jobBean.getJobDescriptor().getPreProcessers().isEmpty()) {
-			for (Processer p : jobBean.getJobDescriptor().getPreProcessers()) {
+		if (!jobBean.getJobDescriptor().getPreProcessors().isEmpty()) {
+			for (Processor p : jobBean.getJobDescriptor().getPreProcessors()) {
 				JSONObject o = new JSONObject();
 				o.put("id", p.getId());
 				o.put("config", p.getConfig());
@@ -173,8 +173,8 @@ public class JobServiceImpl implements JobService {
 		jobModel.setPreProcessers(preList);
 
 		List<String> postList = new ArrayList<String>();
-		if (!jobBean.getJobDescriptor().getPostProcessers().isEmpty()) {
-			for (Processer p : jobBean.getJobDescriptor().getPostProcessers()) {
+		if (!jobBean.getJobDescriptor().getPostProcessors().isEmpty()) {
+			for (Processor p : jobBean.getJobDescriptor().getPostProcessors()) {
 				JSONObject o = new JSONObject();
 				o.put("id", p.getId());
 				o.put("config", p.getConfig());
@@ -321,8 +321,8 @@ public class JobServiceImpl implements JobService {
 		jd.setScript(jobModel.getScript());
 		jd.setAuto(jobModel.getAuto());
 
-		jd.setPreProcessers(parseProcessers(jobModel.getPreProcessers()));
-		jd.setPostProcessers(parseProcessers(jobModel.getPostProcessers()));
+		jd.setPreProcessors(parseProcessers(jobModel.getPreProcessers()));
+		jd.setPostProcessors(parseProcessers(jobModel.getPostProcessers()));
 		jd.setTimezone(jobModel.getDefaultTZ());
 		jd.setOffRaw(jobModel.getOffRaw());
 		jd.setCycle(jobModel.getJobCycle());
@@ -344,10 +344,10 @@ public class JobServiceImpl implements JobService {
 		}
 	}
 
-	private List<Processer> parseProcessers(List<String> ps) {
-		List<Processer> list = new ArrayList<Processer>();
+	private List<Processor> parseProcessers(List<String> ps) {
+		List<Processor> list = new ArrayList<Processor>();
 		for (String s : ps) {
-			Processer p = ProcesserUtil.parse(JSONObject.fromObject(s));
+			Processor p = ProcesserUtil.parse(JSONObject.fromObject(s));
 			if (p != null) {
 				list.add(p);
 			}

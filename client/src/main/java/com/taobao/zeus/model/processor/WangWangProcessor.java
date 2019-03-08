@@ -1,10 +1,10 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 /**
  * 旺旺通知
  * @author zhoufang
  *
  */
-public class WangWangProcesser implements Processer{
+public class WangWangProcessor implements Processor {
 
 	private static final long serialVersionUID = 1L;
 	private String template;

@@ -12,8 +12,8 @@ import com.taobao.zeus.util.Environment;
 public class ConfUtil {
 	
 	private static Logger log=LoggerFactory.getLogger(ConfUtil.class);
-	
-	public static String getHadoopHome(){
+
+	private static String getHadoopHome(){
 		String dir = System.getenv("HADOOP_HOME");
 		if(dir==null || "".equals(dir.trim())){
 			dir = Environment.getHadoopHome();
@@ -21,7 +21,7 @@ public class ConfUtil {
 		return dir;
 	}
 	
-	public static String getHiveHome(){
+	private static String getHiveHome(){
 		String dir = System.getenv("HIVE_HOME");
 		if(dir==null || "".equals(dir.trim())){
 			dir = Environment.getHiveHome();
@@ -39,9 +39,7 @@ public class ConfUtil {
 			//hadoop2中，配置的默认地址已经修改
 			dir=getHadoopHome()+File.separator+"etc"+File.separator+"hadoop";
 			File f=new File(dir);
-			/**
-			 * 兼容Hadoop1的配置
-			 */
+
 			if(!f.exists()){
 				dir=getHadoopHome()+File.separator+"conf";
 			}

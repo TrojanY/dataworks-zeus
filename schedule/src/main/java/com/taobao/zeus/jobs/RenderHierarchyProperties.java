@@ -32,11 +32,11 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 		}
 	}
 	public RenderHierarchyProperties(HierarchyProperties properties) {
-		super(new HashMap<String, String>());
+		super(new HashMap<>());
 		this.properties=properties;
 		
 	}
-	static Pattern pt = Pattern.compile("\\$\\{zdt.*?\\}");
+	private static Pattern pt = Pattern.compile("\\$\\{zdt.*?\\}");
 	public static String render(String template){
 		if(template==null){
 			return null;
@@ -95,30 +95,9 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 		return template;
 	}
 	
-	public static void main(String[] args) throws Exception{
-		/*VelocityContext context=new VelocityContext();
-		context.put("zdt", new ZeusDateTool(new Date()));
-		String s="abc${zdt.addDay(-1).format(\"yyyyMMdd\")} ${zdt.addDay(1).format(\"yyyyMMdd\")} ${yesterday}";
-		Pattern pt = Pattern.compile("\\$\\{zdt.*\\}");
-		Matcher matcher=pt.matcher(s);
-		while(matcher.find()){
-			 String m= s.substring(matcher.start(),matcher.end());
-			 System.out.println(m);
-			 StringWriter sw=new StringWriter();
-			 Velocity.evaluate(context, sw, "", m);
-			 System.out.println(sw.toString());
-			 s=s.replace(m, sw.toString());
-		}
-		s=s.replace("${yesterday}",new ZeusDateTool(new Date()).addDay(-1).format("yyyyMMdd"));
-		System.out.println("result:"+s);*/
-		String s="abc${zdt.addDay(-2).format(\"yyyy-MM-dd HH:mm:ss\")} ${zdt.addDay(-2).format(\"yyyyMMddHHmmss\")} ${yesterday}";
-		s=render(s,"20140924162200");
-		//render(s);
-		System.out.println("render result:"+s);
-	}
 	@Override
 	public Set<String> getPropertyKeys(){
-		Set<String> result=new HashSet<String>();
+		Set<String> result=new HashSet<>();
 		
 		for(String s:properties.getPropertyKeys()){
 			String render=render(s);
@@ -126,7 +105,7 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 				result.add(render);
 			}
 		}
-		return properties.getPropertyKeys();
+		return result;
 	}
 	
 	@Override
@@ -148,7 +127,7 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 	@Override
 	public List<String> getHierarchyProperty(String key){
 		List<String> list= properties.getHierarchyProperty(key);
-		List<String> result=new ArrayList<String>();
+		List<String> result=new ArrayList<>();
 		for(String s:list){
 			result.add(render(s));
 		}
@@ -161,7 +140,7 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 	@Override
 	public Map<String, String> getLocalProperties() {
 		Map<String, String> map= properties.getLocalProperties();
-		Map<String, String> result=new HashMap<String, String>();
+		Map<String, String> result=new HashMap<>();
 		for(String key:map.keySet()){
 			result.put(key, render(map.get(key)));
 		}
@@ -170,7 +149,7 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 	@Override
 	public Map<String, String> getAllProperties(){
 		Map<String, String> map= properties.getAllProperties();
-		Map<String, String> result=new HashMap<String, String>();
+		Map<String, String> result=new HashMap<>();
 		for(String key:map.keySet()){
 			result.put(key, render(map.get(key)));
 		}
@@ -179,7 +158,7 @@ public class RenderHierarchyProperties extends HierarchyProperties{
 	@Override
 	public Map<String, String> getAllProperties(String dateStr){
 		Map<String, String> map= properties.getAllProperties();
-		Map<String, String> result=new HashMap<String, String>();
+		Map<String, String> result=new HashMap<>();
 		for(String key:map.keySet()){
 			result.put(key, render(map.get(key),dateStr));
 		}

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.zeus.model.processor.JobProcessor;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +16,12 @@ import com.taobao.zeus.model.GroupDescriptor;
 import com.taobao.zeus.model.JobDescriptorOld;
 import com.taobao.zeus.model.JobDescriptorOld.JobRunTypeOld;
 import com.taobao.zeus.model.JobStatus;
-import com.taobao.zeus.model.processer.JobProcesser;
-import com.taobao.zeus.model.processer.Processer;
+import com.taobao.zeus.model.processor.Processor;
 import com.taobao.zeus.store.GroupBeanOld;
 import com.taobao.zeus.store.GroupManagerOld;
 import com.taobao.zeus.store.JobBeanOld;
 import com.taobao.zeus.store.PermissionManager;
 import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.MysqlFollowManagerOld;
 import com.taobao.zeus.store.mysql.persistence.JobPersistenceOld;
 import com.taobao.zeus.store.mysql.persistence.Worker;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
@@ -182,34 +181,34 @@ public class PermissionGroupManagerOld implements GroupManagerOld{
 		if(hasJobPermission(user, job.getId())){
 			Tuple<JobDescriptorOld, JobStatus> old=groupManager.getJobDescriptor(job.getId());
 			if(old!=null ){
-				List<JobProcesser> hasadd=new ArrayList<JobProcesser>();
-				for(Processer p:old.getX().getPreProcessers()){
-					if(p instanceof JobProcesser){
-						hasadd.add((JobProcesser)p);
+				List<JobProcessor> hasadd=new ArrayList<JobProcessor>();
+				for(Processor p:old.getX().getPreProcessors()){
+					if(p instanceof JobProcessor){
+						hasadd.add((JobProcessor)p);
 					}
 				}
-				for(Processer p:old.getX().getPostProcessers()){
-					if(p instanceof JobProcesser){
-						hasadd.add((JobProcesser)p);
+				for(Processor p:old.getX().getPostProcessors()){
+					if(p instanceof JobProcessor){
+						hasadd.add((JobProcessor)p);
 					}
 				}
-				List<JobProcesser> thistime=new ArrayList<JobProcesser>();
-				for(Processer p:job.getPreProcessers()){
-					if(p instanceof JobProcesser){
-						thistime.add((JobProcesser)p);
+				List<JobProcessor> thistime=new ArrayList<JobProcessor>();
+				for(Processor p:job.getPreProcessors()){
+					if(p instanceof JobProcessor){
+						thistime.add((JobProcessor)p);
 					}
 				}
-				for(Processer p:job.getPostProcessers()){
-					if(p instanceof JobProcesser){
-						thistime.add((JobProcesser)p);
+				for(Processor p:job.getPostProcessors()){
+					if(p instanceof JobProcessor){
+						thistime.add((JobProcessor)p);
 					}
 				}
-				for(JobProcesser jp:thistime){
+				for(JobProcessor jp:thistime){
 					if(jp.getJobId().equals(job.getId())){
 						throw new ZeusException("不得将自身设置为自身的处理器");
 					}
 					boolean exist=false;
-					for(JobProcesser jp2:hasadd){
+					for(JobProcessor jp2:hasadd){
 						if(jp2.getId().equalsIgnoreCase(jp.getId())){
 							exist=true;
 							break;

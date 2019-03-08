@@ -9,7 +9,6 @@ import java.net.URLDecoder;
 import java.util.Enumeration;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 
 public class MapReduceMain {
 	public static void main(String[] args) throws Exception{
@@ -34,12 +33,10 @@ public class MapReduceMain {
 		}
 		conf.writeXml(new FileOutputStream(target));
 		
-		Method method=main.getDeclaredMethod("main", new Class[]{String[].class});
-		String[] nargs=new String[args.length-1];
-		for(int i=1;i<args.length;i++){
-			nargs[i-1]=args[i];
-		}
-		method.invoke(null, new Object[]{nargs});
+		Method method=main.getDeclaredMethod("main", String[].class);
+		String[] argsArray=new String[args.length-1];
+		System.arraycopy(args, 1, argsArray, 0, args.length - 1);
+		method.invoke(null, new Object[]{argsArray});
 	}
 	
 	private static String findContainingJar(Class<?> my_class) {

@@ -3,6 +3,7 @@ package com.taobao.zeus.jobs.sub.tool;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.taobao.zeus.model.processor.OutputCheckProcessor;
 import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -12,14 +13,13 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
-import com.taobao.zeus.model.processer.OutputCheckProcesser;
 
 public class OutputCheckJob extends AbstractJob {
 
-	private OutputCheckProcesser ocp;
+	private OutputCheckProcessor ocp;
 	private String path;
 
-	public OutputCheckJob(JobContext jobContext, OutputCheckProcesser p,
+	public OutputCheckJob(JobContext jobContext, OutputCheckProcessor p,
 			ApplicationContext applicationContext) {
 		super(jobContext);
 		this.ocp = p;

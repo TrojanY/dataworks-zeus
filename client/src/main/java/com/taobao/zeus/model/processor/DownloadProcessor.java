@@ -1,10 +1,10 @@
-package com.taobao.zeus.model.processer;
+package com.taobao.zeus.model.processor;
 /**
  * 下载资源文件
  * @author zhoufang
  *
  */
-public class DownloadProcesser implements Processer{
+public class DownloadProcessor implements Processor {
 
 	private static final long serialVersionUID = 1L;
 

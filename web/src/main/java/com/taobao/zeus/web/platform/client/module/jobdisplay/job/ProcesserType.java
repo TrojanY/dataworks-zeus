@@ -71,7 +71,7 @@ public abstract class ProcesserType extends HashMap<String, String>{
 				p.setSyncTables(config.get("syncTables").isString().stringValue());
 			}
 			result = p;
-		}else if("JobProcesser".equalsIgnoreCase(id)){
+		}else if("JobProcessor".equalsIgnoreCase(id)){
 			JobP jobP=new JobP();
 			JSONObject config=(JSONObject)o.get("config");
 			jobP.setJobId(config.get("jobId").isString().stringValue());
@@ -348,7 +348,7 @@ public abstract class ProcesserType extends HashMap<String, String>{
 	}
 	
 	public static class JobP extends ProcesserType{
-		public static final String ID="JobProcesser";
+		public static final String ID="JobProcessor";
 		private String jobId;
 		private Map<String, String> kvConfig=new HashMap<String, String>();
 		public JobP(){

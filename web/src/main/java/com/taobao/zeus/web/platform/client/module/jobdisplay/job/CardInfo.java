@@ -352,7 +352,7 @@ public class CardInfo extends CenterTemplate implements Refreshable<JobModel>{
 		zkHostLabel.hide();
 		zkPathLabel.hide();*/
 		//getHiveProcesserFieldSet().hide();
-		/*for (String post : model.getPostProcessers()) {
+		/*for (String post : model.getPostProcessors()) {
 			if (post != null) {
 				ProcesserType p = ProcesserType.parse(post);
 				if (p != null) {

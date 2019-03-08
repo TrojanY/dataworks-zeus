@@ -1,14 +1,7 @@
 package com.taobao.zeus.store.mysql;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.taobao.zeus.model.processor.DownloadProcessor;
 import org.apache.commons.lang.StringUtils;
@@ -37,7 +30,7 @@ import com.taobao.zeus.store.mysql.tool.JobValidate;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
 import com.taobao.zeus.util.Tuple;
 
-
+@SuppressWarnings("unchecked")
 public class MysqlGroupManager extends HibernateDaoSupport implements GroupManager {
 	@Override
 	public void deleteGroup(String user, String groupId) throws ZeusException {
@@ -61,8 +54,10 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 				throw new ZeusException("该组下不为空，无法删除");
 			}
 		}
+		assert getHibernateTemplate() != null;
 		GroupPersistence object = getHibernateTemplate().get(GroupPersistence.class,
 				Integer.valueOf(groupId));
+		assert object != null;
 		object.setExisted(0);
 		getHibernateTemplate().update(object);
 	}
@@ -72,16 +67,17 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 		GroupBean root = getGlobeGroupBean();
 		JobBean job = root.getAllSubJobBeans().get(jobId);
 		if (!job.getDepender().isEmpty()) {
-			List<String> deps = new ArrayList<>();
+			List<String> dependers = new ArrayList<>();
 			for (JobBean jb : job.getDepender()) {
-				deps.add(jb.getJobDescriptor().getId());
+				dependers.add(jb.getJobDescriptor().getId());
 			}
-			throw new ZeusException("该Job正在被其他Job" + deps.toString()
+			throw new ZeusException("该Job正在被其他Job" + dependers.toString()
 					+ "依赖，无法删除");
 		}
+		assert getHibernateTemplate() != null;
 		getHibernateTemplate().delete(
-				getHibernateTemplate().get(JobPersistence.class,
-						Long.valueOf(jobId)));
+				Objects.requireNonNull(getHibernateTemplate().get(JobPersistence.class,
+						Long.valueOf(jobId))));
 	}
 
 	@Override
@@ -122,16 +118,17 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 
 	/**
 	 * 获取叶子组下所有的Job
-	 * 
-	 * @param groupId
-	 * @return
 	 */
 	@Override
 	public List<Tuple<JobDescriptor, JobStatus>> getChildrenJob(String groupId) {
-		List<JobPersistence> list = (List<JobPersistence>)getHibernateTemplate().find(
-				"from com.taobao.zeus.store.mysql.persistence.JobPersistence where groupId="
-						+ groupId);
-		List<Tuple<JobDescriptor, JobStatus>> result = new ArrayList<Tuple<JobDescriptor, JobStatus>>();
+		List<JobPersistence> list = getHibernateTemplate().execute(
+				session -> {
+					Query query = session.createQuery(
+							"from com.taobao.zeus.store.mysql.persistence.JobPersistence where groupId=:grouId");
+					query.setParameter("groupId", groupId);
+					return query.list();
+				});
+		List<Tuple<JobDescriptor, JobStatus>> result = new ArrayList<>();
 		if (list != null) {
 			for (JobPersistence j : list) {
 				result.add(PersistenceAndBeanConvert.convert(j));
@@ -142,15 +139,17 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 
 	/**
 	 * 获取组的下级组列表
-	 * 
-	 * @param groupId
-	 * @return
 	 */
 	@Override
 	public List<GroupDescriptor> getChildrenGroup(String groupId) {
-		List<GroupPersistence> list = (List<GroupPersistence>)getHibernateTemplate().find(
-				"from com.taobao.zeus.store.mysql.persistence.GroupPersistence where parent="
-						+ groupId);
+		List<GroupPersistence> list = getHibernateTemplate().execute(
+				session -> {
+					Query query = session.createQuery(
+							"from com.taobao.zeus.store.mysql.persistence.GroupPersistence where groupId=:grouId");
+					query.setParameter("groupId", groupId);
+					return query.list();
+				});
+
 		List<GroupDescriptor> result = new ArrayList<>();
 		if (list != null) {
 			for (GroupPersistence p : list) {
@@ -162,6 +161,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 
 	@Override
 	public GroupDescriptor getGroupDescriptor(String groupId) {
+		assert getHibernateTemplate() != null;
 		GroupPersistence persist = getHibernateTemplate()
 				.get(GroupPersistence.class, Integer.valueOf(groupId));
 		if (persist != null) {
@@ -182,7 +182,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 		// 如果是周期任务，并且依赖不为空，则需要封装周期任务的依赖
 		if (jd.getScheduleType() == JobScheduleType.CyleJob
 				&& jd.getDependencies() != null) {
-			JobPersistence jp = null;
+			JobPersistence jp;
 			for (String jobID : jd.getDependencies()) {
 				if (StringUtils.isNotEmpty(jobID)) {
 					jp = getJobPersistence(jobID);
@@ -207,6 +207,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements GroupManag
 
 	@Override
 	public String getRootGroupId() {
+		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
 			Query query = session
 					.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence g order by g.id asc");

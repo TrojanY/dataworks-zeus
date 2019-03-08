@@ -36,8 +36,8 @@ public class MysqlDebugHistoryManager extends HibernateDaoSupport implements Deb
 		return (List<DebugHistory>) getHibernateTemplate()
 				.execute((HibernateCallback) session -> {
 					Query query=session.createQuery("select id,fileId,startTime,endTime,executeHost,status,script,log,owner from com.taobao.zeus.store.mysql.persistence.DebugHistoryPersistence" +
-							" where fileId=? order by id desc");
-					query.setParameter(0, Long.valueOf(fileId));
+							" where fileId=:fileId order by id desc");
+					query.setParameter("fileId", Long.valueOf(fileId));
 					query.setMaxResults(limit);
 					query.setFirstResult(start);
 					List<Object[]> list=query.list();
@@ -82,9 +82,9 @@ public class MysqlDebugHistoryManager extends HibernateDaoSupport implements Deb
 	@Override
 	public void updateDebugHistoryLog(final String id,final  String log) {
 		getHibernateTemplate().execute(session -> {
-		Query query=session.createQuery("update com.taobao.zeus.store.mysql.persistence.DebugHistoryPersistence set log=? where id=?");
-		query.setParameter(0, log);
-		query.setParameter(1, Long.valueOf(id));
+		Query query=session.createQuery("update com.taobao.zeus.store.mysql.persistence.DebugHistoryPersistence set log=:log where id=:id");
+		query.setParameter("log", log);
+		query.setParameter("id", Long.valueOf(id));
 		query.executeUpdate();
 		return null;
 	});

@@ -66,8 +66,10 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 				throw new ZeusException("该组下不为空，无法删除");
 			}
 		}
+		assert getHibernateTemplate() != null;
 		GroupPersistence object = getHibernateTemplate().get(GroupPersistence.class,
 				Integer.valueOf(groupId));
+		assert object != null;
 		object.setExisted(0);
 		object.setGmtModified(new Date());
 		getHibernateTemplate().update(object);
@@ -128,9 +130,6 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	/**
 	 * 获取叶子组下所有的Job
-	 * 
-	 * @param groupId
-	 * @return
 	 */
 	@Override
 	public List<Tuple<JobDescriptorOld, JobStatus>> getChildrenJob(String groupId) {
@@ -148,9 +147,6 @@ public class MysqlGroupManagerOld extends HibernateDaoSupport implements
 
 	/**
 	 * 获取组的下级组列表
-	 * 
-	 * @param groupId
-	 * @return
 	 */
 	@Override
 	public List<GroupDescriptor> getChildrenGroup(String groupId) {

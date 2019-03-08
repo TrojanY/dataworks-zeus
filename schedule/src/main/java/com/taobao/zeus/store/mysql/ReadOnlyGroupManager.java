@@ -75,6 +75,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		
 		boolean jobChanged;
 		Judge jobrealtime;
+		assert getHibernateTemplate() != null;
 		jobrealtime=getHibernateTemplate().execute(session -> {
 			Object[] o=(Object[]) session.createSQLQuery("select count(*),max(job_id),max(gmt_modified) from zeus_action where id>=date_format(now(),'20%y%m%d0000000000')").uniqueResult();
 			if(o!=null){
@@ -90,8 +91,8 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		
 		List<JobDescriptor> changedJobs;
 		changedJobs=getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistence where gmt_modified>?");
-			query.setParameter(0, ignoreContentJobJudge.lastModified);
+			Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistence where gmt_modified>:gmt_modified");
+			query.setParameter("gmt_modified", ignoreContentJobJudge.lastModified);
 			List<Object[]> list=query.list();
 			List<JobDescriptor> result=new ArrayList<>();
 			for(Object[] o:list){
@@ -102,7 +103,8 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 			}
 			return result;
 		});
-		
+
+		assert changedJobs != null;
 		if(jobrealtime!=null && jobrealtime.count.equals(ignoreContentJobJudge.count) && jobrealtime.maxId.equals(ignoreContentJobJudge.maxId)
 				&& isAllJobsNotChangeParent(ignoreGlobe, changedJobs)){
 			ignoreContentJobJudge.stamp=new Date();
@@ -133,8 +135,8 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 		
 		List<GroupDescriptor> changedGroups;
 		changedGroups=getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>?");
-			query.setParameter(0, ignoreContentGroupJudge.lastModified);
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>:gmt_modified");
+			query.setParameter("gmt_modified", ignoreContentGroupJudge.lastModified);
 			List<GroupPersistence> list=query.list();
 			List<GroupDescriptor> result=new ArrayList<>();
 			for(GroupPersistence p:list){
@@ -142,7 +144,8 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 			}
 			return result;
 		});
-		
+
+		assert changedGroups != null;
 		if(grouprealtime!=null && grouprealtime.count.equals(ignoreContentGroupJudge.count) && grouprealtime.maxId.equals(ignoreContentGroupJudge.maxId)
 				&& isAllGroupsNotChangeParent(ignoreGlobe, changedGroups)){
 			ignoreContentGroupJudge.stamp=new Date();
@@ -157,9 +160,6 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	}
 	/**
 	 * 判断变动的Job中，是否全部不涉及parent节点的变化
-	 * @param gb
-	 * @param list
-	 * @return
 	 */
 	private boolean isAllJobsNotChangeParent(GroupBean gb,List<JobDescriptor> list){
 		Map<String, JobBean> allJobs=gb.getAllSubJobBeans();
@@ -179,9 +179,6 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	}
 	/**
 	 * 判断变动的Group中，是否全部不涉及parent节点的变化
-	 * @param gb
-	 * @param list
-	 * @return
 	 */
 	private boolean isAllGroupsNotChangeParent(GroupBean gb,List<GroupDescriptor> list){
 		Map<String, GroupBean> allGroups=gb.getAllSubGroupBeans();
@@ -309,7 +306,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 			}else{
 				list=globe.getAllSubGroupBeans().get(groupId).getChildrenGroupBeans();
 			}
-			List<GroupDescriptor> result=new ArrayList();
+			List<GroupDescriptor> result=new ArrayList<>();
 			if(list!=null){
 				for(GroupBean gb:list){
 					result.add(gb.getGroupDescriptor());
@@ -339,7 +336,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	
 	private class ReadOnlyGroupManagerAssembly implements GroupManager{
 		private GroupManager groupManager;
-		public ReadOnlyGroupManagerAssembly(GroupManager gm){
+		ReadOnlyGroupManagerAssembly(GroupManager gm){
 			this.groupManager=gm;
 		}
 		@Override
@@ -593,7 +590,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	public class ReadOnlyGroupDescriptor extends GroupDescriptor{
 		private static final long serialVersionUID = 1L;
 		private GroupDescriptor gd;
-		public ReadOnlyGroupDescriptor(GroupDescriptor gd){
+		ReadOnlyGroupDescriptor(GroupDescriptor gd){
 			this.gd=gd;
 		}
 		@Override
@@ -687,13 +684,12 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	}
 	/**
 	 * 不可变JobDescriptor类
-	 * @author zhoufang
 	 *
 	 */
 	public class ReadOnlyJobDescriptor extends JobDescriptor{
 		private static final long serialVersionUID = 1L;
 		private JobDescriptor jd;
-		public ReadOnlyJobDescriptor(JobDescriptor jd){
+		ReadOnlyJobDescriptor(JobDescriptor jd){
 			this.jd=jd;
 		}
 		@Override
@@ -863,7 +859,7 @@ public class ReadOnlyGroupManager extends HibernateDaoSupport{
 	public class ReadOnlyJobStatus extends JobStatus{
 		private static final long serialVersionUID = 1L;
 		private JobStatus jobStatus;
-		public ReadOnlyJobStatus(JobStatus js){
+		ReadOnlyJobStatus(JobStatus js){
 			jobStatus=js;
 		}
 		@Override

@@ -22,6 +22,7 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 
 	@Override
 	public void updateJobHistoryLog(final String id, final String log) {
+		assert getHibernateTemplate() != null;
 		getHibernateTemplate().execute(session -> {
 			Query query=session.createQuery("update com.taobao.zeus.store.mysql.persistence.JobHistoryPersistence set log=? where id=?");
 			query.setParameter(0, log);
@@ -33,10 +34,12 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 
 	@Override
 	public void updateJobHistory(JobHistory history) {
+		assert getHibernateTemplate() != null;
 		JobHistoryPersistence org=getHibernateTemplate().get(JobHistoryPersistence.class, Long.valueOf(history.getId()));
 		
 		JobHistoryPersistence persist=PersistenceAndBeanConvert.convert(history);
 		persist.setGmtModified(new Date());
+		assert org != null;
 		persist.setGmtCreate(org.getGmtCreate());
 		persist.setLog(org.getLog());
 		getHibernateTemplate().update(persist);
@@ -47,6 +50,7 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 		JobHistoryPersistence persist=PersistenceAndBeanConvert.convert(history);
 		persist.setGmtCreate(new Date());
 		persist.setGmtModified(new Date());
+		assert getHibernateTemplate() != null;
 		Long id=(Long)getHibernateTemplate().save(persist);
 		history.setId(id.toString()); 
 		return history;
@@ -54,11 +58,12 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 	
 	@Override
 	public List<JobHistory> pagingList(final String jobId,final int start,final int limit) {
-		return (List<JobHistory>) getHibernateTemplate().execute((HibernateCallback) session -> {
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate().execute(session -> {
 			NativeQuery query=session.createSQLQuery("select id,action_id,job_id,start_time,end_time,execute_host,status,trigger_type,illustrate,operator,properties,statis_end_time,timezone,cycle from zeus_action_history" +
-					" where job_id=? or action_id=? order by id desc");
-			query.setParameter(0, Long.valueOf(jobId));
-			query.setParameter(1, Long.valueOf(jobId));
+					" where job_id=:jobId or action_id=:actionId order by id desc");
+			query.setParameter("jobId", Long.valueOf(jobId));
+			query.setParameter("actionId", Long.valueOf(jobId));
 			query.setMaxResults(limit);
 			query.setFirstResult(start);
 			List<Object[]> list=query.list();
@@ -87,13 +92,19 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 
 	@Override
 	public int pagingTotal(String jobId) {
-		Number number=(Number) getHibernateTemplate().find("select count(*) from com.taobao.zeus.store.mysql.persistence.JobHistoryPersistence where toJobId="+jobId)
-		.iterator().next();
+		assert getHibernateTemplate() != null;
+		Number number=(Number) getHibernateTemplate().execute(
+				session -> {
+					Query query=session.createQuery("select count(*) from com.taobao.zeus.store.mysql.persistence.JobHistoryPersistence where toJobId=:jobId");
+					query.setParameter("jobId",jobId);
+					return query.list().iterator().next();
+				});
 		return number.intValue();
 	}
 
 	@Override
 	public JobHistory findJobHistory(String id) {
+		assert getHibernateTemplate() != null;
 		JobHistoryPersistence persist= getHibernateTemplate().get(JobHistoryPersistence.class, Long.valueOf(id));
 		return PersistenceAndBeanConvert.convert(persist);
 	}
@@ -121,9 +132,9 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 			String sql="select id,action_id,job_id,start_time,end_time,execute_host,status,trigger_type,illustrate,operator,properties from zeus_action_history where id in (:ids)";
 			NativeQuery query=session.createSQLQuery(sql);
 			query.setParameterList("ids", ids);
-			List<Object[]> list1 = query.list();
+			List<Object[]> actionHistorys = query.list();
 			List<JobHistory> result=new ArrayList<>();
-			for(Object[] o: list1){
+			for(Object[] o: actionHistorys){
 				JobHistoryPersistence p=new JobHistoryPersistence();
 				p.setId(((Number)o[0]).longValue());
 				p.setJobId(((Number)o[1]).longValue());
@@ -152,11 +163,11 @@ public class MysqlJobHistoryManager extends HibernateDaoSupport implements JobHi
 	@Override
 	public List<JobHistory> findRecentRunningHistory() {
 		return (List<JobHistory>) getHibernateTemplate().execute((HibernateCallback) session -> {
-			String sql="select id,action_id,job_id,start_time,end_time,execute_host,status,trigger_type,illustrate,operator,properties from zeus_action_history where start_time>?";
+			String sql="select id,action_id,job_id,start_time,end_time,execute_host,status,trigger_type,illustrate,operator,properties from zeus_action_history where start_time>:start_time";
 			NativeQuery query=session.createSQLQuery(sql);
 			Calendar cal=Calendar.getInstance();
 			cal.add(Calendar.DAY_OF_YEAR, -1);
-			query.setParameter(0, cal.getTime());
+			query.setParameter("start_time", cal.getTime());
 			List<Object[]> list= query.list();
 			List<JobHistory> result=new ArrayList<>();
 			for(Object[] o:list){

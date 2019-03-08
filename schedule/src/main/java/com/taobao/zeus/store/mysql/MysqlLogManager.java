@@ -20,6 +20,7 @@ public class MysqlLogManager extends HibernateDaoSupport {
 			logPersistence.setDelegate(logDescriptor.getDelegate());
 			logPersistence.setMethod(logDescriptor.getMethod());
 			logPersistence.setDescription(logDescriptor.getDescription());
+			assert super.getHibernateTemplate() != null;
 			super.getHibernateTemplate().save(logPersistence);
 			
 		} catch (Exception ex) {

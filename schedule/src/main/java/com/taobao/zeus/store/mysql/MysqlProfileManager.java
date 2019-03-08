@@ -3,10 +3,7 @@ package com.taobao.zeus.store.mysql;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.model.Profile;
@@ -14,20 +11,20 @@ import com.taobao.zeus.store.ProfileManager;
 import com.taobao.zeus.store.mysql.persistence.ProfilePersistence;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
 
+@SuppressWarnings("unchecked")
 public class MysqlProfileManager extends HibernateDaoSupport implements ProfileManager {
 
 	@Override
 	public Profile findByUid(final String uid) {
-		return (Profile) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException{
-				Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ProfilePersistence where uid=?");
-				query.setParameter(0, uid);
-				List<ProfilePersistence> list=query.list();
-				if(!list.isEmpty()){
-					return PersistenceAndBeanConvert.convert(list.get(0));
-				}
-				return null;
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate().execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ProfilePersistence where uid=:uid");
+			query.setParameter("uid", uid);
+			List<ProfilePersistence> list=query.list();
+			if(!list.isEmpty()){
+				return PersistenceAndBeanConvert.convert(list.get(0));
 			}
+			return null;
 		});
 	}
 
@@ -37,6 +34,7 @@ public class MysqlProfileManager extends HibernateDaoSupport implements ProfileM
 		if(old==null){
 			old=new Profile();
 			old.setUid(uid);
+			assert getHibernateTemplate() != null;
 			getHibernateTemplate().save(PersistenceAndBeanConvert.convert(old));
 			old=findByUid(uid);
 		}

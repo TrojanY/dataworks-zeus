@@ -13,6 +13,7 @@ import org.hibernate.Session;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
+@SuppressWarnings("unchecked")
 public class MysqlReportManager extends HibernateDaoSupport{
 
 	/**
@@ -21,7 +22,6 @@ public class MysqlReportManager extends HibernateDaoSupport{
 	 * @param end end date
 	 * @return Map<String, Map<String, String>>
 	 */
-	@SuppressWarnings("unchecked")
 	public Map<String, Map<String, String>> runningJobs(final Date start,final Date end){
 		return (Map<String, Map<String, String>>) getHibernateTemplate().execute(new HibernateCallback() {
 			private SimpleDateFormat format=new SimpleDateFormat("yyyyMMdd");
@@ -31,11 +31,11 @@ public class MysqlReportManager extends HibernateDaoSupport{
 				
 				String success_sql="select count(distinct h.action_id),h.gmt_create from zeus_action_history h " +
 						"left join zeus_action j on h.action_id=j.id " +
-						"where h.status='success' and trigger_type=1 and to_days(h.gmt_create) between to_days(?) and to_days(?) "+
+						"where h.status='success' and trigger_type=1 and to_days(h.gmt_create) between to_days(:beginday) and to_days(:endday) "+
 						"group by to_days(h.gmt_create) order by h.gmt_create desc";
 				NativeQuery query=session.createSQLQuery(success_sql);
-				query.setParameter(0, start);
-				query.setParameter(1, end);
+				query.setParameter("startday", start);
+				query.setParameter("endday", end);
 				List success_list=query.list();
 				for(Object o:success_list){
 					Object[] oo=(Object[])o;
@@ -48,14 +48,14 @@ public class MysqlReportManager extends HibernateDaoSupport{
 				
 				String fail_sql="select count(distinct h.action_id),h.gmt_create from zeus_action_history h " +
 					"left join zeus_action j on h.action_id=j.id " +
-					"where h.status='failed' and trigger_type=1 and to_days(h.gmt_create) between to_days(?) and to_days(?) "+
-					"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(gmt_create) between to_days(?) and to_days(?)) "+
+					"where h.status='failed' and trigger_type=1 and to_days(h.gmt_create) between to_days(:one) and to_days(:two) "+
+					"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(gmt_create) between to_days(:three) and to_days(:four)) "+
 					"group by to_days(h.gmt_create) order by h.gmt_create desc";
 				query=session.createSQLQuery(fail_sql);
-				query.setParameter(0, start);
-				query.setParameter(1, end);
-				query.setParameter(2, start);
-				query.setParameter(3, end);
+				query.setParameter("one", start);
+				query.setParameter("two", end);
+				query.setParameter("three", start);
+				query.setParameter("four", end);
 				List fail_list=query.list();
 				for(Object o:fail_list){
 					Object[] oo=(Object[])o;
@@ -69,9 +69,9 @@ public class MysqlReportManager extends HibernateDaoSupport{
 			}
 		});
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	public List<Map<String, String>> ownerFailJobs(final Date date){
+		assert getHibernateTemplate() != null;
 		List<Map<String, String>> list=getHibernateTemplate()
 				.execute(session -> {
 			List<Map<String, String>> result=new ArrayList<>();
@@ -80,12 +80,12 @@ public class MysqlReportManager extends HibernateDaoSupport{
 					"left join zeus_action j on h.action_id=j.id " +
 					"left join zeus_user u on j.owner=u.uid " +
 					"where h.status='failed' and h.trigger_type=1 " +
-					"and to_days(?)=to_days(h.gmt_create) "+
-					"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(?)=to_days(gmt_create)) "+
+					"and to_days(:one)=to_days(h.gmt_create) "+
+					"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(:two)=to_days(gmt_create)) "+
 					"group by j.owner order by cou desc limit 10";
 			NativeQuery query=session.createSQLQuery(sql);
-			query.setParameter(0, date);
-			query.setParameter(1, date);
+			query.setParameter("one", date);
+			query.setParameter("two", date);
 			List list1 =query.list();
 			for(Object o: list1){
 				Object[] oo=(Object[])o;
@@ -105,12 +105,12 @@ public class MysqlReportManager extends HibernateDaoSupport{
 			getHibernateTemplate().execute(session -> {
 				String sql="select distinct h.action_id,j.name from zeus_action_history h " +
 						"left join zeus_action j on h.action_id=j.id where h.status='failed' " +
-						"and h.trigger_type=1 and to_days(?) =to_days(h.gmt_create) and j.owner=? "+
-						"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(?)=to_days(gmt_create))";
+						"and h.trigger_type=1 and to_days(:one) =to_days(h.gmt_create) and j.owner=two "+
+						"and h.action_id not in (select action_id from zeus_action_history where status='success' and trigger_type=1 and to_days(three)=to_days(gmt_create))";
 				NativeQuery query=session.createSQLQuery(sql);
-				query.setParameter(0, date);
-				query.setParameter(1, map.get("uid"));
-				query.setParameter(2, date);
+				query.setParameter("one", date);
+				query.setParameter("two", map.get("uid"));
+				query.setParameter("three", date);
 				List<Object[]> list12 =query.list();
 				int count=0;
 				for(Object[] rs: list12){

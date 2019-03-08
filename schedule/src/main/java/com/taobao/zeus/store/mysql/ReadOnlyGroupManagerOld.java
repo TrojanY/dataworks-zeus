@@ -90,8 +90,8 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 		
 		List<JobDescriptorOld> changedJobs;
 		changedJobs=getHibernateTemplate().execute(session -> {
-            Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where gmt_modified>?");
-            query.setParameter(0, ignoreContentJobJudge.lastModified);
+            Query query=session.createQuery("select id,groupId from com.taobao.zeus.store.mysql.persistence.JobPersistenceOld where gmt_modified>:gmt_modified");
+            query.setParameter("gmt_modified", ignoreContentJobJudge.lastModified);
             List<Object[]> list=query.list();
             List<JobDescriptorOld> result=new ArrayList<>();
             for(Object[] o:list){
@@ -133,8 +133,8 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 		
 		List<GroupDescriptor> changedGroups=null;
 		changedGroups=getHibernateTemplate().execute(session -> {
-            Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>?");
-            query.setParameter(0, ignoreContentGroupJudge.lastModified);
+            Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where gmt_modified>:gmt_modified");
+            query.setParameter("gmt_modified", ignoreContentGroupJudge.lastModified);
             List<GroupPersistence> list=query.list();
             List<GroupDescriptor> result=new ArrayList<>();
             for(GroupPersistence p:list){
@@ -303,7 +303,6 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 
 	/**
 	 * 为Tree展示提供的方法，每次都返回Copy对象，可以对返回结果进行引用修改
-	 * @return
 	 */
 	public synchronized GroupBeanOld getGlobeGroupBeanForTreeDisplay(boolean copy){
 		if(ignoreGlobe==null || isJobsAndGroupsChangedIgnoreContent()  ){
@@ -323,7 +322,7 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 	
 	private class CopyGroupManagerAssembly extends ReadOnlyGroupManagerAssemblyOld{
 		private GroupBeanOld globe;
-		public CopyGroupManagerAssembly(GroupBeanOld globe) {
+		CopyGroupManagerAssembly(GroupBeanOld globe) {
 			super(null);
 			this.globe=globe;
 		}
@@ -369,7 +368,7 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 	
 	private class ReadOnlyGroupManagerAssemblyOld implements GroupManagerOld{
 		private GroupManagerOld groupManager;
-		public ReadOnlyGroupManagerAssemblyOld(GroupManagerOld gm){
+		ReadOnlyGroupManagerAssemblyOld(GroupManagerOld gm){
 			this.groupManager=gm;
 		}
 		@Override
@@ -613,7 +612,7 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 	public class ReadOnlyGroupDescriptor extends GroupDescriptor{
 		private static final long serialVersionUID = 1L;
 		private GroupDescriptor gd;
-		public ReadOnlyGroupDescriptor(GroupDescriptor gd){
+		ReadOnlyGroupDescriptor(GroupDescriptor gd){
 			this.gd=gd;
 		}
 		@Override
@@ -717,7 +716,7 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 	public class ReadOnlyJobDescriptor extends JobDescriptorOld{
 		private static final long serialVersionUID = 1L;
 		private JobDescriptorOld jd;
-		public ReadOnlyJobDescriptor(JobDescriptorOld jd){
+		ReadOnlyJobDescriptor(JobDescriptorOld jd){
 			this.jd=jd;
 		}
 		@Override
@@ -887,7 +886,7 @@ public class ReadOnlyGroupManagerOld extends HibernateDaoSupport{
 	public class ReadOnlyJobStatus extends JobStatus{
 		private static final long serialVersionUID = 1L;
 		private JobStatus jobStatus;
-		public ReadOnlyJobStatus(JobStatus js){
+		ReadOnlyJobStatus(JobStatus js){
 			jobStatus=js;
 		}
 		@Override

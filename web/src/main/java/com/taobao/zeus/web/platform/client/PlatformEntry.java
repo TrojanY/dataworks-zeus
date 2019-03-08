@@ -135,7 +135,7 @@ public class PlatformEntry implements EntryPoint {
 			
 			@Override
 			public void onFailure(Throwable caught) {
-				com.google.gwt.user.client.Window.Location.assign("/zeus-web/login.do");
+				com.google.gwt.user.client.Window.Location.assign("login.do");
 			}
 		});
 		// 防ark认证过期，一分钟发送一次rpc请求
@@ -152,6 +152,7 @@ public class PlatformEntry implements EntryPoint {
 			
 		}.scheduleRepeating(60*1000);
 	}
+
 	private Widget loginWindow(){
 		if (vp == null) {
 			vp = new FramedPanel();

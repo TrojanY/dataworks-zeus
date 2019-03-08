@@ -11,23 +11,25 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.model.ZeusFollow;
-import com.taobao.zeus.store.FollowManager;
-import com.taobao.zeus.store.GroupBean;
-import com.taobao.zeus.store.GroupManager;
-import com.taobao.zeus.store.JobBean;
+import com.taobao.zeus.store.FollowManagerOld;
+import com.taobao.zeus.store.GroupBeanOld;
+import com.taobao.zeus.store.GroupManagerOld;
+import com.taobao.zeus.store.JobBeanOld;
 import com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
-
-public class MysqlFollowManager extends HibernateDaoSupport implements FollowManager{
+@SuppressWarnings("unchecked")
+public class MysqlFollowManager extends HibernateDaoSupport implements FollowManagerOld{
 
 	
 	@Override
 	public List<ZeusFollow> findAllTypeFollows(final String uid) {
-		List<ZeusFollowPersistence> list= getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=?");
-			query.setParameter(0, uid);
-			return query.list();
-		});
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list= getHibernateTemplate()
+				.execute(session -> {
+					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=:uid");
+					query.setParameter("uid", uid);
+					return query.list();
+				});
 		
 		List<ZeusFollow> result=new ArrayList<>();
 		if(list!=null){
@@ -40,9 +42,12 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public List<ZeusFollow> findFollowedGroups(final String uid) {
-		List<ZeusFollowPersistence> list=  getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type="+ZeusFollow.GroupType+" uid=?");
-			query.setParameter(0, uid);
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=getHibernateTemplate()
+				.execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type=:jobType and uid=:uid");
+			query.setParameter("uid", uid);
+			query.setParameter("jobType",ZeusFollow.JobType);
 			return query.list();
 		});
 		List<ZeusFollow> result=new ArrayList<>();
@@ -56,11 +61,14 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public List<ZeusFollow> findFollowedJobs(final String uid) {
-		List<ZeusFollowPersistence> list=  getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type="+ZeusFollow.JobType+" and uid=?");
-			query.setParameter(0, uid);
-			return query.list();
-		});
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=getHibernateTemplate()
+				.execute(session -> {
+					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type=:jobType and uid=:uid");
+					query.setParameter("jobType",ZeusFollow.JobType);
+					query.setParameter("uid", uid);
+					return query.list();
+				});
 		List<ZeusFollow> result=new ArrayList<>();
 		if(list!=null){
 			for(ZeusFollowPersistence persist:list){
@@ -72,9 +80,12 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public List<ZeusFollow> findJobFollowers(final String jobId) {
-		List<ZeusFollowPersistence> list=  getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type="+ZeusFollow.JobType+" and targetId=?");
-			query.setParameter(0, Long.valueOf(jobId));
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=  getHibernateTemplate()
+				.execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type=:jobType and targetId=:jobId");
+			query.setParameter("jobId", Long.valueOf(jobId));
+			query.setParameter("jobType",ZeusFollow.JobType);
 			return query.list();
 		});
 		List<ZeusFollow> result=new ArrayList<>();
@@ -88,18 +99,21 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public List<ZeusFollow> findGroupFollowers(final List<String> groupIds) {
-		List<ZeusFollowPersistence> list= getHibernateTemplate().execute(session -> {
-			if(groupIds.isEmpty()){
-				return Collections.emptyList();
-			}
-			List<Long> ids=new ArrayList<>();
-			for(String group:groupIds){
-				ids.add(Long.valueOf(group));
-			}
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type="+ZeusFollow.GroupType+" and targetId in (:list)");
-			query.setParameterList("list", ids);
-			return query.list();
-		});
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list= getHibernateTemplate()
+				.execute(session -> {
+					if(groupIds.isEmpty()){
+						return Collections.emptyList();
+					}
+					List<Long> ids=new ArrayList<>();
+					for(String group:groupIds){
+						ids.add(Long.valueOf(group));
+					}
+					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where type=:jobType and targetId in (:list)");
+					query.setParameterList("list", ids);
+					query.setParameter("jobType",ZeusFollow.JobType);
+					return query.list();
+				});
 		List<ZeusFollow> result=new ArrayList<>();
 		if(list!=null){
 			for(ZeusFollowPersistence persist:list){
@@ -111,16 +125,17 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public ZeusFollow addFollow(final String uid, final Integer type, final String targetId) {
-		List<?> list=getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=? and type=? and targetId=?");
-			query.setParameter(0, uid);
-			query.setParameter(1, type);
-			query.setParameter(2, Long.valueOf(targetId));
-			return query.list();
-		});
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=getHibernateTemplate()
+				.execute(session -> {
+					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=:uid and type=:jobType and targetId=:targetId");
+					query.setParameter("uid", uid);
+					query.setParameter("jobType", type);
+					query.setParameter("targetId", Long.valueOf(targetId));
+					return query.list();
+				});
 		if(list!=null && !list.isEmpty()){
-			ZeusFollow zf=PersistenceAndBeanConvert.convert((ZeusFollowPersistence)list.get(0));
-			return zf;
+			return PersistenceAndBeanConvert.convert(list.get(0));
 		}
 		ZeusFollowPersistence persist=new ZeusFollowPersistence();
 		persist.setGmtCreate(new Date());
@@ -128,6 +143,7 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 		persist.setTargetId(Long.valueOf(targetId));
 		persist.setType(type);
 		persist.setUid(uid);
+		persist.setImportant(0);
 		getHibernateTemplate().save(persist);
 		
 		return PersistenceAndBeanConvert.convert(persist);
@@ -135,13 +151,15 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 
 	@Override
 	public void deleteFollow(final String uid, final Integer type, final String targetId) {
-		List<ZeusFollowPersistence> list=getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=? and type=? and targetId=?");
-			query.setParameter(0, uid);
-			query.setParameter(1, type);
-			query.setParameter(2, Long.valueOf(targetId));
-			return query.list();
-		});
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=getHibernateTemplate()
+				.execute(session -> {
+					Query query=session.createQuery("delete com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=:uid and type=:jobType and targetId=:targetId");
+					query.setParameter("uid", uid);
+					query.setParameter("jobType", type);
+					query.setParameter("targetId", Long.valueOf(targetId));
+					return query.list();
+				});
 		if(list!=null && !list.isEmpty()){
 			for(ZeusFollowPersistence persist:list){
 				getHibernateTemplate().delete(persist);
@@ -149,15 +167,16 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 		}
 	}
 	@Autowired
-	@Qualifier("groupManager")
-	private GroupManager groupManager;
+	@Qualifier("groupManagerOld")
+	private GroupManagerOld groupManagerOld;
+	
 	@Override
 	public List<String> findActualJobFollowers(String jobId) {
 		List<ZeusFollow> jobFollows=findJobFollowers(jobId);
-		JobBean jobBean=groupManager.getUpstreamJobBean(jobId);
+		JobBeanOld jobBean=groupManagerOld.getUpstreamJobBean(jobId);
 		
 		List<String> groupIds=new ArrayList<>();
-		GroupBean gb=jobBean.getGroupBean();
+		GroupBeanOld gb=jobBean.getGroupBean();
 		while(gb!=null){
 			groupIds.add(gb.getGroupDescriptor().getId());
 			gb=gb.getParentGroupBean();
@@ -180,4 +199,50 @@ public class MysqlFollowManager extends HibernateDaoSupport implements FollowMan
 		return follows;
 	}
 
+	@Override
+	public List<ZeusFollow> findAllFollowers(String jobId) {
+		List<ZeusFollow> jobFollows=findJobFollowers(jobId);
+		JobBeanOld jobBean=groupManagerOld.getUpstreamJobBean(jobId);
+		
+		List<String> groupIds=new ArrayList<>();
+		GroupBeanOld gb=jobBean.getGroupBean();
+		while(gb!=null){
+			groupIds.add(gb.getGroupDescriptor().getId());
+			gb=gb.getParentGroupBean();
+		}
+		List<ZeusFollow> groupFollows=findGroupFollowers(groupIds);
+		
+		List<ZeusFollow> result = new ArrayList<>();
+		result.addAll(jobFollows);
+		result.addAll(groupFollows);
+		return result;
+	}
+
+	public void updateImportantContact(final String targetId,final String uid, int isImportant) {
+		assert getHibernateTemplate() != null;
+		List<ZeusFollowPersistence> list=getHibernateTemplate()
+				.execute(session -> {
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence where uid=:uid and type=:jobType and targetId=:targetId");
+			query.setParameter("uid", uid);
+			query.setParameter("jobType",ZeusFollow.JobType );
+			query.setParameter("targetId", Long.valueOf(targetId));
+			return query.list();
+		});
+		if(list!=null && !list.isEmpty()){
+			ZeusFollowPersistence persist=list.get(0);
+			persist.setImportant(isImportant);
+			persist.setGmtModified(new Date());
+			getHibernateTemplate().saveOrUpdate(persist);
+		}
+	}
+
+	@Override
+	public void grantImportantContact(String targetId, String uid) {
+		updateImportantContact(targetId, uid, 1);
+	}
+
+	@Override
+	public void revokeImportantContact(String targetId, String uid) {
+		updateImportantContact(targetId, uid, 0);
+	}	
 }

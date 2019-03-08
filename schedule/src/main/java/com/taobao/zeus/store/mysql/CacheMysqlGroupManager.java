@@ -34,7 +34,8 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 	
 	private GroupManager groupManager;
 	private Map<String, JobPersistence> getCacheJobs(){
-		Judge realtime=getHibernateTemplate()
+		assert getHibernateTemplate() != null;
+		Judge realTime=getHibernateTemplate()
 				.execute(session -> {
 					Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_action").uniqueResult();
 					if(o!=null){
@@ -48,24 +49,24 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 					return null;
 				});
 		
-		if(realtime!=null && realtime.count.equals(jobjudge.count)
-                && realtime.maxId.equals(jobjudge.maxId)
-                && realtime.lastModified.equals(jobjudge.lastModified)){
+		if(realTime!=null && realTime.count.equals(jobjudge.count)
+                && realTime.maxId.equals(jobjudge.maxId)
+                && realTime.lastModified.equals(jobjudge.lastModified)){
 			jobjudge.stamp=new Date();
 			return cacheJobMap;
 		}else{
-			List<JobPersistence> list=(List<JobPersistence>)getHibernateTemplate().find("from JobPersistence");
-			Map<String, JobPersistence> newmap=new HashMap<>();
+			List<JobPersistence> list=getHibernateTemplate().loadAll(JobPersistence.class);
+			Map<String, JobPersistence> newMap=new HashMap<>();
 			for(JobPersistence p:list){
-				newmap.put(p.getId().toString(), p);
+				newMap.put(p.getId().toString(), p);
 			}
-			cacheJobMap=newmap;
-			jobjudge=realtime;
+			cacheJobMap=newMap;
+			jobjudge=realTime;
 			return cacheJobMap;
 		}
 	}
 	private Map<String, GroupPersistence> getCacheGroups(){
-		Judge realtime=getHibernateTemplate()
+		Judge realTime=getHibernateTemplate()
 				.execute(session -> {
 					Object[] o=(Object[]) session.createSQLQuery("select count(*),max(id),max(gmt_modified) from zeus_group").uniqueResult();
 					if(o!=null){
@@ -78,17 +79,17 @@ public class CacheMysqlGroupManager extends HibernateDaoSupport implements Group
 					}
 					return null;
 				});
-		if(realtime!=null && realtime.count.equals(groupjudge.count) && realtime.maxId.equals(groupjudge.maxId) && realtime.lastModified.equals(groupjudge.lastModified)){
+		if(realTime!=null && realTime.count.equals(groupjudge.count) && realTime.maxId.equals(groupjudge.maxId) && realTime.lastModified.equals(groupjudge.lastModified)){
 			groupjudge.stamp=new Date();
 			return cacheGroupMap;
 		}else{
-			List<GroupPersistence> list=(List<GroupPersistence>)getHibernateTemplate().find("from com.taobao.zeus.store.mysql.persistence.GroupPersistence");
-			Map<String, GroupPersistence> newmap=new HashMap<>();
+			List<GroupPersistence> list=getHibernateTemplate().loadAll(GroupPersistence.class);
+			Map<String, GroupPersistence> newMap=new HashMap<>();
 			for(GroupPersistence p:list){
-				newmap.put(p.getId().toString(),p);
+				newMap.put(p.getId().toString(),p);
 			}
-			cacheGroupMap=newmap;
-			groupjudge=realtime;
+			cacheGroupMap=newMap;
+			groupjudge=realTime;
 			return cacheGroupMap;
 		}
 	}

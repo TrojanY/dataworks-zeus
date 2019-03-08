@@ -23,19 +23,23 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 		fp.setOwner(uid);
 		fp.setParent(Long.valueOf(parentId));
 		fp.setType(folder ? FilePersistence.FOLDER : FilePersistence.FILE);
+		assert getHibernateTemplate() != null;
 		getHibernateTemplate().save(fp);
 		return PersistenceAndBeanConvert.convert(fp);
 	}
 
 	@Override
 	public void deleteFile(String fileId) {
+		assert getHibernateTemplate() != null;
 		FilePersistence fp = getHibernateTemplate().get(
 				FilePersistence.class, Long.valueOf(fileId));
+		assert fp != null;
 		getHibernateTemplate().delete(fp);
 	}
 
 	@Override
 	public FileDescriptor getFile(String id) {
+		assert getHibernateTemplate() != null;
 		FilePersistence fp = getHibernateTemplate().get(
 				FilePersistence.class, Long.valueOf(id));
 		if (fp != null) {
@@ -47,11 +51,12 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<FileDescriptor> getSubFiles(final String id) {
-		List<FileDescriptor> list = getHibernateTemplate()
+		assert getHibernateTemplate() != null;
+		return getHibernateTemplate()
 				.execute(session -> {
 					Query query = session
-							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where parent=?");
-					query.setParameter(0, Long.valueOf(id));
+							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where parent=:parent");
+					query.setParameter("parent", Long.valueOf(id));
 					List<FilePersistence> fps = query.list();
 					List<FileDescriptor> list1 = new ArrayList<>();
 					for (FilePersistence fp : fps) {
@@ -59,17 +64,17 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 					}
 					return list1;
 				});
-		return list;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<FileDescriptor> getUserFiles(final String uid) {
+		assert getHibernateTemplate() != null;
 		List<FilePersistence> list = getHibernateTemplate()
 				.execute(session -> {
 					Query query = session
-							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where owner=? and parent=null");
-					query.setParameter(0, uid);
+							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where owner=:owner and parent=null");
+					query.setParameter("owner", uid);
 					List<FilePersistence> list1 = query.list();
 					if (list1 == null || list1.isEmpty()) {
 						if (list1 == null) {
@@ -103,6 +108,7 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 	@Override
 	public void update(FileDescriptor fd) {
 		fd.setGmtModified(new Date());
+		assert getHibernateTemplate() != null;
 		getHibernateTemplate().update(PersistenceAndBeanConvert.convert(fd));
 	}
 

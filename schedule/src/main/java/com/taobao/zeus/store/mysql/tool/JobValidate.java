@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.taobao.zeus.store.mysql.impl.ReadOnlyGroupManager;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.TriggerBuilder;
@@ -17,11 +18,10 @@ import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobDescriptor.JobScheduleType;
 import com.taobao.zeus.store.GroupBean;
 import com.taobao.zeus.store.JobBean;
-import com.taobao.zeus.store.mysql.ReadOnlyGroupManager;
 
 public class JobValidate {
 	@Autowired
-	private ReadOnlyGroupManager readOnlyGroupManager;
+	private ReadOnlyGroupManager readOnlyJobManager;
 
 	public boolean valide(JobDescriptor job) throws ZeusException{
 		if(job.getJobType()==null){
@@ -58,7 +58,7 @@ public class JobValidate {
 				}
 
 			}
-		}/*else if(job.getJobType()==JobRunType.Shell){
+		}else if(job.getJobType()==JobRunType.Shell){
 			if(job.getScript()==null){
 				throw new ZeusException("Shell 脚本不得为空");
 			}
@@ -66,11 +66,11 @@ public class JobValidate {
 			if(job.getScript()==null){
 				throw new ZeusException("Hive 脚本不得为空");
 			}
-		}*/
+		}
 		
 		if(job.getCronExpression()!=null && !job.getCronExpression().trim().equals("")){
 			TriggerBuilder.newTrigger()
-					.withIdentity(job.getId(), "zeus")
+					.withIdentity(job.getJobId(), "zeus")
 					.withSchedule(
 							CronScheduleBuilder.cronSchedule(job.getCronExpression())
 					)
@@ -78,7 +78,7 @@ public class JobValidate {
 		}
 		
 		//检查依赖的死循环问题
-		GroupBean root=readOnlyGroupManager.getGlobeGroupBean();
+		GroupBean root= readOnlyJobManager.getGlobeGroupBean();
 		Map<String, JobBean> allJobBeans=root.getAllSubJobBeans();
 		Set<JobBean> deps=new HashSet<>();
 		if(job.getScheduleType()==JobScheduleType.Dependent){
@@ -88,14 +88,14 @@ public class JobValidate {
 				}
 				deps.add(allJobBeans.get(jobId));
 			}
-			check(job.getId(), deps);
+			check(job.getJobId(), deps);
 		}
 		return true;
 	}
 	//判断死循环问题
 	private void check(String parentJobId,Set<JobBean> deps) throws ZeusException{
 		for(JobBean job:deps){
-			if(job.getJobDescriptor().getId().equals(parentJobId)){
+			if(job.getJobDescriptor().getJobId().equals(parentJobId)){
 				throw new ZeusException("存在死循环依赖，请检查JobId: " + parentJobId);
 			}
 			if(job.getJobDescriptor().getScheduleType()==JobScheduleType.Dependent){

@@ -12,14 +12,12 @@ import java.util.Objects;
 
 import com.taobao.zeus.model.JobDescriptor;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.ProcessJob;
 import com.taobao.zeus.model.FileDescriptor;
-import com.taobao.zeus.store.FileManager;
+import com.taobao.zeus.store.mysql.manager.FileManager;
 import com.taobao.zeus.util.Environment;
 import com.taobao.zeus.util.PropertyKeys;
 import com.taobao.zeus.util.RunningJobKeys;
@@ -51,7 +49,7 @@ public class HiveJob extends ProcessJob {
 		if (exitCode != 0
 				&& getJobContext().getRunType() == JobContext.SCHEDULE_RUN
 				&& new Date().getTime() - start.getTime() < 10 * 60 * 1000L) {
-			log("Hive Job Fail in 10 min , try to retry");
+			log("Hive JobTask Fail in 10 min , try to retry");
 			exitCode = runInner();
 		}
 		return exitCode;

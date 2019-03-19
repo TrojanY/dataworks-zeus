@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.taobao.zeus.store.mysql.manager.JobManager;
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +18,8 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 import com.taobao.zeus.broadcast.alarm.MailAlarm;
 import com.taobao.zeus.client.ZeusException;
-import com.taobao.zeus.store.GroupManager;
 import com.taobao.zeus.store.Super;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser.UserStatus;
 import com.taobao.zeus.web.LoginUser;
 import com.taobao.zeus.web.platform.client.util.GwtException;
@@ -33,9 +33,9 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 	@Autowired
 	private UserManager userManager;
 
-	private GroupManager groupManager;
-	public void setGroupManager(GroupManager groupManager) {
-		this.groupManager = groupManager;
+	private JobManager jobManager;
+	public void setJobManager(JobManager jobManager) {
+		this.jobManager = jobManager;
 	}
 
 	@Override
@@ -267,15 +267,15 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 			ZeusUser user = userManager.findByUid(uid);
 			user.setIsEffective(UserStatus.CHECK_SUCCESS.value());
 			userManager.update(user);
-			ZeusUser newUser = userManager.findByUid(uid); 
+			ZeusUser newUser = userManager.findByUid(uid);
 			if(newUser.getIsEffective()==UserStatus.CHECK_SUCCESS.value()){
 				//1.审核通过后,给组帐号添加大目录
 				if(newUser != null && newUser.getUserType()==0){
-					String rootGroupId = groupManager.getRootGroupId();
+					String rootGroupId = jobManager.getRootGroupId();
 					if(rootGroupId != null){
 						try {
-							if (!groupManager.IsExistedBelowRootGroup(newUser.getUid())) {
-								groupManager.createGroup(newUser.getUid(), newUser.getUid(), rootGroupId, true);
+							if (!jobManager.IsExistedBelowRootGroup(newUser.getUid())) {
+								jobManager.createGroup(newUser.getUid(), newUser.getUid(), rootGroupId, true);
 							}else {
 								log.warn("根目录下一层已存在同名组"+newUser.getUid());
 							}

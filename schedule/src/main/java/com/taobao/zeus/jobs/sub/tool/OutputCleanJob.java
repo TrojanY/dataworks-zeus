@@ -25,7 +25,7 @@ public class OutputCleanJob extends AbstractJob{
 	@Override
 	public Integer run() throws Exception {
 		if(jobContext.getCoreExitCode()!=0){
-			log("Job 运行失败，不进行产出目录清理");
+			log("JobTask 运行失败，不进行产出目录清理");
 			return 0;
 		}
 		log("OutputClean 开始进行产出目录清理");

@@ -18,7 +18,7 @@ import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import com.taobao.zeus.schedule.mvc.ScheduleInfoLog;
 import com.taobao.zeus.socket.worker.ClientWorker;
-import com.taobao.zeus.store.HostGroupManager;
+import com.taobao.zeus.store.mysql.manager.HostGroupManager;
 import com.taobao.zeus.store.mysql.persistence.DistributeLock;
 import com.taobao.zeus.util.Environment;
 
@@ -79,9 +79,10 @@ public class DistributeLocker extends HibernateDaoSupport{
 	 *
 	 */
 	private void update(){
+		assert getHibernateTemplate() != null;
 		DistributeLock lock=getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.DistributeLock where subgroup=? order by id desc");
-			query.setParameter(0, Environment.getScheduleGroup());
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.DistributeLock where subgroup=:subgroup order by id desc");
+			query.setParameter("subgroup", Environment.getScheduleGroup());
 			query.setMaxResults(1);
 			DistributeLock lock1 = (DistributeLock) query.uniqueResult();
 			if(lock1 ==null){
@@ -97,6 +98,7 @@ public class DistributeLocker extends HibernateDaoSupport{
 		
 
 		try {
+			assert lock != null;
 			if(host.equals(lock.getHost())){
 				lock.setServerUpdate(new Date());
 				getHibernateTemplate().update(lock);
@@ -122,7 +124,7 @@ public class DistributeLocker extends HibernateDaoSupport{
 		}
 	}
 	//判断该host是否属于抢占组
-	public boolean isPreemptionHost(){
+	private boolean isPreemptionHost(){
 		List<String> preemptionhosts = hostGroupManager.getPreemptionHost();
 		if (preemptionhosts.contains(host)) {
 			return true;

@@ -18,8 +18,8 @@ public class JobBean{
 	private final JobStatus jobStatus;
 	private GroupBean groupBean;
 
-	private Set<JobBean> dependee = new HashSet<JobBean>();
-	private Set<JobBean> depender = new HashSet<JobBean>();
+	private Set<JobBean> dependee = new HashSet<>();
+	private Set<JobBean> depender = new HashSet<>();
 	
 	public JobBean(JobDescriptor jd,JobStatus jobStatus){
 		this.jobDescriptor=jd;
@@ -27,21 +27,21 @@ public class JobBean{
 	}
 	/**
 	 * 获取任务被依赖的集合
-	 * @return
+	 * @return 下游任务集合
 	 */
 	public Set<JobBean> getDepender(){
 		return depender;
 	}
 	/**
 	 * 获取任务的依赖集合
-	 * @return
+	 * @return 上游任务结合
 	 */
 	public Set<JobBean> getDependee(){
 		return dependee;
 	}
 	/**
 	 * 获取带层次的属性
-	 * @return
+	 * @return 层次属性
 	 */
 	public HierarchyProperties getHierarchyProperties(){
 		if(groupBean!=null){
@@ -51,11 +51,8 @@ public class JobBean{
 	}
 	
 	public List<Map<String, String>> getHierarchyResources(){
-		List<String> existList=new ArrayList<String>();
-		List<Map<String, String>> local=new ArrayList<Map<String,String>>(jobDescriptor.getResources());
-		if(local==null){
-			local=new ArrayList<Map<String,String>>();
-		}
+		List<String> existList=new ArrayList<>();
+		List<Map<String, String>> local=new ArrayList<>(jobDescriptor.getResources());
 		for(Map<String, String> map:local){
 			if(map.get("name")!=null && !existList.contains(map.get("name"))){
 				existList.add(map.get("name"));
@@ -75,22 +72,18 @@ public class JobBean{
 	/**
 	 * 添加依赖的任务
 	 * 内存操作，不做持久化处理!
-	 * @param dep
+	 * @param dep JobBean
 	 */
 	public void addDependee(JobBean dep){
-		if(!dependee.contains(dep)){
-			dependee.add(dep);
-		}
+		dependee.add(dep);
 	}
 	/**
 	 * 添加被依赖的任务
 	 * 内存操作，不做持久化处理!
-	 * @param dep
+	 * @param dep JobBean
 	 */
 	public void addDepender(JobBean dep){
-		if(!depender.contains(dep)){
-			depender.add(dep);
-		}
+		depender.add(dep);
 	}
 	/**
 	 * 获取Job所属的Group

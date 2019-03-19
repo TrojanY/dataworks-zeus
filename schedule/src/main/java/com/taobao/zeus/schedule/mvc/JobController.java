@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.taobao.zeus.store.mysql.manager.GroupManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.quartz.*;
@@ -32,9 +33,9 @@ import com.taobao.zeus.schedule.mvc.event.JobSuccessEvent;
 import com.taobao.zeus.schedule.mvc.event.ScheduleTriggerEvent;
 import com.taobao.zeus.socket.master.Master;
 import com.taobao.zeus.socket.master.MasterContext;
-import com.taobao.zeus.store.GroupManager;
+import com.taobao.zeus.store.mysql.manager.JobManager;
 import com.taobao.zeus.store.JobBean;
-import com.taobao.zeus.store.JobHistoryManager;
+import com.taobao.zeus.store.mysql.manager.JobHistoryManager;
 import com.taobao.zeus.util.DateUtil;
 import com.taobao.zeus.util.PropertyKeys;
 
@@ -43,6 +44,7 @@ public class JobController extends Controller {
 	private final String jobId;
 	private CacheJobDescriptor cache;
 	private JobHistoryManager jobHistoryManager;
+	private JobManager jobManager;
 	private GroupManager groupManager;
 
 	private Master master;
@@ -53,8 +55,9 @@ public class JobController extends Controller {
 	public JobController(MasterContext context, Master master, String jobId) {
 		this.jobId = jobId;
 		this.jobHistoryManager = context.getJobHistoryManager();
+		this.jobManager = context.getJobManager();
 		this.groupManager = context.getGroupManager();
-		this.cache = new CacheJobDescriptor(jobId, groupManager);
+		this.cache = new CacheJobDescriptor(jobId, jobManager);
 		this.master = master;
 		this.context = context;
 		registerEventTypes(Events.Initialize);
@@ -99,7 +102,7 @@ public class JobController extends Controller {
 	}
 
 	private void initializeEventHandle() {
-		JobStatus jobStatus = groupManager.getJobStatus(jobId);
+		JobStatus jobStatus = jobManager.getJobStatus(jobId);
 		log.debug("jobId: "+jobId+" jobStatus:"+jobStatus.getStatus());
 		if (jobStatus != null) {
 			// 启动时发现在RUNNING 状态，说明上一次运行的结果丢失，将立即进行重试
@@ -139,8 +142,8 @@ public class JobController extends Controller {
 					history.setIllustrate("启动服务器发现正在running状态，判断状态已经丢失，进行重试操作");
 					history.setTriggerType(TriggerType.MANUAL_RECOVER);
 					history.setJobId(jobId);
-					JobDescriptor jobDescriptor = groupManager.getUpstreamJobBean(jobId).getJobDescriptor();
-					history.setToJobId(jobDescriptor.getToJobId());
+					JobDescriptor jobDescriptor = jobManager.getUpstreamJobBean(jobId).getJobDescriptor();
+					history.setActionId(jobDescriptor.getActionId());
 					if(jobDescriptor != null){
 						history.setOperator(jobDescriptor.getOwner());
 						history.setHostGroupId(jobDescriptor.getHostGroupId());
@@ -157,7 +160,7 @@ public class JobController extends Controller {
 			String cronExpression = jd.getCronExpression();
 			try {
 				CronTrigger trigger = TriggerBuilder.newTrigger()
-						.withIdentity(jd.getId(), "zeus")
+						.withIdentity(jd.getJobId(), "zeus")
 						.withSchedule(
 								CronScheduleBuilder.cronSchedule(cronExpression)
 						)
@@ -169,10 +172,10 @@ public class JobController extends Controller {
 				SimpleTrigger trigger = new SimpleTrigger(jd.getId(), "zeus", date, null, 0, 0L);
 				//**********************************************************************************/
 				JobDetail detail = JobBuilder.newJob(TimerJob.class)
-						.withIdentity(jd.getId(), "zeus")
+						.withIdentity(jd.getJobId(), "zeus")
 						.build();
 
-				detail.getJobDataMap().put("jobId", jd.getId());
+				detail.getJobDataMap().put("jobId", jd.getJobId());
 				detail.getJobDataMap().put("dispatcher",
 						context.getDispatcher());
 
@@ -184,7 +187,7 @@ public class JobController extends Controller {
 					// 定时器已经不会被触发了，关闭该job的自动调度功能
 					jd.setAuto(false);
 					try {
-						groupManager.updateJob(jd.getOwner(), jd);
+						jobManager.updateJob(jd.getOwner(), jd);
 					} catch (ZeusException e1) {
 						log.error("JobId:" + jobId + " 更新失败", e1);
 					}
@@ -223,7 +226,7 @@ public class JobController extends Controller {
 //		}
 //		else{
 			simpleTrigger = TriggerBuilder.newTrigger()
-                    .withIdentity(jd.getId(), "zeus")
+                    .withIdentity(jd.getJobId(), "zeus")
                     .startAt(date)
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule())
                     .build();
@@ -232,7 +235,7 @@ public class JobController extends Controller {
 		JobDetail detail = null;
 		// 先查看之前是否存在该任务的调度，如果存在，先删除
 		try {
-			detail = context.getScheduler().getJobDetail(new JobKey(jd.getId(), "zeus"));
+			detail = context.getScheduler().getJobDetail(new JobKey(jd.getJobId(), "zeus"));
 		} catch (SchedulerException e) {
 			log.error(e);
 		}
@@ -246,8 +249,8 @@ public class JobController extends Controller {
 			}
 		}
 
-		detail = JobBuilder.newJob(TimerJob.class).withIdentity(jd.getId(), "zeus").build();
-		detail.getJobDataMap().put("jobId", jd.getId());
+		detail = JobBuilder.newJob(TimerJob.class).withIdentity(jd.getJobId(), "zeus").build();
+		detail.getJobDataMap().put("jobId", jd.getJobId());
 		detail.getJobDataMap().put("dispatcher", context.getDispatcher());
 		try {
 			context.getScheduler().scheduleJob(detail, simpleTrigger);
@@ -318,7 +321,7 @@ public class JobController extends Controller {
 			//cache.refresh();
 			JobDescriptor jd = cache.getJobDescriptor();
 			if(jd!=null && jd.getAuto()){
-				JobStatus jobStatus = groupManager.getJobStatus(jobId);
+				JobStatus jobStatus = jobManager.getJobStatus(jobId);
 				if(jobStatus != null){
 					if(jobStatus.getStatus() == null || jobStatus.getStatus() == Status.WAIT){
 						Date now = new Date();
@@ -329,7 +332,7 @@ public class JobController extends Controller {
 							history.setIllustrate("漏跑任务,自动恢复执行");
 							history.setTriggerType(TriggerType.SCHEDULE);
 							history.setJobId(jobId);
-							history.setToJobId(jd.getToJobId());
+							history.setActionId(jd.getActionId());
 	//						history.setExecuteHost(jd.getHost());
 							history.setHostGroupId(jd.getHostGroupId());
                             history.setOperator(jd.getOwner());
@@ -377,8 +380,8 @@ public class JobController extends Controller {
 
 		JobStatus jobStatus;
 		synchronized (this) {
-			jobStatus = groupManager.getJobStatus(jobId);
-			JobBean bean = groupManager.getUpstreamJobBean(jobId);
+			jobStatus = jobManager.getJobStatus(jobId);
+			JobBean bean = jobManager.getUpstreamJobBean(jobId);
 			String cycle = bean.getHierarchyProperties().getProperty(
 					PropertyKeys.DEPENDENCY_CYCLE);
 			if (cycle != null && !"".equals(cycle)) {
@@ -408,7 +411,7 @@ public class JobController extends Controller {
 			jobStatus.getReadyDependency().put(eId,
 					String.valueOf(new Date().getTime()));
 
-			groupManager.updateJobStatus(jobStatus);
+			jobManager.updateJobStatus(jobStatus);
 		}
 		boolean allComplete = true;
 		for (String key : jobDescriptor.getDependencies()) {
@@ -435,7 +438,7 @@ public class JobController extends Controller {
 		history.setJobId(jobId);
 //		System.out.println("依赖任务执行的operator ："+jobDescriptor.getOwner());
 		history.setOperator(jobDescriptor.getOwner());
-		history.setToJobId(jobDescriptor.getToJobId());
+		history.setActionId(jobDescriptor.getActionId());
 //		history.setExecuteHost(jobDescriptor.getHost());
 		history.setHostGroupId(jobDescriptor.getHostGroupId());
 		context.getJobHistoryManager().addJobHistory(history);
@@ -443,7 +446,7 @@ public class JobController extends Controller {
 		if (history.getStatus() == Status.FAILED) {
 			ZeusJobException exception = new ZeusJobException(
 					history.getJobId(), history.getLog().getContent());
-			JobFailedEvent jfe = new JobFailedEvent(jobDescriptor.getId(),
+			JobFailedEvent jfe = new JobFailedEvent(jobDescriptor.getJobId(),
 					type, history, exception);
 			ScheduleInfoLog.info("JobId:" + jobId
 					+ " is fail,dispatch the fail event");
@@ -459,7 +462,7 @@ public class JobController extends Controller {
 		String eId = event.getJobId();
 		JobDescriptor jobDescriptor = cache.getJobDescriptor();
 		JobDescriptor jd = jobDescriptor.getCopy();
-		JobDescriptor eIobDescriptor = groupManager.getJobDescriptor(eId)
+		JobDescriptor eIobDescriptor = jobManager.getJobDescriptor(eId)
 				.getX();
 
 		String nextStartTime = null;
@@ -503,8 +506,8 @@ public class JobController extends Controller {
 			js.setJobId(eId);
 			js.setStatus(JobStatus.Status.WAIT);
 			try {
-				groupManager.updateJob(jd.getOwner(), jd);
-				groupManager.updateJobStatus(js);
+				jobManager.updateJob(jd.getOwner(), jd);
+				jobManager.updateJobStatus(js);
 			} catch (ZeusException e) {
 				log.error("", e);
 				e.printStackTrace();
@@ -524,12 +527,12 @@ public class JobController extends Controller {
 		JobStatus jobStatus;
 
 		synchronized (this) {
-			jobStatus = groupManager.getJobStatus(jobId);
+			jobStatus = jobManager.getJobStatus(jobId);
 			ScheduleInfoLog.info("JobId:" + jobId
 					+ " received a successed dependency job with jobId:" + eId
 					+ " statisTime:" + event.getStatisEndTime());
 			jobStatus.getReadyDependency().put(eId, event.getStatisEndTime());
-			groupManager.updateJobStatus(jobStatus);
+			jobManager.updateJobStatus(jobStatus);
 		}
 		boolean allComplete = true;
 		for (String key : jobDescriptor.getDependencies()) {
@@ -557,7 +560,7 @@ public class JobController extends Controller {
 				jd.setStatisEndTime(jobDescriptor.getStatisEndTime());
 				jd.setStartTime(jobDescriptor.getStartTime());
 				jd.setStatisStartTime(jobDescriptor.getStatisStartTime());
-				jd.setId(jobId);
+				jd.setJobId(jobId);
 				jd.setCycle(jobDescriptor.getCycle());
 
 				try {
@@ -577,7 +580,7 @@ public class JobController extends Controller {
 						jobDescriptor.setStartTime(DateUtil.getDelayTime(
 								24, jobDescriptor.getStartTime()));
 					}
-					groupManager.updateJob(jobDescriptor.getOwner(), jobDescriptor);
+					jobManager.updateJob(jobDescriptor.getOwner(), jobDescriptor);
 					cache.refresh();
 				} catch (ParseException e) {
 					ScheduleInfoLog.error("parse date failed", e);
@@ -596,7 +599,7 @@ public class JobController extends Controller {
 					jd.setStatisEndTime(jobDescriptor.getStatisEndTime());
 					jd.setStartTime(jobDescriptor.getStartTime());
 					jd.setStatisStartTime(jobDescriptor.getStatisStartTime());
-					jd.setId(jobId);
+					jd.setJobId(jobId);
 					jd.setCycle(jobDescriptor.getCycle());
 					try {
 						jobDescriptor.setStatisStartTime(DateUtil.getDelayTime(
@@ -605,7 +608,7 @@ public class JobController extends Controller {
 								24, jobDescriptor.getStatisEndTime()));
 						jobDescriptor.setStartTime(DateUtil.getDelayTime(
 								24, jobDescriptor.getStartTime()));
-						groupManager.updateJob(jobDescriptor.getOwner(), jobDescriptor);
+						jobManager.updateJob(jobDescriptor.getOwner(), jobDescriptor);
 						cache.refresh();
 					} catch (ParseException e) {
 						ScheduleInfoLog.error("parse date failed", e);
@@ -653,7 +656,7 @@ public class JobController extends Controller {
 						+ " is fail,as dependendy jobId:"
 						+ jobDescriptor.getId() + " is failed");
 				// 记录进History日志
-				JobHistory history = new JobHistory();
+				JobTaskHistory history = new JobTaskHistory();
 				history.setStartTime(new Date());
 				history.setEndTime(new Date());
 				history.setExecuteHost(null);
@@ -736,15 +739,15 @@ public class JobController extends Controller {
 					return;
 				}
 				CronTrigger trigger = TriggerBuilder.newTrigger()
-                        .withIdentity(jd.getId(), "zeus")
+                        .withIdentity(jd.getJobId(), "zeus")
 						.withSchedule(CronScheduleBuilder.cronSchedule(jd.getCronExpression()))
                         .build();
 
 				detail = JobBuilder.newJob(TimerJob.class)
-                                   .withIdentity(jd.getId(), "zeus")
+                                   .withIdentity(jd.getJobId(), "zeus")
                                    .build();
 
-				detail.getJobDataMap().put("jobId", jd.getId());
+				detail.getJobDataMap().put("jobId", jd.getJobId());
 				detail.getJobDataMap().put("dispatcher", context.getDispatcher());
 				context.getScheduler().scheduleJob(detail, trigger);
 				ScheduleInfoLog.info("JobId:" + jobId
@@ -771,7 +774,7 @@ public class JobController extends Controller {
 			autofix();
 			return;
 		}
-		if (!eId.equals(jobDescriptor.getId())) {
+		if (!eId.equals(jobDescriptor.getJobId())) {
 			return;
 		}
 		ScheduleInfoLog.info("JobId:" + jobId
@@ -782,8 +785,8 @@ public class JobController extends Controller {
 
 	private void runJob(JobDescriptor jobDescriptor) {
 		JobHistory history = new JobHistory();
-		history.setJobId(jobDescriptor.getId());
-		history.setToJobId(jobDescriptor.getToJobId());
+		history.setJobId(jobDescriptor.getJobId());
+		history.setActionId(jobDescriptor.getActionId());
 		history.setTriggerType(TriggerType.SCHEDULE);
 		history.setStatisEndTime(jobDescriptor.getStatisEndTime());
 		history.setTimezone(jobDescriptor.getTimezone());
@@ -798,12 +801,12 @@ public class JobController extends Controller {
 	/*
 	 * private void run(final JobDescriptor jobDescriptor,final TriggerType
 	 * type,String illustrate){ //更新状态 JobStatus
-	 * status=groupManager.getJobStatus(jobId);
-	 * status.setStatus(Status.RUNNING); final JobHistory history=new
-	 * JobHistory(); history.setJobId(jobId); history.setTriggerType(type);
+	 * status=jobManager.getJobStatus(jobId);
+	 * status.setStatus(Status.RUNNING); final JobTaskHistory history=new
+	 * JobTaskHistory(); history.setJobId(jobId); history.setTriggerType(type);
 	 * history.setIllustrate(illustrate); history.setStatus(Status.RUNNING);
 	 * jobHistoryManager.addJobHistory(history);
-	 * groupManager.updateJobStatus(status);
+	 * jobManager.updateJobStatus(status);
 	 * 
 	 * Thread thread=new Thread(new Runnable() {
 	 * 
@@ -814,12 +817,12 @@ public class JobController extends Controller {
 	 * exitCode==ExitCodes.NOTIFY_ZK_FAIL){ success=true; }else{ success=false;
 	 * } } catch (Exception e) { success=false; exception=e;
 	 * log.error(String.format("JobId:%s run failed ", jobDescriptor.getId()),
-	 * e); } JobStatus jobstatus=groupManager.getJobStatus(jobId);
+	 * e); } JobStatus jobstatus=jobManager.getJobStatus(jobId);
 	 * jobstatus.setStatus(Status.WAIT); if(success &&
 	 * (type==TriggerType.SCHEDULE || type==TriggerType.MANUAL_RECOVER )){
 	 * ScheduleInfoLog.info("JobId:"+jobId+" clear ready dependency");
 	 * jobstatus.setReadyDependency(new HashMap<String, String>()); }
-	 * groupManager.updateJobStatus(jobstatus);
+	 * jobManager.updateJobStatus(jobstatus);
 	 * 
 	 * 
 	 * if(!success){ //运行失败，更新失败状态，发出失败消息 if(exception!=null){ exception=new

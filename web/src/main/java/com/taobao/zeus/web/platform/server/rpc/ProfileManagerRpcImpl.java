@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.taobao.zeus.model.Profile;
-import com.taobao.zeus.store.ProfileManager;
+import com.taobao.zeus.store.mysql.manager.ProfileManager;
 import com.taobao.zeus.web.LoginUser;
 import com.taobao.zeus.web.platform.client.module.profile.ProfileModel;
 import com.taobao.zeus.web.platform.client.util.GwtException;

@@ -19,9 +19,9 @@ import com.taobao.zeus.broadcast.alarm.ZeusAlarm;
 import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
-import com.taobao.zeus.store.CliTableManager;
-import com.taobao.zeus.store.HDFSManager;
-import com.taobao.zeus.store.TableManager;
+import com.taobao.zeus.store.mysql.manager.CliTableManager;
+import com.taobao.zeus.store.mysql.manager.HDFSManager;
+import com.taobao.zeus.store.mysql.manager.TableManager;
 import com.taobao.zeus.util.ZeusDateTool;
 
 public class HiveOutputCheckJob extends AbstractJob {
@@ -54,7 +54,7 @@ public class HiveOutputCheckJob extends AbstractJob {
 
 		if (jobContext.getCoreExitCode() != 0) {
 			jobContext.getJobHistory().getLog()
-					.appendZeus("Job 运行失败，不进行产出分区大小检测");
+					.appendZeus("JobTask 运行失败，不进行产出分区大小检测");
 			return exitCode;
 		}
 		jobContext.getJobHistory().getLog()

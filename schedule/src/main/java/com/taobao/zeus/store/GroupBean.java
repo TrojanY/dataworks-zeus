@@ -11,21 +11,18 @@ import com.taobao.zeus.model.GroupDescriptor;
 public class GroupBean implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
-	private GroupBean parentGroupBean;
-	
 	private final GroupDescriptor groupDescriptor;
-	
 
-	private Map<String, JobBean> jobBeanMap=new HashMap<String, JobBean>();
-	
-	private List<GroupBean> children=new ArrayList<GroupBean>();
-	
+	private GroupBean parentGroupBean;
+	private List<GroupBean> childrenGroup=new ArrayList<>();
+	private Map<String, JobBean> jobBeanMap=new HashMap<>();
+
 	public GroupBean(GroupDescriptor g){
 		this.groupDescriptor=g;
 	}
 	/**
 	 * 获取带层次的属性
-	 * @return
+	 * @return 带层次的属性
 	 */
 	public HierarchyProperties getHierarchyProperties(){
 		if(parentGroupBean!=null){
@@ -39,10 +36,7 @@ public class GroupBean implements Serializable{
 	}
 	
 	public List<Map<String, String>> getHierarchyResources(){
-		List<Map<String, String>> local=new ArrayList<Map<String,String>>(groupDescriptor.getResources());
-		if(local==null){
-			local=new ArrayList<Map<String,String>>();
-		}
+		List<Map<String, String>> local=new ArrayList<>(groupDescriptor.getResources());
 		if(parentGroupBean!=null){
 			local.addAll(parentGroupBean.getHierarchyResources());
 		}
@@ -50,10 +44,9 @@ public class GroupBean implements Serializable{
 	}
 	/**
 	 * 获取所有组下组(无限级)
-	 * @return
 	 */
 	public Map<String, GroupBean> getAllSubGroupBeans(){
-		Map<String, GroupBean> map=new HashMap<String, GroupBean>();
+		Map<String, GroupBean> map=new HashMap<>();
 		for(GroupBean gb:getChildrenGroupBeans()){
 			for(GroupBean child:getChildrenGroupBeans()){
 				map.put(child.getGroupDescriptor().getId(), child);
@@ -64,10 +57,9 @@ public class GroupBean implements Serializable{
 	}
 	/**
 	 * 获取组下(无限级)所有的任务Map
-	 * @return
 	 */
 	public Map<String, JobBean> getAllSubJobBeans(){
-		Map<String, JobBean> map=new HashMap<String, JobBean>();
+		Map<String, JobBean> map=new HashMap<>();
 		for(GroupBean gb:getChildrenGroupBeans()){
 			map.putAll(gb.getAllSubJobBeans());
 		}
@@ -76,32 +68,27 @@ public class GroupBean implements Serializable{
 	}
 	/**
 	 * 获取组下(一级)所有的任务Map
-	 * @return
 	 */
 	public Map<String, JobBean> getJobBeans(){
 		return jobBeanMap;
 	}
 	/**
 	 * 获取JobBean
-	 * @param jobId
-	 * @return
 	 */
 	public JobBean getJobBean(String jobId){
 		return jobBeanMap.get(jobId);
 	}
 	/**
 	 * 获取父级GroupBean
-	 * @return
 	 */
 	public GroupBean getParentGroupBean(){
 		return parentGroupBean;
 	}
 	/**
 	 * 获取下一级GroupBean
-	 * @return
 	 */
 	public List<GroupBean> getChildrenGroupBeans(){
-		return children;
+		return childrenGroup;
 	}
 	
 	public GroupDescriptor getGroupDescriptor(){

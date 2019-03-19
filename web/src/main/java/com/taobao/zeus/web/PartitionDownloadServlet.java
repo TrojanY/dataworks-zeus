@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -35,8 +36,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
 import com.taobao.zeus.model.Profile;
-import com.taobao.zeus.store.ProfileManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.ProfileManager;
 import com.taobao.zeus.util.ZeusStringUtil;
 import com.taobao.zeus.web.platform.client.module.tablemanager.model.TableColumnModel;
 import com.taobao.zeus.web.platform.client.module.tablemanager.model.TableModel;

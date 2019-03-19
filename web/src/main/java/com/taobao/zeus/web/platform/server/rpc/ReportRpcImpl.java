@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.taobao.zeus.store.mysql.MysqlReportManager;
+import com.taobao.zeus.store.mysql.impl.MysqlReportManager;
 import com.taobao.zeus.web.platform.shared.rpc.ReportService;
 
 public class ReportRpcImpl implements ReportService{

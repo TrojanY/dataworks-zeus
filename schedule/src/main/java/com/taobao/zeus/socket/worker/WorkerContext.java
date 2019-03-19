@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.taobao.zeus.store.mysql.manager.JobManager;
 import io.netty.channel.Channel;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -13,9 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import com.taobao.zeus.jobs.Job;
-import com.taobao.zeus.store.DebugHistoryManager;
-import com.taobao.zeus.store.GroupManager;
-import com.taobao.zeus.store.JobHistoryManager;
+import com.taobao.zeus.store.mysql.manager.DebugHistoryManager;
+import com.taobao.zeus.store.mysql.manager.JobHistoryManager;
 import com.taobao.zeus.util.RunShell;
 
 public class WorkerContext {
@@ -111,8 +111,8 @@ public class WorkerContext {
 	public DebugHistoryManager getDebugHistoryManager(){
 		return (DebugHistoryManager)applicationContext.getBean("debugHistoryManager");
 	}
-	public GroupManager getGroupManager() {
-		return (GroupManager) applicationContext.getBean("groupManager");
+	public JobManager getGroupManager() {
+		return (JobManager) applicationContext.getBean("jobManager");
 	}
 	public Map<String, Job> getDebugRunnings() {
 		return debugRunnings;

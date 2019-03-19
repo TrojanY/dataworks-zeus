@@ -194,10 +194,10 @@ public class MasterBeWebCancel {
 
 		if (ret == null) {
 			// 数据库设置状态
-			JobStatus js = context.getGroupManager().getJobStatus(jobId);
+			JobStatus js = context.getJobManager().getJobStatus(jobId);
 			js.setStatus(com.taobao.zeus.model.JobStatus.Status.WAIT);
 			js.setHistoryId(null);
-			context.getGroupManager().updateJobStatus(js);
+			context.getJobManager().updateJobStatus(js);
 			// 找不到job，失败
 			ret = WebResponse.newBuilder().setRid(req.getRid())
 					.setOperate(req.getOperate()).setStatus(Status.ERROR)

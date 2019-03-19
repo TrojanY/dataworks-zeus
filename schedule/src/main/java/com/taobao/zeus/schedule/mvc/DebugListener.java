@@ -10,7 +10,7 @@ import com.taobao.zeus.mvc.MvcEvent;
 import com.taobao.zeus.schedule.mvc.event.DebugFailEvent;
 import com.taobao.zeus.schedule.mvc.event.DebugSuccessEvent;
 import com.taobao.zeus.socket.master.MasterContext;
-import com.taobao.zeus.store.FileManager;
+import com.taobao.zeus.store.mysql.manager.FileManager;
 /**
  * 任务失败的监听
  * 当任务失败，需要发送邮件给相关人员

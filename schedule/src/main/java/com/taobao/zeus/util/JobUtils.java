@@ -10,6 +10,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.taobao.zeus.model.processor.*;
+import com.taobao.zeus.store.*;
+import com.taobao.zeus.store.mysql.manager.FileManager;
+import com.taobao.zeus.store.mysql.manager.GroupManager;
+import com.taobao.zeus.store.mysql.manager.ProfileManager;
 import org.apache.commons.lang.StringUtils;
 import org.mortbay.log.Log;
 import org.springframework.context.ApplicationContext;
@@ -34,12 +38,7 @@ import com.taobao.zeus.model.JobDescriptor.JobRunType;
 import com.taobao.zeus.model.JobHistory;
 import com.taobao.zeus.model.Profile;
 import com.taobao.zeus.model.processor.Processor;
-import com.taobao.zeus.store.FileManager;
-import com.taobao.zeus.store.GroupManager;
-import com.taobao.zeus.store.GroupManagerOld;
-import com.taobao.zeus.store.HierarchyProperties;
-import com.taobao.zeus.store.JobBean;
-import com.taobao.zeus.store.ProfileManager;
+import com.taobao.zeus.store.mysql.manager.JobManager;
 
 public class JobUtils {
 
@@ -103,17 +102,17 @@ public class JobUtils {
 		jobContext.setProperties(new RenderHierarchyProperties(hp));
 		List<Map<String, String>> resources = jobBean.getHierarchyResources();
 /*		String script = jobBean.getJobDescriptor().getScript();*/
-		String tojobId = jobBean.getJobDescriptor().getToJobId();
-		GroupManagerOld groupManagerOld = (GroupManagerOld) applicationContext
-				.getBean("groupManagerOld");
-		String script = groupManagerOld.getJobDescriptor(tojobId).getX().getScript();
+		String tojobId = jobBean.getJobDescriptor().getActionId();
+		JobManager jobManager = (JobManager) applicationContext
+				.getBean("jobManager");
+		String script = jobManager.getJobDescriptor(tojobId).getX().getScript();
 //		System.out.println(script);
 		///*************************update run date  2014-09-18**************
 		String dateStr = history.getJobId().substring(0,12)+"00";
-		System.out.println("Manual Job run date :"+dateStr);
+		System.out.println("Manual JobTask run date :"+dateStr);
 		if(dateStr.length() == 14){
 			script = RenderHierarchyProperties.render(script, dateStr);
-//			System.out.println("Manual Job script :"+script);
+//			System.out.println("Manual JobTask script :"+script);
 		}		
 		///*********************************************************
 		// 处理脚本中的 资源引用 语句
@@ -129,7 +128,7 @@ public class JobUtils {
 		}else{
 			script = replace(jobContext.getProperties().getAllProperties(), script);
 		}
-//		System.out.println("Manual Job last script :"+script);
+//		System.out.println("Manual JobTask last script :"+script);
 		script=replaceScript(history,script);
 		hp.setProperty(PropertyKeys.JOB_SCRIPT, script);
 
@@ -326,9 +325,9 @@ public class JobUtils {
 				}
 				if (depth < 2) {// job 的递归深度控制，防止无限递归
 					JobProcessor jobProcesser = (JobProcessor) p;
-					GroupManager groupManager = (GroupManager) applicationContext
-							.getBean("groupManager");
-					JobBean jb = groupManager.getUpstreamJobBean(jobProcesser
+					JobManager jobManager = (JobManager) applicationContext
+							.getBean("jobManager");
+					JobBean jb = jobManager.getUpstreamJobBean(jobProcesser
 							.getJobId());
 					if (jb != null) {
 						for (String key : jobProcesser.getKvConfig().keySet()) {

@@ -15,8 +15,8 @@ import com.taobao.zeus.jobs.AbstractJob;
 import com.taobao.zeus.jobs.JobContext;
 import com.taobao.zeus.jobs.sub.conf.ConfUtil;
 import com.taobao.zeus.model.processor.HiveProcessor;
-import com.taobao.zeus.store.CliTableManager;
-import com.taobao.zeus.store.TableManager;
+import com.taobao.zeus.store.mysql.manager.CliTableManager;
+import com.taobao.zeus.store.mysql.manager.TableManager;
 
 public class HivePartitionCleanJob extends AbstractJob {
 	@SuppressWarnings("unused")
@@ -38,7 +38,7 @@ public class HivePartitionCleanJob extends AbstractJob {
 	@Override
 	public Integer run() throws Exception {
 		if (jobContext.getCoreExitCode() != 0) {
-			log("Job 运行失败，不进行产出目录清理");
+			log("JobTask 运行失败，不进行产出目录清理");
 			return 0;
 		}
 		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");

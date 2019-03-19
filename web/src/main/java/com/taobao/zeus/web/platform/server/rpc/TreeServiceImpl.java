@@ -16,21 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.taobao.zeus.model.JobDescriptorOld.JobScheduleTypeOld;
 import com.taobao.zeus.model.JobHistory;
 import com.taobao.zeus.model.ZeusFollow;
-import com.taobao.zeus.store.FollowManagerOld;
-import com.taobao.zeus.store.GroupBeanOld;
-import com.taobao.zeus.store.JobBeanOld;
-import com.taobao.zeus.store.JobHistoryManager;
-import com.taobao.zeus.store.mysql.ReadOnlyGroupManagerOld;
+import com.taobao.zeus.store.mysql.manager.JobHistoryManager;
+import com.taobao.zeus.store.mysql.impl.ReadOnlyGroupManager;
 import com.taobao.zeus.web.LoginUser;
 import com.taobao.zeus.web.platform.client.module.jobmanager.GroupJobTreeModel;
 import com.taobao.zeus.web.platform.shared.rpc.TreeService;
 
 public class TreeServiceImpl implements TreeService{
 	@Autowired
-	private ReadOnlyGroupManagerOld readOnlyGroupManager;
+	private ReadOnlyGroupManager readOnlyGroupManager;
 	@Autowired
 	private FollowManagerOld followManagerOld;
 	@Autowired

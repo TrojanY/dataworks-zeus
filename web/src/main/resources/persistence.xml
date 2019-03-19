@@ -36,23 +36,23 @@
 		</property>
 		<property name="annotatedClasses">
 			<list>
-				<value>com.taobao.zeus.store.mysql.persistence.GroupPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.JobPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.JobPersistenceBackup</value>
-				<value>com.taobao.zeus.store.mysql.persistence.JobPersistenceOld</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobGroup</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobTaskAction</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobActionBackup</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobTask</value>
 				<value>com.taobao.zeus.store.mysql.persistence.DistributeLock</value>
-				<value>com.taobao.zeus.store.mysql.persistence.JobHistoryPersistence</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobTaskHistory</value>
 				<value>com.taobao.zeus.store.mysql.persistence.ZeusUser</value>
-				<value>com.taobao.zeus.store.mysql.persistence.ZeusFollowPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.PermissionPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.FilePersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.DebugHistoryPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.ProfilePersistence</value>
+				<value>com.taobao.zeus.store.mysql.persistence.GroupJobFollow</value>
+				<value>com.taobao.zeus.store.mysql.persistence.ZeusPermission</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobFile</value>
+				<value>com.taobao.zeus.store.mysql.persistence.JobFileHistory</value>
+				<value>com.taobao.zeus.store.mysql.persistence.ZeusProfile</value>
 				<value>com.taobao.zeus.store.mysql.persistence.TimeZone</value>
-				<value>com.taobao.zeus.store.mysql.persistence.Worker</value>
-				<value>com.taobao.zeus.store.mysql.persistence.LogPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.HostGroupPersistence</value>
-				<value>com.taobao.zeus.store.mysql.persistence.HostRelationPersistence</value>
+				<value>com.taobao.zeus.store.mysql.persistence.ZeusWorker</value>
+				<value>com.taobao.zeus.store.mysql.persistence.ZeusLog</value>
+				<value>com.taobao.zeus.store.mysql.persistence.HostGroup</value>
+				<value>com.taobao.zeus.store.mysql.persistence.HostRelation</value>
 			</list>
 		</property>
 	</bean>

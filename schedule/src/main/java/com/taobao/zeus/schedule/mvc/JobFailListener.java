@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.taobao.zeus.store.mysql.impl.ReadOnlyGroupManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -16,11 +17,10 @@ import com.taobao.zeus.mvc.MvcEvent;
 import com.taobao.zeus.schedule.mvc.event.JobFailedEvent;
 import com.taobao.zeus.socket.master.MasterContext;
 import com.taobao.zeus.store.GroupBean;
-import com.taobao.zeus.store.GroupManager;
+import com.taobao.zeus.store.mysql.manager.JobManager;
 import com.taobao.zeus.store.JobBean;
-import com.taobao.zeus.store.JobHistoryManager;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.ReadOnlyGroupManager;
+import com.taobao.zeus.store.mysql.manager.JobHistoryManager;
+import com.taobao.zeus.store.mysql.manager.UserManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 /**
  * 任务失败的监听
@@ -30,15 +30,15 @@ import com.taobao.zeus.store.mysql.persistence.ZeusUser;
  */
 public class JobFailListener extends DispatcherListener{
 	private static Logger log=LogManager.getLogger(JobFailListener.class);
-	private GroupManager groupManager;
+	private JobManager jobManager;
 	private ReadOnlyGroupManager readOnlyGroupManager;
 	private UserManager userManager;
 	private JobHistoryManager jobHistoryManager;
 	private MailAlarm mailAlarm;
 	private SMSAlarm smsAlarm;
 	public JobFailListener(MasterContext context){
-		groupManager=context.getGroupManager();
-		readOnlyGroupManager=(ReadOnlyGroupManager)context.getApplicationContext().getBean("readOnlyGroupManager");
+		jobManager =context.getJobManager();
+		readOnlyGroupManager=(ReadOnlyGroupManager)context.getApplicationContext().getBean("ReadOnlyGroupManager");
 		userManager=(UserManager)context.getApplicationContext().getBean("userManager");
 		jobHistoryManager=context.getJobHistoryManager();
 		mailAlarm=(MailAlarm) context.getApplicationContext().getBean("mailAlarm");
@@ -68,12 +68,12 @@ public class JobFailListener extends DispatcherListener{
 				final String jobId=event.getJobId();
 //				final String causeJobId=event.getJobException().getCauseJobId();
 //				if(chainLocal.get()==null || !chainLocal.get().getCauseJobId().equals(causeJobId)){
-//					GroupBean gb=readOnlyGroupManager.getGlobeGroupBean();
+//					GroupBean gb=readOnlyJobManager.getGlobeGroupBean();
 //					chainLocal.set(new ChainException(causeJobId, gb));
 //				}
 //				final ChainException chain=chainLocal.get();
 //				final JobBean jobBean=chain.gb.getAllSubJobBeans().get(jobId);
-				final JobDescriptor jobDescriptor = groupManager.getJobDescriptor(jobId).getX();
+				final JobDescriptor jobDescriptor = jobManager.getJobDescriptor(jobId).getX();
 				final ZeusUser owner=userManager.findByUid(jobDescriptor.getOwner());
 				//延迟6秒发送邮件，保证日志已经输出到数据库
 				new Thread(() -> {

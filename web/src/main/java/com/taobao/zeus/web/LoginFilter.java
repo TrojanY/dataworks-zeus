@@ -12,11 +12,12 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
+
 /**
  * 登陆信息设置
  * @author zhoufang
@@ -88,7 +89,7 @@ public class LoginFilter implements Filter {
             for(Cookie c :cookies ){
             	if(c.getName().equals("LOGIN_USERNAME")){
             		if(c.getValue().equals(uid)){
-            			zeusUser=new ZeusUser();
+            			zeusUser =new ZeusUser();
             			zeusUser.setUid(uid);
             			check = true;
             			//userManager.addOrUpdateUser(zeusUser);

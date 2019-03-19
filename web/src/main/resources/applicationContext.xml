@@ -85,12 +85,12 @@
 		</constructor-arg>
 	</bean>
 	
-	<bean id="clientWorker" class="com.taobao.zeus.socket.worker.ClientWorker" >
+	<bean id="clientWorker" class="com.taobao.zeus.socket.zeusWorker.ClientWorker" >
 	</bean>
 
 	<!-- gwt bean -->
 	<bean id="user.rpc" class="com.taobao.zeus.web.platform.server.rpc.UserServiceImpl" >
-		<property name="groupManager" ref="groupManager" />
+		<property name="jobManager" ref="jobManager" />
 	</bean>
 	<bean id="tree.rpc" class="com.taobao.zeus.web.platform.server.rpc.TreeServiceImpl" />
 	<bean id="group.rpc" class="com.taobao.zeus.web.platform.server.rpc.GroupServiceImpl" />
@@ -106,36 +106,36 @@
 	<bean id="report.rpc" class="com.taobao.zeus.web.platform.server.rpc.ReportRpcImpl" />
 	
 	<!-- Manager -->
-	<bean id="profileManager" class="com.taobao.zeus.store.mysql.MysqlProfileManager" />
-	<bean id="debugHistoryManager" class="com.taobao.zeus.store.mysql.MysqlDebugHistoryManager" />
-	<bean id="fileManager" class="com.taobao.zeus.store.mysql.MysqlFileManager" />
-	<bean id="followManagerOld" class="com.taobao.zeus.store.mysql.MysqlFollowManager" />
-	<bean id="userManager" class="com.taobao.zeus.store.mysql.MysqlUserManager" />
-	<bean id="jobHistoryManager" class="com.taobao.zeus.store.mysql.MysqlJobHistoryManager" />
-	<bean id="permissionManager" class="com.taobao.zeus.store.mysql.MysqlPermissionManager" />
-	<bean id="groupManager" class="com.taobao.zeus.store.mysql.MysqlGroupManager" />
-	<bean id="groupManagerOld" class="com.taobao.zeus.store.mysql.MysqlGroupManagerOld" />
-	<bean id="tableManager" class="com.taobao.zeus.store.CliTableManager" />
-	<bean id="reportManager" class="com.taobao.zeus.store.mysql.MysqlReportManager" />
-	<bean id="zeusLogManager" class="com.taobao.zeus.store.mysql.MysqlLogManager" />
-	<bean id="hostGroupManager" class="com.taobao.zeus.store.mysql.MysqlHostGroupManager" />
-	<bean id="readOnlyGroupManager" class="com.taobao.zeus.store.mysql.ReadOnlyGroupManager" >
+	<bean id="profileManager" class="com.taobao.zeus.store.mysql.impl.MysqlProfileManager" />
+	<bean id="debugHistoryManager" class="com.taobao.zeus.store.mysql.impl.MysqlDebugHistoryManager" />
+	<bean id="fileManager" class="com.taobao.zeus.store.mysql.impl.MysqlFileManager" />
+	<bean id="followManagerOld" class="com.taobao.zeus.store.mysql.impl.MysqlFollowManager" />
+	<bean id="userManager" class="com.taobao.zeus.store.mysql.impl.MysqlUserManager" />
+	<bean id="jobHistoryManager" class="com.taobao.zeus.store.mysql.impl.MysqlJobHistoryManager" />
+	<bean id="permissionManager" class="com.taobao.zeus.store.mysql.impl.MysqlPermissionManager" />
+	<bean id="jobManager" class="com.taobao.zeus.store.mysql.impl.MysqlJobManager" />
+	<bean id="groupManager" class="com.taobao.zeus.store.mysql.impl.MysqlGroupManager" />
+	<bean id="tableManager" class="com.taobao.zeus.store.mysql.manager.CliTableManager" />
+	<bean id="reportManager" class="com.taobao.zeus.store.mysql.impl.MysqlReportManager" />
+	<bean id="zeusLogManager" class="com.taobao.zeus.store.mysql.impl.MysqlLogManager" />
+	<bean id="hostGroupManager" class="com.taobao.zeus.store.mysql.impl.MysqlHostGroupManager" />
+	<bean id="readOnlyGroupManager" class="com.taobao.zeus.store.mysql.impl.ReadOnlyJobManager" >
+		<property name="jobManager" ref="jobManager" />
+	</bean>
+	<bean id="readOnlyGroupManagerOld" class="com.taobao.zeus.store.mysql.impl.ReadOnlyGroupManager" >
 		<property name="groupManager" ref="groupManager" />
-	</bean>
-	<bean id="readOnlyGroupManagerOld" class="com.taobao.zeus.store.mysql.ReadOnlyGroupManagerOld" >
-		<property name="groupManager" ref="groupManagerOld" />
-	</bean>
-	<bean id="permissionScheduleGroupManagerOld" class="com.taobao.zeus.web.PermissionGroupManagerOld" >
-		<property name="groupManager" ref="scheduleGroupManagerOld"></property>
 	</bean>
 	<bean id="permissionScheduleGroupManager" class="com.taobao.zeus.web.PermissionGroupManager" >
 		<property name="groupManager" ref="scheduleGroupManager"></property>
 	</bean>
-	<bean id="scheduleGroupManagerOld" class="com.taobao.zeus.web.ScheduleGroupManagerOld" >
-		<property name="groupManager" ref="groupManagerOld"></property>
+	<bean id="permissionScheduleJobManager" class="com.taobao.zeus.web.PermissionJobManager" >
+		<property name="jobManager" ref="scheduleJobManager"></property>
 	</bean>
-		<bean id="scheduleGroupManager" class="com.taobao.zeus.web.ScheduleGroupManager" >
+	<bean id="scheduleGroupManager" class="com.taobao.zeus.web.ScheduleGroupManager" >
 		<property name="groupManager" ref="groupManager"></property>
+	</bean>
+		<bean id="scheduleJobManager" class="com.taobao.zeus.web.ScheduleJobManager" >
+		<property name="jobManager" ref="jobManager"></property>
 	</bean>
 	
 	<bean id="jobValidate" class="com.taobao.zeus.store.mysql.tool.JobValidate"></bean>

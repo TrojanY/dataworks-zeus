@@ -12,14 +12,14 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;  
-import javax.servlet.http.HttpServletResponse;  
+import javax.servlet.http.HttpServletResponse;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.taobao.zeus.broadcast.alarm.MailAlarm;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
 
 
 public class RegisterPage  extends HttpServlet  {

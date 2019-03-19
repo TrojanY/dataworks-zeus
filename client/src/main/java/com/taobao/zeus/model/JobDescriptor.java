@@ -14,8 +14,8 @@ public class JobDescriptor implements Serializable {
 	private Map<String, String> properties = new HashMap<>();
 	private String cronExpression;
 	private List<String> dependencies = new ArrayList<>();
-	private String id;
-	private String toJobId;
+	private String jobId;
+	private String actionId;
 	private String name;
 	private String desc;
 	private String groupId;
@@ -26,7 +26,7 @@ public class JobDescriptor implements Serializable {
 	private JobRunType jobRunType;
 	private JobScheduleType jobScheduleType;
 
-/*	private String script;*/
+	private String script;
 
 	private String timezone;
 
@@ -58,8 +58,8 @@ public class JobDescriptor implements Serializable {
 		jobDescriptor.setDependencies(this.getDependencies());
 		jobDescriptor.setDesc(this.getDesc());
 		jobDescriptor.setGroupId(this.getGroupId());
-		jobDescriptor.setId(this.getId());
-		jobDescriptor.setToJobId(this.getToJobId());
+		jobDescriptor.setJobId(this.getJobId());
+		jobDescriptor.setActionId(this.getActionId());
 		jobDescriptor.setJobType(this.getJobType());
 		jobDescriptor.setName(this.getName());
 		jobDescriptor.setOffRaw(this.getOffRaw());
@@ -69,7 +69,7 @@ public class JobDescriptor implements Serializable {
 		jobDescriptor.setProperties(this.getProperties());
 		jobDescriptor.setResources(this.getResources());
 		jobDescriptor.setScheduleType(this.getScheduleType());
-/*		jobDescriptor.setScript(this.getScript());*/
+		jobDescriptor.setScript(this.getScript());
 		jobDescriptor.setStartTime(this.getStartTime());
 		jobDescriptor.setStartTimestamp(this.getStartTimestamp());
 		jobDescriptor.setStatisEndTime(this.getStatisEndTime());
@@ -79,12 +79,12 @@ public class JobDescriptor implements Serializable {
 		return jobDescriptor;
 	}
 
-	public String getToJobId() {
-		return toJobId;
+	public String getActionId() {
+		return actionId;
 	}
 
-	public void setToJobId(String toJobId) {
-		this.toJobId = toJobId;
+	public void setActionId(String actionId) {
+		this.actionId = actionId;
 	}
 
 	public List<Map<String, String>> getResources() {
@@ -107,8 +107,8 @@ public class JobDescriptor implements Serializable {
 		return groupId;
 	}
 
-	public String getId() {
-		return id;
+	public String getJobId() {
+		return jobId;
 	}
 
 	public JobRunType getJobType() {
@@ -163,8 +163,8 @@ public class JobDescriptor implements Serializable {
 		this.groupId = groupId;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
 	}
 
 	public void setResources(List<Map<String, String>> resources) {
@@ -187,13 +187,13 @@ public class JobDescriptor implements Serializable {
 		this.auto = auto;
 	}
 
-	/*public String getScript() {
+	public String getScript() {
 		return script;
 	}
 
 	public void setScript(String script) {
 		this.script = script;
-	}*/
+	}
 
 	public enum JobRunType {
 		MapReduce("main"), Shell("shell"), Hive("hive");

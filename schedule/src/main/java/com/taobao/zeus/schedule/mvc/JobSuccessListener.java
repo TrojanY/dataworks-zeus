@@ -1,5 +1,6 @@
 package com.taobao.zeus.schedule.mvc;
 
+import com.taobao.zeus.store.mysql.manager.JobManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -10,8 +11,7 @@ import com.taobao.zeus.mvc.DispatcherListener;
 import com.taobao.zeus.mvc.MvcEvent;
 import com.taobao.zeus.schedule.mvc.event.JobSuccessEvent;
 import com.taobao.zeus.socket.master.MasterContext;
-import com.taobao.zeus.store.GroupManager;
-import com.taobao.zeus.store.JobHistoryManager;
+import com.taobao.zeus.store.mysql.manager.JobHistoryManager;
 /**
  * 任务失败的监听
  * 当任务失败，需要发送邮件给相关人员
@@ -20,11 +20,11 @@ import com.taobao.zeus.store.JobHistoryManager;
  */
 public class JobSuccessListener extends DispatcherListener{
 	private static Logger log=LogManager.getLogger(JobSuccessListener.class);
-	private GroupManager groupManager;
+	private JobManager jobManager;
 	
 	private JobHistoryManager jobHistoryManager;
 	public JobSuccessListener(MasterContext context){
-		groupManager=context.getGroupManager();
+		jobManager =context.getJobManager();
 		jobHistoryManager=context.getJobHistoryManager();
 	}
 	@Override
@@ -37,7 +37,7 @@ public class JobSuccessListener extends DispatcherListener{
 				}
 				log.info("The event history id is " + event.getHistoryId());
 				JobHistory history=jobHistoryManager.findJobHistory(event.getHistoryId());
-				final JobDescriptor jd=groupManager.getJobDescriptor(history.getJobId()).getX();
+				final JobDescriptor jd= jobManager.getJobDescriptor(history.getJobId()).getX();
 				if(history.getOperator()!=null){
 					//此处可以发送IM消息
 				}

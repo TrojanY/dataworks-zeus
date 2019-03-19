@@ -24,8 +24,8 @@ public interface TableManagerService extends RemoteService {
 	/**
 	 * 获取一张hive表的model
 	 * 
-	 * @param tableName
-	 * @return
+	 * @param tableName 表名
+	 * @return 表模型
 	 */
 	TableModel getTableModel(String dataBaseName, String tableName);
 
@@ -34,16 +34,15 @@ public interface TableManagerService extends RemoteService {
 
 	/**
 	 * 获取预览数据
-	 * 
-	 * @param tableName
-	 * @param part
-	 * @throws GwtException
+	 * @param  model model
+	 * @return TablePreviewModel
+	 * @throws GwtException GwtException
 	 */
 	TablePreviewModel getPreviewData(PartitionModel model) throws GwtException;
 
-	public List<PartitionModel> getPartitions(TableModel t) throws GwtException;
+	List<PartitionModel> getPartitions(TableModel t) throws GwtException;
 
-	public PartitionModel fillPartitionSize(PartitionModel p);
+	PartitionModel fillPartitionSize(PartitionModel p);
 
 
 }

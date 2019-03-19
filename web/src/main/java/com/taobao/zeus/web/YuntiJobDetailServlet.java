@@ -56,8 +56,8 @@ public class YuntiJobDetailServlet extends HttpServlet{
 		if(html.length()>0){
 			String need=html.substring(html.indexOf("<table "),html.indexOf("<p/>"));
 			need=need.replaceAll("href=\"", "target='_blank' href=\"http://"+JOBTRACKER+"/");
-			need=need.replace("Kind", "<a target='_blank' href='"+str+"'>Job</a>");
-			resp.getWriter().print("<html><head><title>Yunti Job Detail</title>" +
+			need=need.replace("Kind", "<a target='_blank' href='"+str+"'>JobTask</a>");
+			resp.getWriter().print("<html><head><title>Yunti JobTask Detail</title>" +
 					"<link rel='stylesheet' type='text/css' href='http://"+JOBTRACKER+"/static/hadoop.css'></head><body style='margin:0px;overflow-y:hidden'>" +
 					""+need+"</body></html>");
 		}

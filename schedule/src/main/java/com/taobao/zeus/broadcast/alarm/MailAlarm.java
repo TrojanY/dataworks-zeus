@@ -13,13 +13,13 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.MysqlLogManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
+import com.taobao.zeus.store.mysql.impl.MysqlLogManager;
 import com.taobao.zeus.util.Environment;
 
 public class MailAlarm extends AbstractZeusAlarm {

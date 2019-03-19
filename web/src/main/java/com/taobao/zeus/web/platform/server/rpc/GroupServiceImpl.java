@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.web.PermissionGroupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.GroupDescriptor;
 import com.taobao.zeus.model.ZeusFollow;
-import com.taobao.zeus.store.FollowManager;
-import com.taobao.zeus.store.FollowManagerOld;
-import com.taobao.zeus.store.GroupBeanOld;
-import com.taobao.zeus.store.PermissionManager;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.PermissionManager;
+import com.taobao.zeus.store.mysql.manager.UserManager;
+
 import com.taobao.zeus.web.LoginUser;
-import com.taobao.zeus.web.PermissionGroupManagerOld;
 import com.taobao.zeus.web.platform.client.module.jobmanager.GroupModel;
 import com.taobao.zeus.web.platform.client.util.GwtException;
 import com.taobao.zeus.web.platform.client.util.ZUser;
@@ -29,7 +27,7 @@ import com.taobao.zeus.web.platform.shared.rpc.GroupService;
 public class GroupServiceImpl implements GroupService{
 	private static Logger log=LoggerFactory.getLogger(GroupServiceImpl.class);
 	@Autowired
-	private PermissionGroupManagerOld permissionGroupManagerOld;
+	private PermissionGroupManager permissionGroupManager;
 	@Autowired
 	private FollowManagerOld followManagerOld;
 	@Autowired
@@ -40,7 +38,7 @@ public class GroupServiceImpl implements GroupService{
 	public String createGroup(String groupName, String parentGroupId,
 			boolean isDirectory) throws GwtException {
 		try {
-			GroupDescriptor gd=permissionGroupManagerOld.createGroup(LoginUser.getUser().getUid(), groupName, parentGroupId, isDirectory);
+			GroupDescriptor gd= permissionGroupManager.createGroup(LoginUser.getUser().getUid(), groupName, parentGroupId, isDirectory);
 			return gd.getId();
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
@@ -50,7 +48,7 @@ public class GroupServiceImpl implements GroupService{
 	@Override
 	public void deleteGroup(String groupId) throws GwtException {
 		try {
-			permissionGroupManagerOld.deleteGroup(LoginUser.getUser().getUid(), groupId);
+			permissionGroupManager.deleteGroup(LoginUser.getUser().getUid(), groupId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
 		}
@@ -58,7 +56,7 @@ public class GroupServiceImpl implements GroupService{
 
 	@Override
 	public GroupModel getGroup(String groupId) throws GwtException {
-		GroupDescriptor gd=permissionGroupManagerOld.getGroupDescriptor(groupId);
+		GroupDescriptor gd= permissionGroupManager.getGroupDescriptor(groupId);
 		GroupModel model=new GroupModel();
 		model.setLocalResources(gd.getResources());
 		model.setLocalProperties(gd.getProperties());
@@ -68,10 +66,10 @@ public class GroupServiceImpl implements GroupService{
 		model.setName(gd.getName());
 		model.setOwner(gd.getOwner());
 		model.setParent(gd.getParent());
-		model.setAdmin(permissionGroupManagerOld.hasGroupPermission(LoginUser.getUser().getUid(), groupId));
+		model.setAdmin(permissionGroupManager.hasGroupPermission(LoginUser.getUser().getUid(), groupId));
 		List<ZeusFollow> follows=followManagerOld.findGroupFollowers(Arrays.asList(groupId));
 		if(follows!=null){
-			List<String> followsName=new ArrayList<String>();
+			List<String> followsName=new ArrayList<>();
 			for(ZeusFollow zf:follows){
 				String name=userManager.findByUidFilter(zf.getUid()).getName();
 				if(name==null){
@@ -81,18 +79,19 @@ public class GroupServiceImpl implements GroupService{
 			}
 			model.setFollows(followsName);
 		}
+
 		return model;
 	}
 	
 	
 	public GroupModel getUpstreamGroup(String groupId) throws GwtException{
-		GroupBeanOld bean=permissionGroupManagerOld.getUpstreamGroupBean(groupId);
+		GroupBeanOld bean= permissionGroupManager.getUpstreamGroupBean(groupId);
 		GroupDescriptor gd=bean.getGroupDescriptor();
 		GroupModel model=new GroupModel();
 		model.setParent(bean.getParentGroupBean()==null?null:bean.getParentGroupBean().getGroupDescriptor().getId());
 		model.setLocalResources(gd.getResources());
 		model.setAllResources(bean.getHierarchyResources());
-		model.setLocalProperties(new HashMap<String, String>(gd.getProperties()));
+		model.setLocalProperties(new HashMap<>(gd.getProperties()));
 		model.setDesc(gd.getDesc());
 		model.setDirectory(gd.isDirectory());
 		model.setId(gd.getId());
@@ -105,10 +104,10 @@ public class GroupServiceImpl implements GroupService{
 		model.setOwnerName(ownerName);
 		model.setParent(gd.getParent());
 		model.setAllProperties(bean.getHierarchyProperties().getAllProperties());
-		model.setAdmin(permissionGroupManagerOld.hasGroupPermission(LoginUser.getUser().getUid(), groupId));
+		model.setAdmin(permissionGroupManager.hasGroupPermission(LoginUser.getUser().getUid(), groupId));
 		List<ZeusFollow> follows=followManagerOld.findGroupFollowers(Arrays.asList(groupId));
 		if(follows!=null){
-			List<String> followsName=new ArrayList<String>();
+			List<String> followsName=new ArrayList<>();
 			for(ZeusFollow zf:follows){
 				String name=userManager.findByUid(zf.getUid()).getName();
 				if(name==null || "".equals(name.trim())){
@@ -120,7 +119,7 @@ public class GroupServiceImpl implements GroupService{
 		}
 		
 		List<String> ladmins=permissionManager.getGroupAdmins(bean.getGroupDescriptor().getId());
-		List<String> admins=new ArrayList<String>();
+		List<String> admins=new ArrayList<>();
 		for(String s:ladmins){
 			String name=userManager.findByUid(s).getName();
 			if(name==null || "".equals(name.trim())){
@@ -130,7 +129,7 @@ public class GroupServiceImpl implements GroupService{
 		}
 		model.setAdmins(admins);
 		
-		List<String> owners=new ArrayList<String>();
+		List<String> owners=new ArrayList<>();
 		owners.add(bean.getGroupDescriptor().getOwner());
 		GroupBeanOld parent=bean.getParentGroupBean();
 		while(parent!=null){
@@ -143,7 +142,7 @@ public class GroupServiceImpl implements GroupService{
 		
 		//所有secret. 开头的配置项都进行权限控制
 		for(String key:model.getAllProperties().keySet()){
-			boolean isLocal=model.getLocalProperties().get(key)==null?false:true;
+			boolean isLocal= model.getLocalProperties().get(key) != null;
 			if(key.startsWith("secret.")){
 				if(!isLocal){
 					model.getAllProperties().put(key, "*");
@@ -194,7 +193,7 @@ public class GroupServiceImpl implements GroupService{
 		gd.setExisted(true);
 		
 		try {
-			permissionGroupManagerOld.updateGroup(LoginUser.getUser().getUid(), gd);
+			permissionGroupManager.updateGroup(LoginUser.getUser().getUid(), gd);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
 		}
@@ -203,7 +202,7 @@ public class GroupServiceImpl implements GroupService{
 	@Override
 	public void addGroupAdmin(String groupId, String uid) throws GwtException {
 		try {
-			permissionGroupManagerOld.addGroupAdmin(LoginUser.getUser().getUid(),uid, groupId);
+			permissionGroupManager.addGroupAdmin(LoginUser.getUser().getUid(),uid, groupId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
 		}
@@ -211,8 +210,8 @@ public class GroupServiceImpl implements GroupService{
 
 	@Override
 	public List<ZUser> getGroupAdmins(String groupId) {
-		List<ZeusUser> users= permissionGroupManagerOld.getGroupAdmins(groupId);
-		List<ZUser> result=new ArrayList<ZUser>();
+		List<ZeusUser> users= permissionGroupManager.getGroupAdmins(groupId);
+		List<ZUser> result=new ArrayList<>();
 		for(ZeusUser zu:users){
 			ZUser z=new ZUser();
 			z.setName(zu.getName());
@@ -226,7 +225,7 @@ public class GroupServiceImpl implements GroupService{
 	public void removeGroupAdmin(String groupId, String uid)
 			throws GwtException {
 		try {
-			permissionGroupManagerOld.removeGroupAdmin(LoginUser.getUser().getUid(),uid, groupId);
+			permissionGroupManager.removeGroupAdmin(LoginUser.getUser().getUid(),uid, groupId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
 		}
@@ -235,7 +234,7 @@ public class GroupServiceImpl implements GroupService{
 	@Override
 	public void transferOwner(String groupId, String uid) throws GwtException {
 		try {
-			permissionGroupManagerOld.grantGroupOwner(LoginUser.getUser().getUid(), uid, groupId);
+			permissionGroupManager.grantGroupOwner(LoginUser.getUser().getUid(), uid, groupId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
 		}
@@ -245,7 +244,7 @@ public class GroupServiceImpl implements GroupService{
 	public void move(String groupId, String newParentGroupId)
 			throws GwtException {
 		try {
-			permissionGroupManagerOld.moveGroup(LoginUser.getUser().getUid(), groupId, newParentGroupId);
+			permissionGroupManager.moveGroup(LoginUser.getUser().getUid(), groupId, newParentGroupId);
 		} catch (ZeusException e) {
 			log.error("move",e);
 			throw new GwtException(e.getMessage());

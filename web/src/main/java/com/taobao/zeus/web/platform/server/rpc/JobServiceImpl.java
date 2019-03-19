@@ -15,6 +15,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.taobao.zeus.model.processor.Processor;
+import com.taobao.zeus.store.mysql.manager.*;
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.web.PermissionGroupManager;
+import com.taobao.zeus.web.PermissionJobManager;
 import net.sf.json.JSONObject;
 
 import org.apache.log4j.LogManager;
@@ -26,9 +30,6 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.JobDescriptor;
-import com.taobao.zeus.model.JobDescriptorOld;
-import com.taobao.zeus.model.JobDescriptorOld.JobRunTypeOld;
-import com.taobao.zeus.model.JobDescriptorOld.JobScheduleTypeOld;
 import com.taobao.zeus.model.JobHistory;
 import com.taobao.zeus.model.JobStatus;
 import com.taobao.zeus.model.JobStatus.Status;
@@ -36,26 +37,15 @@ import com.taobao.zeus.model.JobStatus.TriggerType;
 import com.taobao.zeus.model.ZeusFollow;
 import com.taobao.zeus.socket.protocol.Protocol.ExecuteKind;
 import com.taobao.zeus.socket.worker.ClientWorker;
-import com.taobao.zeus.store.FollowManagerOld;
 import com.taobao.zeus.store.GroupBean;
-import com.taobao.zeus.store.GroupBeanOld;
 import com.taobao.zeus.store.JobBean;
-import com.taobao.zeus.store.JobBeanOld;
-import com.taobao.zeus.store.JobHistoryManager;
-import com.taobao.zeus.store.PermissionManager;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.HostGroupManager;
-import com.taobao.zeus.store.mysql.ReadOnlyGroupManager;
-import com.taobao.zeus.store.mysql.ReadOnlyGroupManagerOld;
-import com.taobao.zeus.store.mysql.persistence.HostGroupPersistence;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
-import com.taobao.zeus.store.mysql.tool.ProcesserUtil;
+import com.taobao.zeus.store.mysql.impl.ReadOnlyGroupManager;
+import com.taobao.zeus.store.mysql.persistence.HostGroup;
+import com.taobao.zeus.model.processor.ProcesserUtil;
 import com.taobao.zeus.util.DateUtil;
 import com.taobao.zeus.util.Environment;
 import com.taobao.zeus.util.Tuple;
 import com.taobao.zeus.web.LoginUser;
-import com.taobao.zeus.web.PermissionGroupManager;
-import com.taobao.zeus.web.PermissionGroupManagerOld;
 import com.taobao.zeus.web.platform.client.module.jobdisplay.job.JobHistoryModel;
 import com.taobao.zeus.web.platform.client.module.jobmanager.JobModel;
 import com.taobao.zeus.web.platform.client.module.jobmanager.JobModelAction;
@@ -69,19 +59,19 @@ public class JobServiceImpl implements JobService {
 	private static Logger log = LogManager.getLogger(JobServiceImpl.class);
 	
 	@Autowired
-	private PermissionGroupManagerOld permissionGroupManagerOld;
-	@Autowired
 	private PermissionGroupManager permissionGroupManager;
 	@Autowired
-	private ReadOnlyGroupManagerOld readOnlyGroupManagerOld;
+	private PermissionJobManager permissionJobManager;
 	@Autowired
-	private ReadOnlyGroupManager readOnlyGroupManagerAction;
+	private ReadOnlyGroupManager readOnlyGroupManager;
+	@Autowired
+	private ReadOnlyGroupManager readOnlyJobManagerAction;
 	@Autowired
 	private JobHistoryManager jobHistoryManager;
 	@Autowired
 	private UserManager userManager;
 	@Autowired
-	private FollowManagerOld followManagerOld;
+	private FollowManager followManagerOld;
 	@Autowired
 	private PermissionManager permissionManager;
 	@Autowired
@@ -91,17 +81,17 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public JobModel createJob(String jobName, String parentGroupId,
 			String jobType) throws GwtException {
-		JobRunTypeOld type = null;
+		JobRunType type = null;
 		JobModel model;
 		if (JobModel.MapReduce.equals(jobType)) {
-			type = JobRunTypeOld.MapReduce;
+			type = JobRunType.MapReduce;
 		} else if (JobModel.SHELL.equals(jobType)) {
-			type = JobRunTypeOld.Shell;
+			type = JobRunType.Shell;
 		} else if (JobModel.HIVE.equals(jobType)) {
-			type = JobRunTypeOld.Hive;
+			type = JobRunType.Hive;
 		}
 		try {
-			JobDescriptorOld jd = permissionGroupManagerOld.createJob(LoginUser
+			JobDescriptorOld jd = permissionGroupManager.createJob(LoginUser
 					.getUser().getUid(), jobName, parentGroupId, type);
 			model = getUpstreamJob(jd.getId());
 			model.setDefaultTZ(DateUtil.getDefaultTZStr());
@@ -114,7 +104,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public JobModel getUpstreamJob(String jobId) throws GwtException {
-		JobBeanOld jobBean = permissionGroupManagerOld
+		JobBeanOld jobBean = permissionGroupManager
 				.getUpstreamJobBean(jobId);
 		JobModel jobModel = new JobModel();
 
@@ -183,7 +173,7 @@ public class JobServiceImpl implements JobService {
 		}
 		jobModel.setPostProcessers(postList);
 
-		jobModel.setAdmin(permissionGroupManagerOld.hasJobPermission(LoginUser
+		jobModel.setAdmin(permissionGroupManager.hasJobPermission(LoginUser
 				.getUser().getUid(), jobId));
 
 		List<ZeusFollow> follows = followManagerOld.findJobFollowers(jobId);
@@ -333,9 +323,9 @@ public class JobServiceImpl implements JobService {
 			jd.setHostGroupId(jobModel.getHostGroupId());
 		}
 		try {
-			permissionGroupManagerOld.updateJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-//			permissionGroupManagerOld.updateActionList(jd);
+//			permissionGroupManager.updateActionList(jd);
 			return getUpstreamJob(jd.getId());
 		} catch (ZeusException e) {
 			log.error(e);
@@ -357,7 +347,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public List<Long> switchAuto(String jobId, Boolean auto)
 			throws GwtException {
-		Tuple<JobDescriptorOld, JobStatus> job = permissionGroupManagerOld
+		Tuple<JobDescriptorOld, JobStatus> job = permissionGroupManager
 				.getJobDescriptor(jobId);
 		JobDescriptorOld jd = job.getX();
 		// 如果是周期任务，在开启自动调度时，需要计算下一次任务执行时间
@@ -411,10 +401,10 @@ public class JobServiceImpl implements JobService {
 			if (!auto) {
 				// 下游存在一个开，就不能关闭
 				boolean canChange = true;
-				List<String> depdidlst = permissionGroupManagerOld
+				List<String> depdidlst = permissionGroupManager
 						.getAllDependencied(jobId);
 				if (depdidlst != null && depdidlst.size() != 0) {
-					Map<String, Tuple<JobDescriptorOld, JobStatus>> depdlst = permissionGroupManagerOld
+					Map<String, Tuple<JobDescriptorOld, JobStatus>> depdlst = permissionGroupManager
 							.getJobDescriptor(depdidlst);
 					for (Entry<String, Tuple<JobDescriptorOld, JobStatus>> entry : depdlst
 							.entrySet()) {
@@ -434,10 +424,10 @@ public class JobServiceImpl implements JobService {
 			} else {
 				// 上游全为开才能开,并且开启最近一周的状态
 				boolean canChange = true;
-				List<String> depidlst = permissionGroupManagerOld
+				List<String> depidlst = permissionGroupManager
 						.getAllDependencies(jobId);
 				if (depidlst != null && depidlst.size() != 0) {
-					Map<String, Tuple<JobDescriptorOld, JobStatus>> deplst = permissionGroupManagerOld
+					Map<String, Tuple<JobDescriptorOld, JobStatus>> deplst = permissionGroupManager
 							.getJobDescriptor(depidlst);
 					for (Entry<String, Tuple<JobDescriptorOld, JobStatus>> entry : deplst
 							.entrySet()) {
@@ -463,15 +453,15 @@ public class JobServiceImpl implements JobService {
 			throws GwtException {
 		jd.setAuto(auto);
 		try {
-			permissionGroupManagerOld.updateJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-//			List<Tuple<JobDescriptor, JobStatus>> actionlst = permissionGroupManager
+//			List<Tuple<JobDescriptor, JobStatus>> actionlst = permissionJobManager
 //					.getActionList(jd.getId());
 //			if (actionlst != null && actionlst.size() != 0) {
 //				for (Tuple<JobDescriptor, JobStatus> actionPer : actionlst) {
 //					if (!Status.RUNNING.equals(actionPer.getY().getStatus())){
 //						actionPer.getX().setAuto(auto);
-//						permissionGroupManager.updateAction(actionPer.getX());
+//						permissionJobManager.updateAction(actionPer.getX());
 //						log.info("Change the action " + actionPer.getX().getId() + " auto " + auto + ".");
 //					}else {
 //						log.warn("The job is running, and cannnot switchauto.");
@@ -502,7 +492,7 @@ public class JobServiceImpl implements JobService {
 			log.error(e);
 			throw e;
 		}
-		Tuple<JobDescriptor, JobStatus> job = permissionGroupManager
+		Tuple<JobDescriptor, JobStatus> job = permissionJobManager
 				.getJobDescriptor(jobId);
 		jobDescriptor = job.getX();
 		JobHistory history = new JobHistory();
@@ -622,7 +612,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public JobModel getJobStatus(String jobId) {
-		JobStatus jobStatus = permissionGroupManagerOld.getJobStatus(jobId);
+		JobStatus jobStatus = permissionGroupManager.getJobStatus(jobId);
 		if (jobStatus == null) {
 			return null;
 		}
@@ -639,7 +629,7 @@ public class JobServiceImpl implements JobService {
 			PagingLoadConfig config, Date startDate,Date endDate) {
 		int start = config.getOffset();
 		int limit = config.getLimit();
-		GroupBean gb = permissionGroupManager.getDownstreamGroupBean(groupId);
+		GroupBean gb = permissionJobManager.getDownstreamGroupBean(groupId);
 		Map<String, JobBean> map = gb.getAllSubJobBeans();
 		List<Tuple<JobDescriptor, JobStatus>> allJobs = new ArrayList<>();
 		if (startDate != null && endDate !=null) {
@@ -725,7 +715,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void deleteJob(String jobId) throws GwtException {
 		try {
-			permissionGroupManagerOld.deleteJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.deleteJob(LoginUser.getUser().getUid(),
 					jobId);
 		} catch (ZeusException e) {
 			log.error("删除Job失败", e);
@@ -736,7 +726,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void addJobAdmin(String jobId, String uid) throws GwtException {
 		try {
-			permissionGroupManagerOld.addJobAdmin(LoginUser.getUser().getUid(),
+			permissionGroupManager.addJobAdmin(LoginUser.getUser().getUid(),
 					uid, jobId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
@@ -746,7 +736,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void removeJobAdmin(String jobId, String uid) throws GwtException {
 		try {
-			permissionGroupManagerOld.removeJobAdmin(LoginUser.getUser()
+			permissionGroupManager.removeJobAdmin(LoginUser.getUser()
 					.getUid(), uid, jobId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
@@ -756,7 +746,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void transferOwner(String jobId, String uid) throws GwtException {
 		try {
-			permissionGroupManagerOld.grantJobOwner(LoginUser.getUser()
+			permissionGroupManager.grantJobOwner(LoginUser.getUser()
 					.getUid(), uid, jobId);
 		} catch (ZeusException e) {
 			throw new GwtException(e.getMessage());
@@ -766,7 +756,7 @@ public class JobServiceImpl implements JobService {
 	// @Override
 	// public List<JobHistoryModel> getRunningJobs(String groupId) {
 	// List<JobHistoryModel> result=new ArrayList<JobHistoryModel>();
-	// GroupBean gb=permissionGroupManagerOld.getDownstreamGroupBean(groupId);
+	// GroupBean gb=permissionGroupManager.getDownstreamGroupBean(groupId);
 	// Map<String, JobBean> beans=gb.getAllSubJobBeans();
 	// List<JobStatus> jobs=new ArrayList<JobStatus>();
 	// for(String key:beans.keySet()){
@@ -774,7 +764,7 @@ public class JobServiceImpl implements JobService {
 	// jobs.add(beans.get(key).getJobStatus());
 	// }
 	// }
-	// List<JobHistory> hiss=new ArrayList<JobHistory>();
+	// List<JobTaskHistory> hiss=new ArrayList<JobTaskHistory>();
 	// for(JobStatus js:jobs){
 	// if(js.getHistoryId()==null){
 	// hiss.add(jobHistoryManager.findLastHistoryByList(Arrays.asList(js.getJobId())).get(js.getJobId()));
@@ -782,7 +772,7 @@ public class JobServiceImpl implements JobService {
 	// hiss.add(jobHistoryManager.findJobHistory(js.getHistoryId()));
 	// }
 	// }
-	// for(JobHistory his:hiss){
+	// for(JobTaskHistory his:hiss){
 	// JobHistoryModel d=new JobHistoryModel();
 	// d.setId(his.getId());
 	// d.setName(beans.get(his.getJobId()).getJobDescriptor().getName());
@@ -819,9 +809,9 @@ public class JobServiceImpl implements JobService {
 	// gb=globe.getAllSubGroupBeans().get(groupId);
 	// }
 	// Set<String> jobs=gb.getAllSubJobBeans().keySet();
-	// List<JobHistory> list=jobHistoryManager.findRecentRunningHistory();
-	// for(Iterator<JobHistory> it=list.iterator();it.hasNext();){
-	// JobHistory j=it.next();
+	// List<JobTaskHistory> list=jobHistoryManager.findRecentRunningHistory();
+	// for(Iterator<JobTaskHistory> it=list.iterator();it.hasNext();){
+	// JobTaskHistory j=it.next();
 	// if(j.getStatus()==Status.SUCCESS || j.getStatus()==Status.FAILED){
 	// it.remove();
 	// continue;
@@ -836,7 +826,7 @@ public class JobServiceImpl implements JobService {
 	// }
 	// }
 	// List<JobHistoryModel> result=new ArrayList<JobHistoryModel>();
-	// for(JobHistory his:list){
+	// for(JobTaskHistory his:list){
 	// JobHistoryModel d=new JobHistoryModel();
 	// d.setId(his.getId());
 	// d.setName(gb.getAllSubJobBeans().get(his.getJobId()).getJobDescriptor().getName());
@@ -865,7 +855,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public List<JobHistoryModel> getAutoRunning(String groupId) {
 		List<JobHistoryModel> result = new ArrayList<>();
-		GroupBean globe = readOnlyGroupManagerAction.getGlobeGroupBean();
+		GroupBean globe = readOnlyJobManagerAction.getGlobeGroupBean();
 		GroupBean gb;
 		if (globe.getGroupDescriptor().getId().equals(groupId)) {
 			gb = globe;
@@ -925,7 +915,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public List<JobHistoryModel> getManualRunning(String groupId) {
 		GroupBean gb;
-		GroupBean globe = readOnlyGroupManagerAction
+		GroupBean globe = readOnlyJobManagerAction
 				.getGlobeGroupBeanForTreeDisplay(false);
 		if (globe.getGroupDescriptor().getId().equals(groupId)) {
 			gb = globe;
@@ -987,7 +977,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void move(String jobId, String newGroupId) throws GwtException {
 		try {
-			permissionGroupManagerOld.moveJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.moveJob(LoginUser.getUser().getUid(),
 					jobId, newGroupId);
 		} catch (ZeusException e) {
 			log.error("move", e);
@@ -997,13 +987,13 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public void syncScript(String jobId, String script) throws GwtException {
-		JobDescriptorOld jd = permissionGroupManagerOld.getJobDescriptor(jobId)
+		JobDescriptorOld jd = permissionGroupManager.getJobDescriptor(jobId)
 				.getX();
 		jd.setScript(script);
 		try {
-			permissionGroupManagerOld.updateJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-			permissionGroupManagerOld.updateActionList(jd);
+			permissionGroupManager.updateActionList(jd);
 		} catch (ZeusException e) {
 			log.error("syncScript", e);
 			throw new GwtException(
@@ -1014,7 +1004,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public List<ZUser> getJobAdmins(String jobId) {
-		List<ZeusUser> users = permissionGroupManagerOld.getJobAdmins(jobId);
+		List<ZeusUser> users = permissionGroupManager.getJobAdmins(jobId);
 		List<ZUser> result = new ArrayList<>();
 		for (ZeusUser zu : users) {
 			ZUser z = new ZUser();
@@ -1027,7 +1017,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public List<Long> getJobACtion(String jobId) {
-		List<Long> result = permissionGroupManager.getJobACtion(jobId);
+		List<Long> result = permissionJobManager.getJobACtion(jobId);
 
 		return result;
 	}
@@ -1035,7 +1025,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public void grantImportantContact(String jobId, String uid) throws GwtException {
-		if (permissionGroupManagerOld.hasJobPermission(LoginUser.getUser().getUid(), jobId)) {
+		if (permissionGroupManager.hasJobPermission(LoginUser.getUser().getUid(), jobId)) {
 			followManagerOld.grantImportantContact(jobId, uid);
 		}else {
 			throw new GwtException("您无权进行操作!");
@@ -1044,7 +1034,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public void revokeImportantContact(String jobId, String uid) throws GwtException {
-		if (permissionGroupManagerOld.hasJobPermission(LoginUser.getUser().getUid(), jobId)) {
+		if (permissionGroupManager.hasJobPermission(LoginUser.getUser().getUid(), jobId)) {
 			followManagerOld.revokeImportantContact(jobId, uid);
 		}else {
 			throw new GwtException("您无权进行操作!");
@@ -1118,8 +1108,8 @@ public class JobServiceImpl implements JobService {
 		int start = config.getOffset();
 		int limit = config.getLimit();
 		List<HostGroupModel> tmp = new ArrayList<>();
-		List<HostGroupPersistence> hostGroup = hostGroupManager.getAllHostGroup();
-		for (HostGroupPersistence persist : hostGroup) {
+		List<HostGroup> hostGroup = hostGroupManager.getAllHostGroup();
+		for (HostGroup persist : hostGroup) {
 			if (persist.getEffective() == 1) {
 				HostGroupModel r = new HostGroupModel();
 				r.setId(String.valueOf(persist.getId()));
@@ -1143,7 +1133,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void syncScriptAndHostGroupId(String jobId, String script,
 			String hostGroupId) throws GwtException {
-		JobDescriptorOld jd = permissionGroupManagerOld.getJobDescriptor(jobId)
+		JobDescriptorOld jd = permissionGroupManager.getJobDescriptor(jobId)
 				.getX();
 		jd.setScript(script);
 		if (hostGroupId == null) {
@@ -1152,9 +1142,9 @@ public class JobServiceImpl implements JobService {
 			jd.setHostGroupId(hostGroupId);
 		}
 		try {
-			permissionGroupManagerOld.updateJob(LoginUser.getUser().getUid(),
+			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-			permissionGroupManagerOld.updateActionList(jd);
+			permissionGroupManager.updateActionList(jd);
 		} catch (ZeusException e) {
 			log.error("syncScript", e);
 			throw new GwtException(
@@ -1168,7 +1158,7 @@ public class JobServiceImpl implements JobService {
 	public String getHostGroupNameById(String id) {
 		String result = null;
 		if (id != null) {
-			HostGroupPersistence persist = hostGroupManager.getHostGroupName(id);
+			HostGroup persist = hostGroupManager.getHostGroupName(id);
 			result = persist.getName();
 		}
 		return result;

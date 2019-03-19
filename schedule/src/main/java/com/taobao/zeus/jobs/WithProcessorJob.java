@@ -3,7 +3,7 @@ package com.taobao.zeus.jobs;
 import java.util.List;
 
 import org.springframework.context.ApplicationContext;
-import com.taobao.zeus.store.FileManager;
+import com.taobao.zeus.store.mysql.manager.FileManager;
 
 public class WithProcessorJob extends AbstractJob{
 

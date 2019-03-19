@@ -7,21 +7,21 @@ import com.sencha.gxt.data.shared.TreeStore;
 
 public interface FileManagerView extends IsWidget{
 
-	  public void collapse();
+	void collapse();
 
-	  public void editName(FileModel childFileModel);
+	void editName(FileModel childFileModel);
 
-	  public void expand();
+	void expand();
 
-	  public FileModel getSelectedItem();
+	FileModel getSelectedItem();
 
-	  public List<FileModel> getSelectedItems();
+	List<FileModel> getSelectedItems();
 
-	  public void selectFileModel(FileModel fileModel);
+	void selectFileModel(FileModel fileModel);
 	  
-	  public TreeStore<FileModel> getMyTreeStore();
+	TreeStore<FileModel> getMyTreeStore();
 	  
-	  public void setMyActivity();
+	void setMyActivity();
 	  
-	  public void setSharedActivity();
+	void setSharedActivity();
 }

@@ -24,6 +24,8 @@
 
     <inherits name='com.google.gwt.place.Place' />
 
+    <set-property name="gxt.css3.enabled" value="true" />
+
     <replace-with class="com.taobao.zeus.web.platform.client.theme.shortcut.ShortcutCellDefaultAppearance">
         <when-type-is class="com.taobao.zeus.web.platform.client.widget.ShortcutCell.ShortcutCellAppearance" />
     </replace-with>

@@ -42,7 +42,7 @@ public class CancelHadoopJob extends ProcessJob {
 				if (g.contains("Running job: ")) {// mapreduce
 					String jobId = g.substring(g.indexOf("job_"));
 					cmd = hadoopCmd+" job -kill " + jobId;
-				} else if (g.contains("Starting Job =")) {// hive
+				} else if (g.contains("Starting JobTask =")) {// hive
 					String jobId = g.substring(g.lastIndexOf("job_"));
 					cmd = hadoopCmd+" job -kill " + jobId;
 				}

@@ -13,7 +13,7 @@ import javax.persistence.Id;
  *
  */
 @Entity(name="zeus_user")
-public class ZeusUser{
+public class ZeusUser {
 	public enum UserStatus {
 	       WAIT_CHECK (0), CHECK_SUCCESS (1), Cancel (-1), CHECK_FAILED (-2);
 	       private int nCode ;
@@ -63,7 +63,7 @@ public class ZeusUser{
 	@Column
 	private String description;
 	public ZeusUser(String email, String name, String phone,
-			String uid) {
+					String uid) {
 		this.email = email;
 		this.name = name;
 		this.uid = uid;

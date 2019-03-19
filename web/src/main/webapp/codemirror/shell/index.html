@@ -30,7 +30,7 @@ openssl rsa -in https.key.orig -out https.key
 
 # start the server in HTTPS mode
 cd web
-sudo node ../server.js 443 'yes' &gt;&gt; ../node.log &amp;
+sudo node ../server.js 443 'yes' &gt;&gt; ../node.zeusLog &amp;
 
 # here is how to stop the server
 for pid in `ps aux | grep 'node ../server.js' | awk '{print $2}'` ; do

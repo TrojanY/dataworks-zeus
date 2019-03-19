@@ -11,40 +11,40 @@ import com.taobao.zeus.web.platform.client.module.jobmanager.GroupJobTreeModel;
 @RemoteServiceRelativePath("tree.rpc")
 public interface TreeService extends RemoteService{
 
-	public GroupJobTreeModel getTreeData();
+	GroupJobTreeModel getTreeData();
 	
-	public GroupJobTreeModel getMyTreeData();
+	GroupJobTreeModel getMyTreeData();
 	
 	/**
 	 * 获取除Id为jobId的任务以外所有依赖任务构成的目录结构
 	 * param jobId 
 	 * @return
 	 */
-	public GroupJobTreeModel getTreeDataOfOtherDependentJob(String jobId);
+	GroupJobTreeModel getTreeDataOfOtherDependentJob(String jobId);
 	/**
 	 * 任务依赖树结构
 	 * @param jobId
 	 * @return
 	 */
-	public GroupJobTreeModel getDependeeTree(String jobId);
+	GroupJobTreeModel getDependeeTree(String jobId);
 	/**
 	 * 任务依赖树结构
 	 * @param jobId
 	 * @return
 	 */
-	public String getDependeeTreeJson(String jobId);
+	String getDependeeTreeJson(String jobId);
 	
-	public String getDependerTreeJson(String jobId);
+	String getDependerTreeJson(String jobId);
 	/**
 	 * 任务被依赖树结构
 	 * @param jobId
 	 * @return
 	 */
-	public GroupJobTreeModel getDependerTree(String jobId);
+	GroupJobTreeModel getDependerTree(String jobId);
 	
-	public void follow(int type,String targetId);
+	void follow(int type,String targetId);
 	
 	
-	public void unfollow(int type,String targetId);
+	void unfollow(int type,String targetId);
 	
 }

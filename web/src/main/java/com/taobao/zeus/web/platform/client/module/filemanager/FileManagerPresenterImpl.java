@@ -24,8 +24,7 @@ public class FileManagerPresenterImpl implements FileManagerPresenter{
 	@Override
 	public boolean isEnableCreate() {
 		FileModel selectedItem = getFileManagerView().getSelectedItem();
-	    boolean folder = selectedItem == null ? false : selectedItem.isFolder();
-	    return folder;
+		return selectedItem != null && selectedItem.isFolder();
 	}
 
 	@Override

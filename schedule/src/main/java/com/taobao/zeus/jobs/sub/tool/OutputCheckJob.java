@@ -31,7 +31,7 @@ public class OutputCheckJob extends AbstractJob {
 	public Integer run() throws Exception {
 		if (jobContext.getCoreExitCode() != 0) {
 			jobContext.getJobHistory().getLog()
-					.appendZeus("Job 运行失败，不进行产出数据大小检测");
+					.appendZeus("JobTask 运行失败，不进行产出数据大小检测");
 			return 0;
 		}
 		jobContext.getJobHistory().getLog()

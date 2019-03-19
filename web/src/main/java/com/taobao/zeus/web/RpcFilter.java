@@ -7,9 +7,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +34,7 @@ import com.google.gwt.user.server.rpc.RPCServletUtils;
 import com.google.gwt.user.server.rpc.SerializationPolicy;
 import com.google.gwt.user.server.rpc.SerializationPolicyLoader;
 import com.google.gwt.user.server.rpc.SerializationPolicyProvider;
-import com.taobao.zeus.model.LogDescriptor;
-import com.taobao.zeus.store.mysql.MysqlLogManager;
+import com.taobao.zeus.store.mysql.impl.MysqlLogManager;
 
 /**
  * rpc过滤器,过滤所有.rpc请求,输出rpc响应内容
@@ -48,7 +45,7 @@ import com.taobao.zeus.store.mysql.MysqlLogManager;
  */
 public class RpcFilter implements Filter, SerializationPolicyProvider {
 	private static Logger log=LogManager.getLogger(RpcFilter.class);
-	private final Map<String, SerializationPolicy> serializationPolicyCache = new HashMap<String, SerializationPolicy>();
+	private final Map<String, SerializationPolicy> serializationPolicyCache = new HashMap<>();
 	private ServletContext context;
 	private WebApplicationContext webApplicationContext;
 	@Autowired
@@ -58,7 +55,6 @@ public class RpcFilter implements Filter, SerializationPolicyProvider {
 	public void init(FilterConfig config) throws ServletException {
 		this.context = config.getServletContext();
 		webApplicationContext = WebApplicationContextUtils.getWebApplicationContext(context);
-//		zeusLogManager = new MysqlLogManager();
 		zeusLogManager = (MysqlLogManager)webApplicationContext.getBean("zeusLogManager");
 	}
 
@@ -145,7 +141,7 @@ public class RpcFilter implements Filter, SerializationPolicyProvider {
 
 			    String responsePayload;
 			    try {
-			      Object result=null;
+			      Object result;
 			      result = serviceMethod.invoke(target, args);
 			      responsePayload = RPC.encodeResponseForSuccess(serviceMethod, result, serializationPolicy, flags);
 			    } catch (IllegalAccessException e) {

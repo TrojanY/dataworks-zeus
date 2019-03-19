@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.taobao.zeus.store.mysql.persistence.JobTaskAction;
+import com.taobao.zeus.store.mysql.persistence.JobActionBackup;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -46,10 +48,8 @@ import com.taobao.zeus.socket.master.JobElement;
 import com.taobao.zeus.socket.master.MasterContext;
 import com.taobao.zeus.socket.master.MasterWorkerHolder;
 import com.taobao.zeus.socket.master.MasterWorkerHolder.HeartBeatInfo;
-import com.taobao.zeus.store.mysql.MysqlGroupManager;
-import com.taobao.zeus.store.mysql.persistence.JobPersistence;
-import com.taobao.zeus.store.mysql.persistence.JobPersistenceBackup;
-import com.taobao.zeus.store.mysql.persistence.JobPersistenceOld;
+import com.taobao.zeus.store.mysql.impl.MysqlJobManager;
+import com.taobao.zeus.store.mysql.persistence.JobTask;
 import com.taobao.zeus.store.mysql.tool.PersistenceAndBeanConvert;
 import com.taobao.zeus.util.Tuple;
 import com.taobao.zeus.util.Environment;
@@ -204,14 +204,14 @@ public class ScheduleDump extends HttpServlet {
 							SimpleDateFormat df3 = new SimpleDateFormat(
 									"yyyyMMddHHmmss");
 							String currentDateStr = df3.format(now) + "0000";
-							List<JobPersistenceOld> jobDetails = context
+							List<JobTask> jobTaskDetails = context
 									.getGroupManagerOld().getAllJobs();
-							Map<Long, JobPersistence> actionDetails = new HashMap<Long, JobPersistence>();
+							Map<Long, JobTaskAction> actionDetails = new HashMap<Long, JobTaskAction>();
 							context.getMaster().runScheduleJobToAction(
-									jobDetails, now, df2, actionDetails,
+									jobTaskDetails, now, df2, actionDetails,
 									currentDateStr);
 							context.getMaster().runDependencesJobToAction(
-									jobDetails, actionDetails, currentDateStr,
+									jobTaskDetails, actionDetails, currentDateStr,
 									0);
 
 							Dispatcher dispatcher = context.getDispatcher();
@@ -370,21 +370,21 @@ public class ScheduleDump extends HttpServlet {
 									resp.getWriter().println("<br>内存中共"+ sum +"个controllers，清理了一周前" + cnt+ "个controllers");
 									if (toBeTransferred != null && toBeTransferred.size() > 0) {
 										int bakCount = 0;
-										MysqlGroupManager manager = ( MysqlGroupManager ) context.getApplicationContext ().getBean( "groupManager" );
+										MysqlJobManager manager = (MysqlJobManager) context.getApplicationContext ().getBean( "jobManager" );
 										HibernateTemplate template = manager.getHibernateTemplate();
 										SessionFactory factory = template.getSessionFactory();
 										Session session = factory.openSession();
 										Transaction tx = null;
 										tx = session.beginTransaction();
 										try {
-											//String sqlBak = "insert into JobPersistenceBackup (id,toJobId) select c.id, c.toJobId from JobPersistence c where c.id<"+dateStr+" and c.status<>'running'";
+											//String sqlBak = "insert into JobActionBackup (id,toJobId) select c.id, c.toJobId from JobTaskAction c where c.id<"+dateStr+" and c.status<>'running'";
 											//bakCount = session.createSQLQuery(sqlBak).executeUpdate();
-											//String sqlDel = "delete JobPersistence where id<" + dateStr + " and status<>'running'";
+											//String sqlDel = "delete JobTaskAction where id<" + dateStr + " and status<>'running'";
 											//delCount = session.createSQLQuery(sqlDel).executeUpdate();
 											resp.getWriter().println("<br><br>开始备份action表");
 											for (JobDescriptor job : toBeTransferred) {
-												JobPersistence persist = PersistenceAndBeanConvert.convert(job);
-												JobPersistenceBackup backup = new JobPersistenceBackup(persist);
+												JobTaskAction persist = PersistenceAndBeanConvert.convert(job);
+												JobActionBackup backup = new JobActionBackup(persist);
 												//resp.getWriter().println("<br>备份数据库中id为" + job.getId() + "的action");
 												
 												session.delete(persist);

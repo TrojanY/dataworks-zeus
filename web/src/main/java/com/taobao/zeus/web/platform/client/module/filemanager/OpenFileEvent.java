@@ -8,7 +8,7 @@ public class OpenFileEvent extends GwtEvent<OpenFileHandler>{
 		void onOpenFile(OpenFileEvent event);
 	}
 	private final FileModel model;
-	public static Type<OpenFileHandler> TYPE=new Type<OpenFileHandler>();
+	public static Type<OpenFileHandler> TYPE=new Type<>();
 	public OpenFileEvent(FileModel model){
 		this.model=model;
 	}

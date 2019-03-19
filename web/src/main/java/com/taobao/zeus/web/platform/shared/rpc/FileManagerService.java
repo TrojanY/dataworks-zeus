@@ -10,13 +10,13 @@ import com.taobao.zeus.web.platform.client.module.filemanager.FileModel;
 public interface FileManagerService extends RemoteService{
 	FileModel addFile(String parentId, String name, boolean folder);
 
-	public void deleteFile(String fileId) ;
+	void deleteFile(String fileId) ;
 
 	void updateFileContent(String fileId, String content);
 
 	void updateFileName(String fileId, String name);
 
-	public FileModel getFile(String id);
+	FileModel getFile(String id);
 
 	FileClientBean getUserFiles();
 	
@@ -24,7 +24,7 @@ public interface FileManagerService extends RemoteService{
 	
 	List<FileModel> getCommonFiles(FileModel fm);
 	
-	public FileModel getHomeFile(String id);
+	FileModel getHomeFile(String id);
 
 	void updateHostGroupId(String fileId, String hostGroupId);
 }

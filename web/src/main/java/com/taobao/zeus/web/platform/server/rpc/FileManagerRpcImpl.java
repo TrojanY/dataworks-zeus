@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -15,10 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.taobao.zeus.model.FileDescriptor;
-import com.taobao.zeus.store.FileManager;
+import com.taobao.zeus.store.mysql.manager.FileManager;
 import com.taobao.zeus.store.Super;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
 import com.taobao.zeus.web.LoginUser;
 import com.taobao.zeus.web.platform.client.module.filemanager.FileModel;
 import com.taobao.zeus.web.platform.shared.rpc.FileClientBean;
@@ -171,7 +171,7 @@ public class FileManagerRpcImpl implements FileManagerService{
 
 	@Override
 	public List<FileModel> getCommonFiles(FileModel fm) {
-		List<FileModel> result=new ArrayList<FileModel>();
+		List<FileModel> result=new ArrayList<>();
 		if(fm==null){
 			List<ZeusUser> users=userManager.getAllUsers();
 			for(ZeusUser zu:users){
@@ -238,7 +238,7 @@ public class FileManagerRpcImpl implements FileManagerService{
 		FileModel homeTemplate = getFile(id);
 		String content = homeTemplate.getContent();
 		ZeusUser user = LoginUser.getUser();
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("uid", user.getUid());
 		String out = RenderHomePage(content, params);
 		homeTemplate.setContent(out);

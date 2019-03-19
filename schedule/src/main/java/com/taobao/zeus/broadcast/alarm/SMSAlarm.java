@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.log4j.LogManager;
@@ -17,9 +17,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
-import com.taobao.zeus.store.UserManager;
-import com.taobao.zeus.store.mysql.MysqlLogManager;
-import com.taobao.zeus.store.mysql.persistence.ZeusUser;
+import com.taobao.zeus.store.mysql.manager.UserManager;
+import com.taobao.zeus.store.mysql.impl.MysqlLogManager;
 import com.taobao.zeus.util.Environment;
 import com.taobao.zeus.util.JsonUtil;
 

@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import com.taobao.zeus.store.mysql.manager.*;
 import io.netty.channel.Channel;
 import java.util.concurrent.ConcurrentHashMap;
 import org.quartz.Scheduler;
@@ -21,13 +22,7 @@ import org.springframework.context.ApplicationContext;
 import com.taobao.zeus.model.HostGroupCache;
 import com.taobao.zeus.mvc.Dispatcher;
 import com.taobao.zeus.schedule.mvc.ScheduleInfoLog;
-import com.taobao.zeus.store.DebugHistoryManager;
-import com.taobao.zeus.store.FileManager;
-import com.taobao.zeus.store.GroupManager;
-import com.taobao.zeus.store.GroupManagerOld;
-import com.taobao.zeus.store.JobHistoryManager;
-import com.taobao.zeus.store.ProfileManager;
-import com.taobao.zeus.store.HostGroupManager;
+
 public class MasterContext {
 
 	private static Logger log = LoggerFactory.getLogger(MasterContext.class);
@@ -145,11 +140,11 @@ public class MasterContext {
 	public void setQueue(Queue<JobElement> queue) {
 		this.queue = queue;
 	}
+	public JobManager getJobManager() {
+		return (JobManager) applicationContext.getBean("jobManager");
+	}
 	public GroupManager getGroupManager() {
 		return (GroupManager) applicationContext.getBean("groupManager");
-	}
-	public GroupManagerOld getGroupManagerOld() {
-		return (GroupManagerOld) applicationContext.getBean("groupManagerOld");
 	}
 	public MasterHandler getHandler() {
 		return handler;

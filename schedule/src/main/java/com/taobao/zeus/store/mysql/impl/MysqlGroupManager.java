@@ -100,7 +100,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements
 		assert getHibernateTemplate() != null;
 		List<JobTaskAction> list = getHibernateTemplate().execute(
 				session -> {
-					Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.JobActionPersistence where groupId="
+					Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.JobAction where groupId="
 							+ groupId);
 					return query.list();
 				});
@@ -121,7 +121,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements
 		assert getHibernateTemplate() != null;
 		List<JobGroup> list = getHibernateTemplate().execute(
 				session -> {
-					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence where parent=:groupId");
+					Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.JobGroup where parent=:groupId");
 					query.setParameter("groupId",groupId);
 					return query.list();
 				});
@@ -149,7 +149,7 @@ public class MysqlGroupManager extends HibernateDaoSupport implements
 		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
             Query query = session
-                    .createQuery("from com.taobao.zeus.store.mysql.persistence.GroupPersistence g order by g.id asc");
+                    .createQuery("from com.taobao.zeus.store.mysql.persistence.JobGroup g order by g.id asc");
             query.setMaxResults(1);
             List<JobGroup> list = query.list();
             if (list == null || list.size() == 0) {

@@ -205,7 +205,7 @@ public class ScheduleDump extends HttpServlet {
 									"yyyyMMddHHmmss");
 							String currentDateStr = df3.format(now) + "0000";
 							List<JobTask> jobTaskDetails = context
-									.getGroupManagerOld().getAllJobs();
+									.getJobManager().getAllJobs();
 							Map<Long, JobTaskAction> actionDetails = new HashMap<Long, JobTaskAction>();
 							context.getMaster().runScheduleJobToAction(
 									jobTaskDetails, now, df2, actionDetails,
@@ -278,7 +278,7 @@ public class ScheduleDump extends HttpServlet {
 														context.getScheduler()
 																.deleteJob(new JobKey(jobId,
 																		"zeus"));
-														context.getGroupManager()
+														context.getJobManager()
 																.removeJob(
 																		Long.valueOf(jobId));
 														itController.remove();
@@ -357,7 +357,7 @@ public class ScheduleDump extends HttpServlet {
 										JobController jobc = (JobController) iter.next();
 										String jobId = jobc.getJobId();
 										if (Long.parseLong(jobId) < Long.parseLong(dateStr)) {
-											Tuple<JobDescriptor, JobStatus> tuple = context.getGroupManager().getJobDescriptor(jobId);
+											Tuple<JobDescriptor, JobStatus> tuple = context.getJobManager().getJobDescriptor(jobId);
 											JobStatus status = tuple.getY();
 											if (!Status.RUNNING.equals(status.getStatus())) {
 												toBeTransferred.add(tuple.getX());
@@ -383,7 +383,7 @@ public class ScheduleDump extends HttpServlet {
 											//delCount = session.createSQLQuery(sqlDel).executeUpdate();
 											resp.getWriter().println("<br><br>开始备份action表");
 											for (JobDescriptor job : toBeTransferred) {
-												JobTaskAction persist = PersistenceAndBeanConvert.convert(job);
+												JobTaskAction persist = PersistenceAndBeanConvert.convert(job,1);
 												JobActionBackup backup = new JobActionBackup(persist);
 												//resp.getWriter().println("<br>备份数据库中id为" + job.getId() + "的action");
 												

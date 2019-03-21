@@ -298,6 +298,8 @@ public class PersistenceAndBeanConvert {
 		return persist;
 	}
 
+	public static JobTaskAction convert(JobDescriptor jd, int type) {return null;}
+
 	public static JobTask convert(JobDescriptor jd) {
 		if (jd == null) {
 			return null;

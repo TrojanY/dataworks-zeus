@@ -100,11 +100,11 @@ public class TableManagerRpcImpl implements TableManagerService {
 			} catch (ZeusException e) {
 				throw new GwtException("获取分页表失败！", e);
 			}
-			return new PagingLoadResultBean<TableModel>(tl, totalNum,
+			return new PagingLoadResultBean<>(tl, totalNum,
 					loadConfig.getOffset());
 		} else {
-			return new PagingLoadResultBean<TableModel>(
-					Collections.<TableModel> emptyList(), 0,
+			return new PagingLoadResultBean<>(
+					Collections.emptyList(), 0,
 					loadConfig.getOffset());
 		}
 
@@ -114,7 +114,7 @@ public class TableManagerRpcImpl implements TableManagerService {
 		if (tl == null) {
 			return null;
 		}
-		List<TableModel> tml = new ArrayList<TableModel>();
+		List<TableModel> tml = new ArrayList<>();
 		for (Table t : tl) {
 			tml.add(convert(t));
 		}
@@ -123,9 +123,6 @@ public class TableManagerRpcImpl implements TableManagerService {
 
 	/**
 	 * 将hive.metastore接口中的Table对象转换为TableModel
-	 * 
-	 * @param t
-	 * @return
 	 */
 	private TableModel convert(Table t) {
 		if (t == null) {
@@ -156,9 +153,6 @@ public class TableManagerRpcImpl implements TableManagerService {
 
 	/**
 	 * 将fieldSchema转换为ColumnModel
-	 * 
-	 * @param fs
-	 * @return ColumnModel
 	 */
 	private TableColumnModel convert(FieldSchema fs) {
 		if (fs == null) {
@@ -175,7 +169,7 @@ public class TableManagerRpcImpl implements TableManagerService {
 		if (fss == null) {
 			return null;
 		}
-		List<TableColumnModel> l = new ArrayList<TableColumnModel>();
+		List<TableColumnModel> l = new ArrayList<>();
 		for (FieldSchema fs : fss) {
 			l.add(convert(fs));
 		}
@@ -184,7 +178,7 @@ public class TableManagerRpcImpl implements TableManagerService {
 
 	@Override
 	public List<PartitionModel> getPartitions(TableModel t) throws GwtException {
-		List<PartitionModel> pml = null;
+		List<PartitionModel> pml;
 		try {
 			Table tb = tableManager.getTable(t.getDbName(), t.getName());
 			if(tb.getPartitionKeysSize()<=0){
@@ -198,18 +192,18 @@ public class TableManagerRpcImpl implements TableManagerService {
 				pm.setInputFormat(t.getInputFormat());
 				pm.setPath(t.getPath());
 				pm.setSerDeClass(t.getSerDeClass());
-				pml = new ArrayList<PartitionModel>(1);
+				pml = new ArrayList<>(1);
 				pml.add(pm);
 				return pml;
 			}
 			List<Partition> pl = tableManager.getPartitions(t.getDbName(), t.getName(), 40);
-			pml = new ArrayList<PartitionModel>(pl.size());
+			pml = new ArrayList<>(pl.size());
 
 			for (Partition p : pl) {
 				PartitionModel pm = new PartitionModel();
 				StorageDescriptor sd = p.getSd();
 				// 分区字段
-				List<String> pks = new ArrayList<String>(
+				List<String> pks = new ArrayList<>(
 						tb.getPartitionKeysSize());
 				Iterator<String> vi = p.getValuesIterator();
 				// 拼接分区字段
@@ -255,14 +249,10 @@ public class TableManagerRpcImpl implements TableManagerService {
 
 	/**
 	 * 分隔符如果是数字的话，转换为对应的ascll字符，再转换为String
-	 * 
-	 * @param s
-	 * @return
 	 */
 	private String tansToStringIfInt(String s) {
 		if (isInteger(s)) {
-			return new StringBuffer().append(
-					(char) Integer.valueOf(s).intValue()).toString();
+			return String.valueOf((char) Integer.valueOf(s).intValue());
 		}
 		return s;
 	}
@@ -275,7 +265,7 @@ public class TableManagerRpcImpl implements TableManagerService {
 			String path = model.getPath();
 			JobContext jobContext = JobContext.getTempJobContext(JobContext.SYSTEM_RUN);
 			jobContext.setProperties(new HierarchyProperties(
-					new HashMap<String, String>()));
+					new HashMap<>()));
 			jobContext.getProperties().setProperty("preview.hdfs.path", path);
 			jobContext.getProperties().setProperty("preview.hdfs.inputFormat",
 					model.getInputFormat());
@@ -294,7 +284,7 @@ public class TableManagerRpcImpl implements TableManagerService {
 			String logContent = job.getJobContext().getJobHistory().getLog()
 					.getContent();
 			// log.error("---\n" + logContent + "============\n");
-			List<Tuple<Integer, List<String>>> datas = new ArrayList<Tuple<Integer, List<String>>>();
+			List<Tuple<Integer, List<String>>> datas = new ArrayList<>();
 			int count = 0;
 			// rcfile没有FieldDelim，读数据采用默认delim '\001'
 			char fieldDelim = model.getFieldDelim() == null ? DEFAULT_FIELD_DELIM
@@ -308,17 +298,17 @@ public class TableManagerRpcImpl implements TableManagerService {
 					if (fields.length == 0) {
 						continue;
 					}
-					List<String> list = new ArrayList<String>();
+					List<String> list = new ArrayList<>();
 					for (int i = 0; i < fields.length
 							&& i < model.getCols().size(); i++) {
 						list.add(fields[i]);
 					}
-					datas.add(new Tuple<Integer, List<String>>(count, list));
+					datas.add(new Tuple<>(count, list));
 				}
 				count++;
 			}
 			result = new TablePreviewModel();
-			List<String> headers = new ArrayList<String>();
+			List<String> headers = new ArrayList<>();
 			for (TableColumnModel col : model.getCols()) {
 				headers.add(col.getName());
 			}

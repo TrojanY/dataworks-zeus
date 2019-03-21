@@ -1,10 +1,8 @@
 package com.taobao.zeus.web.platform.client.module.filemanager;
 
-import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -36,7 +34,7 @@ public class FileMenu implements IsWidget {
   private SelectionHandler<MenuItem> openSelectionHandler;
   private SelectionHandler<MenuItem> deleteSelectionHandler;
 
-  public FileMenu(FileManagerPresenter fileSystemPresenter) {
+  FileMenu(FileManagerPresenter fileSystemPresenter) {
     this.fileSystemPresenter = fileSystemPresenter;
   }
 
@@ -45,7 +43,7 @@ public class FileMenu implements IsWidget {
     return fileMenu;
   }
 
-  public Menu getFileMenu() {
+  Menu getFileMenu() {
     if (fileMenu == null) {
       fileMenu = new Menu();
       fileMenu.add(getCreateFolderMenuItem());
@@ -73,23 +71,20 @@ public class FileMenu implements IsWidget {
 
   private BeforeShowHandler getBeforeShowHandler() {
     if (beforeShowHandler == null) {
-      beforeShowHandler = new BeforeShowHandler() {
-        @Override
-        public void onBeforeShow(BeforeShowEvent event) {
-          boolean isEnableCreate = getPresenter().isEnableCreate();
-          boolean isEnableOpen = getPresenter().isEnableOpen();
-          boolean isEnableDelete = getPresenter().isEnableDelete();
-          boolean isEnableEditName = getPresenter().isEnableEditName();
-          getCreateFolderMenuItem().setEnabled(isEnableCreate);
-          getCreateHiveMenuItem().setEnabled(isEnableCreate);
-          getCreateShellMenuItem().setEnabled(isEnableCreate);
-          getCreateTextMenuItem().setEnabled(isEnableCreate);
-          getExpandMenuItem().setEnabled(isEnableCreate);
-          getCollapseMenuItem().setEnabled(isEnableCreate);
-          getEditNameMenuItem().setEnabled(isEnableEditName);
-          getOpenMenuItem().setEnabled(isEnableOpen);
-          getDeleteMenuItem().setEnabled(isEnableDelete);
-        }
+      beforeShowHandler = event -> {
+        boolean isEnableCreate = getPresenter().isEnableCreate();
+        boolean isEnableOpen = getPresenter().isEnableOpen();
+        boolean isEnableDelete = getPresenter().isEnableDelete();
+        boolean isEnableEditName = getPresenter().isEnableEditName();
+        getCreateFolderMenuItem().setEnabled(isEnableCreate);
+        getCreateHiveMenuItem().setEnabled(isEnableCreate);
+        getCreateShellMenuItem().setEnabled(isEnableCreate);
+        getCreateTextMenuItem().setEnabled(isEnableCreate);
+        getExpandMenuItem().setEnabled(isEnableCreate);
+        getCollapseMenuItem().setEnabled(isEnableCreate);
+        getEditNameMenuItem().setEnabled(isEnableEditName);
+        getOpenMenuItem().setEnabled(isEnableOpen);
+        getDeleteMenuItem().setEnabled(isEnableDelete);
       };
     }
     return beforeShowHandler;
@@ -105,12 +100,7 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getCollapseSelectionHandler() {
     if (collapseSelectionHandler == null) {
-      collapseSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-          getPresenter().onCollapse();
-        }
-      };
+      collapseSelectionHandler = event -> getPresenter().onCollapse();
     }
     return collapseSelectionHandler;
   }
@@ -156,13 +146,10 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getCreateSelectionHandler() {
     if (createSelectionHandler == null) {
-      createSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-        	Boolean folder = event.getSelectedItem().<Boolean> getData(FILE_TYPE);
-          String suffix=event.getSelectedItem().getData(FILE_SUFFIX);
-          getPresenter().onCreate(folder,suffix);
-        }
+      createSelectionHandler = event -> {
+          Boolean folder = event.getSelectedItem().<Boolean> getData(FILE_TYPE);
+        String suffix=event.getSelectedItem().getData(FILE_SUFFIX);
+        getPresenter().onCreate(folder,suffix);
       };
     }
     return createSelectionHandler;
@@ -179,12 +166,7 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getDeleteSelectionHandler() {
     if (deleteSelectionHandler == null) {
-      deleteSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-          getPresenter().onDelete();
-        }
-      };
+      deleteSelectionHandler = event -> getPresenter().onDelete();
     }
     return deleteSelectionHandler;
   }
@@ -199,12 +181,7 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getEditNameSelectionHandler() {
     if (editNameSelectionHandler == null) {
-      editNameSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-          getPresenter().onEditName();
-        }
-      };
+      editNameSelectionHandler = event -> getPresenter().onEditName();
     }
     return editNameSelectionHandler;
   }
@@ -219,12 +196,7 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getExpandSelectionHandler() {
     if (expandSelectionHandler == null) {
-      expandSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-          getPresenter().onExpand();
-        }
-      };
+      expandSelectionHandler = event -> getPresenter().onExpand();
     }
     return expandSelectionHandler;
   }
@@ -239,16 +211,8 @@ public class FileMenu implements IsWidget {
 
   private SelectionHandler<MenuItem> getOpenSelectionHandler() {
     if (openSelectionHandler == null) {
-      openSelectionHandler = new SelectionHandler<MenuItem>() {
-        @Override
-        public void onSelection(SelectionEvent<MenuItem> event) {
-          getPresenter().onOpen();
-        }
-      };
+      openSelectionHandler = event -> getPresenter().onOpen();
     }
     return openSelectionHandler;
   }
-
-
-
 }

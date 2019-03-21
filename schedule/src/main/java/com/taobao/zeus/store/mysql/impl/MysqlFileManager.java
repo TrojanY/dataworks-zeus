@@ -58,7 +58,7 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 		return getHibernateTemplate()
 				.execute(session -> {
 					Query query = session
-							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where parent=:parent");
+							.createQuery("from com.taobao.zeus.store.mysql.persistence.JobFile where parent=:parent");
 					query.setParameter("parent", Long.valueOf(id));
 					List<JobFile> fps = query.list();
 					List<FileDescriptor> list1 = new ArrayList<>();
@@ -76,7 +76,7 @@ public class MysqlFileManager extends HibernateDaoSupport implements
 		List<JobFile> list = getHibernateTemplate()
 				.execute(session -> {
 					Query query = session
-							.createQuery("from com.taobao.zeus.store.mysql.persistence.FilePersistence where owner=:owner and parent=null");
+							.createQuery("from com.taobao.zeus.store.mysql.persistence.JobFile where owner=:owner and parent=null");
 					query.setParameter("owner", uid);
 					List<JobFile> list1 = query.list();
 					if (list1 == null || list1.isEmpty()) {

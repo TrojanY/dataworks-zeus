@@ -11,15 +11,15 @@
     field="accordionLayoutAppearance" />
 	
 	<ui:with type="com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData" field="barLayout" >
-		<ui:attributes margins="{abc}" size="80"></ui:attributes>
+		<ui:attributes margins="{abc}" size="80"/>
 	</ui:with>
 	<ui:with type="com.sencha.gxt.widget.core.client.container.MarginData" field="screenLayout">
-		<ui:attributes margins="{abc}" ></ui:attributes>
+		<ui:attributes margins="{abc}" />
 	</ui:with>
 	
 	<container:AccordionLayoutContainer >
-		<gxt:ContentPanel heading="我的文档" ui:field="myDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
-		<gxt:ContentPanel heading="公共文档" ui:field="commonDoc" appearance="{accordionLayoutAppearance}"></gxt:ContentPanel>
+		<gxt:ContentPanel heading="我的文档" ui:field="myDoc" appearance="{accordionLayoutAppearance}"/>
+		<gxt:ContentPanel heading="公共文档" ui:field="commonDoc" appearance="{accordionLayoutAppearance}"/>
 	</container:AccordionLayoutContainer>
 	
 </ui:UiBinder> 

@@ -7,9 +7,7 @@ import java.util.List;
 
 import com.taobao.zeus.model.ZeusFollow;
 import com.taobao.zeus.store.GroupBean;
-import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.mysql.manager.FollowManager;
-import com.taobao.zeus.store.mysql.manager.GroupManager;
 import com.taobao.zeus.store.mysql.manager.JobManager;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;

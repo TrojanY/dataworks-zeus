@@ -30,6 +30,8 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 import com.taobao.zeus.client.ZeusException;
 import com.taobao.zeus.model.JobDescriptor;
+import com.taobao.zeus.model.JobDescriptor.JobRunType;
+import com.taobao.zeus.model.JobDescriptor.JobScheduleType;
 import com.taobao.zeus.model.JobHistory;
 import com.taobao.zeus.model.JobStatus;
 import com.taobao.zeus.model.JobStatus.Status;
@@ -91,9 +93,9 @@ public class JobServiceImpl implements JobService {
 			type = JobRunType.Hive;
 		}
 		try {
-			JobDescriptorOld jd = permissionGroupManager.createJob(LoginUser
+			JobDescriptor jd = permissionGroupManager.createJob(LoginUser
 					.getUser().getUid(), jobName, parentGroupId, type);
-			model = getUpstreamJob(jd.getId());
+			model = getUpstreamJob(jd.getJobId());
 			model.setDefaultTZ(DateUtil.getDefaultTZStr());
 			return model;
 		} catch (ZeusException e) {
@@ -104,7 +106,7 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public JobModel getUpstreamJob(String jobId) throws GwtException {
-		JobBeanOld jobBean = permissionGroupManager
+		JobBean jobBean = permissionGroupManager
 				.getUpstreamJobBean(jobId);
 		JobModel jobModel = new JobModel();
 
@@ -113,24 +115,24 @@ public class JobServiceImpl implements JobService {
 		jobModel.setDependencies(jobBean.getJobDescriptor().getDependencies());
 		jobModel.setDesc(jobBean.getJobDescriptor().getDesc());
 		jobModel.setGroupId(jobBean.getJobDescriptor().getGroupId());
-		jobModel.setId(jobBean.getJobDescriptor().getId());
+		jobModel.setId(jobBean.getJobDescriptor().getJobId());
 		String jobRunType = null;
-		if (jobBean.getJobDescriptor().getJobType() == JobRunTypeOld.MapReduce) {
+		if (jobBean.getJobDescriptor().getJobType() == JobRunType.MapReduce) {
 			jobRunType = JobModel.MapReduce;
-		} else if (jobBean.getJobDescriptor().getJobType() == JobRunTypeOld.Shell) {
+		} else if (jobBean.getJobDescriptor().getJobType() == JobRunType.Shell) {
 			jobRunType = JobModel.SHELL;
-		} else if (jobBean.getJobDescriptor().getJobType() == JobRunTypeOld.Hive) {
+		} else if (jobBean.getJobDescriptor().getJobType() == JobRunType.Hive) {
 			jobRunType = JobModel.HIVE;
 		}
 		jobModel.setJobRunType(jobRunType);
 		String jobScheduleType = null;
-		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleTypeOld.Dependent) {
+		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleType.Dependent) {
 			jobScheduleType = JobModel.DEPEND_JOB;
 		}
-		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleTypeOld.Independent) {
+		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleType.Independent) {
 			jobScheduleType = JobModel.INDEPEN_JOB;
 		}
-		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleTypeOld.CyleJob) {
+		if (jobBean.getJobDescriptor().getScheduleType() == JobScheduleType.CyleJob) {
 			jobScheduleType = JobModel.CYCLE_JOB;
 		}
 		jobModel.setJobScheduleType(jobScheduleType);
@@ -203,7 +205,7 @@ public class JobServiceImpl implements JobService {
 
 		List<String> owners = new ArrayList<>();
 		owners.add(jobBean.getJobDescriptor().getOwner());
-		GroupBeanOld parent = jobBean.getGroupBean();
+		GroupBean parent = jobBean.getGroupBean();
 		while (parent != null) {
 			if (!owners.contains(parent.getGroupDescriptor().getOwner())) {
 				owners.add(parent.getGroupDescriptor().getOwner());
@@ -277,30 +279,30 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public JobModel updateJob(JobModel jobModel) throws GwtException {
-		JobDescriptorOld jd = new JobDescriptorOld();
+		JobDescriptor jd = new JobDescriptor();
 		jd.setCronExpression(jobModel.getCronExpression());
 		jd.setDependencies(jobModel.getDependencies());
 		jd.setDesc(jobModel.getDesc());
 		jd.setGroupId(jobModel.getGroupId());
-		jd.setId(jobModel.getId());
-		JobRunTypeOld type = null;
+		jd.setJobId(jobModel.getId());
+		JobRunType type = null;
 		if (jobModel.getJobRunType().equals(JobModel.MapReduce)) {
-			type = JobRunTypeOld.MapReduce;
+			type = JobRunType.MapReduce;
 		} else if (jobModel.getJobRunType().equals(JobModel.SHELL)) {
-			type = JobRunTypeOld.Shell;
+			type = JobRunType.Shell;
 		} else if (jobModel.getJobRunType().equals(JobModel.HIVE)) {
-			type = JobRunTypeOld.Hive;
+			type = JobRunType.Hive;
 		}
 		jd.setJobType(type);
-		JobScheduleTypeOld scheduleType = null;
+		JobScheduleType scheduleType = null;
 		if (JobModel.DEPEND_JOB.equals(jobModel.getJobScheduleType())) {
-			scheduleType = JobScheduleTypeOld.Dependent;
+			scheduleType = JobScheduleType.Dependent;
 		}
 		if (JobModel.INDEPEN_JOB.equals(jobModel.getJobScheduleType())) {
-			scheduleType = JobScheduleTypeOld.Independent;
+			scheduleType = JobScheduleType.Independent;
 		}
 		if (JobModel.CYCLE_JOB.equals(jobModel.getJobScheduleType())) {
-			scheduleType = JobScheduleTypeOld.CyleJob;
+			scheduleType = JobScheduleType.CyleJob;
 		}
 		jd.setName(jobModel.getName());
 		jd.setOwner(jobModel.getOwner());
@@ -318,7 +320,7 @@ public class JobServiceImpl implements JobService {
 		jd.setHost(jobModel.getHost());
 		if (jobModel.getHostGroupId() == null) {
 			jd.setHostGroupId(Environment.getDefaultWorkerGroupId());
-			log.error("job id: " + jd.getId() + " is not setHostGroupId and using the default");
+			log.error("job id: " + jd.getJobId() + " is not setHostGroupId and using the default");
 		}else {
 			jd.setHostGroupId(jobModel.getHostGroupId());
 		}
@@ -326,7 +328,7 @@ public class JobServiceImpl implements JobService {
 			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
 //			permissionGroupManager.updateActionList(jd);
-			return getUpstreamJob(jd.getId());
+			return getUpstreamJob(jd.getJobId());
 		} catch (ZeusException e) {
 			log.error(e);
 			throw new GwtException(e.getMessage());
@@ -347,14 +349,14 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public List<Long> switchAuto(String jobId, Boolean auto)
 			throws GwtException {
-		Tuple<JobDescriptorOld, JobStatus> job = permissionGroupManager
+		Tuple<JobDescriptor, JobStatus> job = permissionGroupManager
 				.getJobDescriptor(jobId);
-		JobDescriptorOld jd = job.getX();
+        JobDescriptor jd = job.getX();
 		// 如果是周期任务，在开启自动调度时，需要计算下一次任务执行时间
 		// 2 代表周期调度
 		List<Long> notSatisfied = new ArrayList<>();
 		if (auto
-				&& jd.getScheduleType() == JobDescriptorOld.JobScheduleTypeOld.CyleJob) {
+				&& jd.getScheduleType() == JobDescriptor.JobScheduleType.CyleJob) {
 			String tz = jd.getTimezone();
 			// 小时任务，计算下一个小时的开始时间
 			if (jd.getCycle().equals("hour")) {
@@ -402,15 +404,15 @@ public class JobServiceImpl implements JobService {
 				// 下游存在一个开，就不能关闭
 				boolean canChange = true;
 				List<String> depdidlst = permissionGroupManager
-						.getAllDependencied(jobId);
+						.getDownstreamDependencies(jobId);
 				if (depdidlst != null && depdidlst.size() != 0) {
-					Map<String, Tuple<JobDescriptorOld, JobStatus>> depdlst = permissionGroupManager
+					Map<String, Tuple<JobDescriptor, JobStatus>> depdlst = permissionGroupManager
 							.getJobDescriptor(depdidlst);
-					for (Entry<String, Tuple<JobDescriptorOld, JobStatus>> entry : depdlst
+					for (Entry<String, Tuple<JobDescriptor, JobStatus>> entry : depdlst
 							.entrySet()) {
 						if (entry.getValue().getX().getAuto()) {
 							notSatisfied.add(Long.parseLong(entry.getValue()
-									.getX().getId()));
+									.getX().getJobId()));
 							canChange = false;
 						}
 					}
@@ -425,15 +427,15 @@ public class JobServiceImpl implements JobService {
 				// 上游全为开才能开,并且开启最近一周的状态
 				boolean canChange = true;
 				List<String> depidlst = permissionGroupManager
-						.getAllDependencies(jobId);
+						.getUpstreamDependencies(jobId);
 				if (depidlst != null && depidlst.size() != 0) {
-					Map<String, Tuple<JobDescriptorOld, JobStatus>> deplst = permissionGroupManager
+					Map<String, Tuple<JobDescriptor, JobStatus>> deplst = permissionGroupManager
 							.getJobDescriptor(depidlst);
-					for (Entry<String, Tuple<JobDescriptorOld, JobStatus>> entry : deplst
+					for (Entry<String, Tuple<JobDescriptor, JobStatus>> entry : deplst
 							.entrySet()) {
 						if (!entry.getValue().getX().getAuto()) {
 							notSatisfied.add(Long.parseLong(entry.getValue()
-									.getX().getId()));
+									.getX().getJobId()));
 							canChange = false;
 						}
 					}
@@ -449,7 +451,7 @@ public class JobServiceImpl implements JobService {
 		return notSatisfied;
 	}
 
-	private void ChangeAuto(Boolean auto, JobDescriptorOld jd)
+	private void ChangeAuto(Boolean auto, JobDescriptor jd)
 			throws GwtException {
 		jd.setAuto(auto);
 		try {
@@ -497,7 +499,7 @@ public class JobServiceImpl implements JobService {
 		jobDescriptor = job.getX();
 		JobHistory history = new JobHistory();
 		history.setJobId(jobId);
-		history.setToJobId(jobDescriptor.getToJobId());
+		history.setActionId(jobDescriptor.getActionId());
 		history.setTriggerType(triggerType);
 //		history.setOperator(LoginUser.getUser().getUid());
 		history.setOperator(jobDescriptor.getOwner());
@@ -545,7 +547,7 @@ public class JobServiceImpl implements JobService {
 		JobHistoryModel d = new JobHistoryModel();
 		d.setId(his.getId());
 		d.setJobId(his.getJobId());
-		d.setToJobId(his.getToJobId());
+		d.setToJobId(his.getActionId());
 		d.setStartTime(his.getStartTime());
 		d.setEndTime(his.getEndTime());
 		d.setExecuteHost(his.getExecuteHost());
@@ -581,7 +583,7 @@ public class JobServiceImpl implements JobService {
 			JobHistoryModel d = new JobHistoryModel();
 			d.setId(his.getId());
 			d.setJobId(his.getJobId());
-			d.setToJobId(his.getToJobId());
+			d.setToJobId(his.getActionId());
 			d.setStartTime(his.getStartTime());
 			d.setEndTime(his.getEndTime());
 			d.setExecuteHost(his.getExecuteHost());
@@ -660,7 +662,7 @@ public class JobServiceImpl implements JobService {
 
 			List<String> jobIds = new ArrayList<>();
 			for (Tuple<JobDescriptor, JobStatus> tuple : allJobs) {
-				jobIds.add(tuple.getX().getId());
+				jobIds.add(tuple.getX().getJobId());
 				if (tuple.getX().getDependencies()!=null) {
 					for (String deps : tuple.getX().getDependencies()) {
 						if (!jobIds.contains(deps)) {
@@ -698,8 +700,8 @@ public class JobServiceImpl implements JobService {
 						.getStatus().getId());
 				model.setName(jd.getName());
 				model.setAuto(jd.getAuto());
-				model.setToJobId(jd.getToJobId());
-				JobHistory his = jobHisMap.get(jd.getId());
+				model.setToJobId(jd.getActionId());
+				JobHistory his = jobHisMap.get(jd.getJobId());
 				if (his != null && his.getStartTime() != null) {
 					SimpleDateFormat format = new SimpleDateFormat("MM-dd HH:mm:ss");
 					model.setLastStatus(format.format(his.getStartTime())
@@ -887,7 +889,7 @@ public class JobServiceImpl implements JobService {
 				d.setOwner(gb.getAllSubJobBeans().get(his.getJobId())
 						.getJobDescriptor().getOwner());
 				d.setJobId(his.getJobId());
-				d.setToJobId(his.getToJobId());
+				d.setToJobId(his.getActionId());
 				d.setStartTime(his.getStartTime());
 				d.setEndTime(his.getEndTime());
 				d.setExecuteHost(his.getExecuteHost());
@@ -950,7 +952,7 @@ public class JobServiceImpl implements JobService {
 				d.setOwner(gb.getAllSubJobBeans().get(his.getJobId())
 						.getJobDescriptor().getOwner());
 				d.setJobId(his.getJobId());
-				d.setToJobId(his.getToJobId());
+				d.setToJobId(his.getActionId());
 				d.setStartTime(his.getStartTime());
 				d.setEndTime(his.getEndTime());
 				d.setExecuteHost(his.getExecuteHost());
@@ -987,13 +989,13 @@ public class JobServiceImpl implements JobService {
 
 	@Override
 	public void syncScript(String jobId, String script) throws GwtException {
-		JobDescriptorOld jd = permissionGroupManager.getJobDescriptor(jobId)
+		JobDescriptor jd = permissionGroupManager.getJobDescriptor(jobId)
 				.getX();
 		jd.setScript(script);
 		try {
 			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-			permissionGroupManager.updateActionList(jd);
+			permissionGroupManager.updateJobActionList(jd);
 		} catch (ZeusException e) {
 			log.error("syncScript", e);
 			throw new GwtException(
@@ -1133,7 +1135,7 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public void syncScriptAndHostGroupId(String jobId, String script,
 			String hostGroupId) throws GwtException {
-		JobDescriptorOld jd = permissionGroupManager.getJobDescriptor(jobId)
+		JobDescriptor jd = permissionGroupManager.getJobDescriptor(jobId)
 				.getX();
 		jd.setScript(script);
 		if (hostGroupId == null) {
@@ -1144,7 +1146,7 @@ public class JobServiceImpl implements JobService {
 		try {
 			permissionGroupManager.updateJob(LoginUser.getUser().getUid(),
 					jd);
-			permissionGroupManager.updateActionList(jd);
+			permissionGroupManager.updateJobActionList(jd);
 		} catch (ZeusException e) {
 			log.error("syncScript", e);
 			throw new GwtException(

@@ -23,7 +23,7 @@ public class MysqlHostGroupManager extends HibernateDaoSupport implements HostGr
 	public List<HostRelation> getAllHostRelations() {
 		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
-			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostRelationPersistence");
+			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostRelation");
 			return query.list();
 		});
 	}
@@ -31,7 +31,7 @@ public class MysqlHostGroupManager extends HibernateDaoSupport implements HostGr
 	public List<HostRelation> getHostRelations(final String hostGroupId) {
 		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
-			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostRelationPersistence where hostGroupId=" + hostGroupId);
+			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostRelation where hostGroupId=" + hostGroupId);
 			return query.list();
 		});
 	}
@@ -67,7 +67,7 @@ public class MysqlHostGroupManager extends HibernateDaoSupport implements HostGr
 	public List<HostGroup> getAllHostGroup(){
 		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
-			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostGroupPersistence");
+			Query query = session.createQuery("from com.taobao.zeus.store.mysql.persistence.HostGroup");
 			return query.list();
 		});
 	}

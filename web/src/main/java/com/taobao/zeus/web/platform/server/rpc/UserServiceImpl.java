@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.taobao.zeus.store.mysql.manager.GroupManager;
 import com.taobao.zeus.store.mysql.manager.JobManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import org.slf4j.Logger;
@@ -33,9 +34,9 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 	@Autowired
 	private UserManager userManager;
 
-	private JobManager jobManager;
-	public void setJobManager(JobManager jobManager) {
-		this.jobManager = jobManager;
+	private GroupManager groupManager;
+	public void setGroupManager(GroupManager groupManager) {
+		this.groupManager = groupManager;
 	}
 
 	@Override
@@ -271,11 +272,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 			if(newUser.getIsEffective()==UserStatus.CHECK_SUCCESS.value()){
 				//1.审核通过后,给组帐号添加大目录
 				if(newUser != null && newUser.getUserType()==0){
-					String rootGroupId = jobManager.getRootGroupId();
+					String rootGroupId = groupManager.getRootGroupId();
 					if(rootGroupId != null){
 						try {
-							if (!jobManager.IsExistedBelowRootGroup(newUser.getUid())) {
-								jobManager.createGroup(newUser.getUid(), newUser.getUid(), rootGroupId, true);
+							if (!groupManager.IsExistedBelowRootGroup(newUser.getUid())) {
+								groupManager.createGroup(newUser.getUid(), newUser.getUid(), rootGroupId, true);
 							}else {
 								log.warn("根目录下一层已存在同名组"+newUser.getUid());
 							}

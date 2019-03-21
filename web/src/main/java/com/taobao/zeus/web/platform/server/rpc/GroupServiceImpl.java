@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import com.taobao.zeus.store.GroupBean;
+import com.taobao.zeus.store.mysql.manager.FollowManager;
 import com.taobao.zeus.store.mysql.persistence.ZeusUser;
 import com.taobao.zeus.web.PermissionGroupManager;
 import org.slf4j.Logger;
@@ -29,7 +31,7 @@ public class GroupServiceImpl implements GroupService{
 	@Autowired
 	private PermissionGroupManager permissionGroupManager;
 	@Autowired
-	private FollowManagerOld followManagerOld;
+	private FollowManager followManagerOld;
 	@Autowired
 	private UserManager userManager;
 	@Autowired
@@ -85,7 +87,7 @@ public class GroupServiceImpl implements GroupService{
 	
 	
 	public GroupModel getUpstreamGroup(String groupId) throws GwtException{
-		GroupBeanOld bean= permissionGroupManager.getUpstreamGroupBean(groupId);
+		GroupBean bean= permissionGroupManager.getUpstreamGroupBean(groupId);
 		GroupDescriptor gd=bean.getGroupDescriptor();
 		GroupModel model=new GroupModel();
 		model.setParent(bean.getParentGroupBean()==null?null:bean.getParentGroupBean().getGroupDescriptor().getId());
@@ -131,7 +133,7 @@ public class GroupServiceImpl implements GroupService{
 		
 		List<String> owners=new ArrayList<>();
 		owners.add(bean.getGroupDescriptor().getOwner());
-		GroupBeanOld parent=bean.getParentGroupBean();
+		GroupBean parent=bean.getParentGroupBean();
 		while(parent!=null){
 			if(!owners.contains(parent.getGroupDescriptor().getOwner())){
 				owners.add(parent.getGroupDescriptor().getOwner());

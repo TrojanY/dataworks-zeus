@@ -24,11 +24,11 @@ public class ReportRpcImpl implements ReportService{
 		Map<String, Map<String, String>> map=reportManager.runningJobs(start, end);
 		Calendar calendar=Calendar.getInstance();
 		calendar.setTime(start);
-		List<Map<String, String>> result=new ArrayList<Map<String,String>>();
+		List<Map<String, String>> result=new ArrayList<>();
 		do{
 			Map<String, String> data=map.get(format.format(calendar.getTime()));
 			if(data==null){
-				data=new HashMap<String, String>();
+				data=new HashMap<>();
 				data.put("success", "0");
 				data.put("fail", "0"); 
 			}

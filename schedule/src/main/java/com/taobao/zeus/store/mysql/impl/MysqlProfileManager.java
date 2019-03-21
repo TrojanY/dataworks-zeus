@@ -20,7 +20,7 @@ public class MysqlProfileManager extends HibernateDaoSupport implements ProfileM
 	public com.taobao.zeus.model.Profile findByUid(final String uid) {
 		assert getHibernateTemplate() != null;
 		return getHibernateTemplate().execute(session -> {
-			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ProfilePersistence where uid=:uid");
+			Query query=session.createQuery("from com.taobao.zeus.store.mysql.persistence.ZeusProfile where uid=:uid");
 			query.setParameter("uid", uid);
 			List<ZeusProfile> list=query.list();
 			if(!list.isEmpty()){

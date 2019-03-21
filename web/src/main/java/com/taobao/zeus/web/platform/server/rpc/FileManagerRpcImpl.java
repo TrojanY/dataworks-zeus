@@ -36,7 +36,7 @@ public class FileManagerRpcImpl implements FileManagerService{
 		String uid=LoginUser.getUser().getUid();
 		FileDescriptor parent=fileManager.getFile(parentId);
 		if(Super.getSupers().contains(uid)|| parent.getOwner().equalsIgnoreCase(uid)){
-			FileDescriptor fd= fileManager.addFile(uid, parentId, name, folder);
+			FileDescriptor fd=fileManager.addFile(uid, parentId, name, folder);
 			return convert(fd);
 		}else{
 			throw new RuntimeException("权限不足");
@@ -148,7 +148,6 @@ public class FileManagerRpcImpl implements FileManagerService{
 				recursion(bean);
 			}
 		}
-		return ;
 	}
 
 	@Override
@@ -215,19 +214,13 @@ public class FileManagerRpcImpl implements FileManagerService{
 	
 	/**
 	 * 判断用户是不是有公共文档
-	 * @param zu
-	 * @return
 	 */
 	private boolean hasCommonFiles(ZeusUser zu){
 		List<FileDescriptor> files=fileManager.getUserFiles(zu.getUid());
 		for(FileDescriptor fd:files){
 			if(fd.getName().equalsIgnoreCase(FileManager.SHARE)){
 				List<FileDescriptor> fds=fileManager.getSubFiles(fd.getId());
-				if(fds==null||fds.isEmpty()){
-					return false;
-				}else{
-					return true;
-				}
+				return fds != null && !fds.isEmpty();
 			}
 		}
 		return false;

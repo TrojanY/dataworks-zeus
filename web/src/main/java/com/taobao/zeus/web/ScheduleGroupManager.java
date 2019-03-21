@@ -4,9 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.taobao.zeus.model.JobDescriptor;
+import com.taobao.zeus.model.JobDescriptor.JobRunType;
+import com.taobao.zeus.store.GroupBean;
+import com.taobao.zeus.store.JobBean;
 import com.taobao.zeus.store.mysql.manager.GroupManager;
 import com.taobao.zeus.store.mysql.manager.JobManager;
 import com.taobao.zeus.store.mysql.persistence.JobTask;
+import com.taobao.zeus.store.mysql.persistence.JobTaskAction;
 import com.taobao.zeus.store.mysql.persistence.ZeusWorker;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -27,8 +32,12 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 
 	private static Logger log=LogManager.getLogger(ScheduleGroupManager.class);
 	private GroupManager groupManager;
+	private JobManager jobManager;
 	public void setGroupManager(GroupManager groupManager) {
 		this.groupManager = groupManager;
+	}
+	public void setJobManager(JobManager jobManager) {
+		this.jobManager = jobManager;
 	}
 
 	@Autowired
@@ -40,9 +49,9 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public JobDescriptorOld createJob(String user, String jobName,
-			String parentGroup, JobRunTypeOld jobType) throws ZeusException {
-		JobDescriptorOld jd=groupManager.createJob(user, jobName, parentGroup, jobType);
+	public JobDescriptor createJob(String user, String jobName,
+								   String parentGroup, JobRunType jobType) throws ZeusException {
+		JobDescriptor jd=jobManager.createJob(user, jobName, parentGroup, jobType);
 //		try {
 //			zeusWorker.updateJobFromWeb(jd.getId());
 //		} catch (Exception e) {
@@ -60,7 +69,7 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 
 	@Override
 	public void deleteJob(String user, String jobId) throws ZeusException {
-		groupManager.deleteJob(user, jobId);
+		jobManager.deleteJob(user, jobId);
 //		try {
 //			zeusWorker.updateJobFromWeb(jobId);
 //		} catch (Exception e) {
@@ -71,12 +80,12 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public GroupBeanOld getDownstreamGroupBean(String groupId) {
+	public GroupBean getDownstreamGroupBean(String groupId) {
 		return groupManager.getDownstreamGroupBean(groupId);
 	}
 
 	@Override
-	public GroupBeanOld getGlobeGroupBean() {
+	public GroupBean getGlobeGroupBean() {
 		return groupManager.getGlobeGroupBean();
 	}
 
@@ -86,8 +95,13 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public Tuple<JobDescriptorOld, JobStatus> getJobDescriptor(String jobId) {
-		return groupManager.getJobDescriptor(jobId);
+	public Tuple<JobDescriptor, JobStatus> getJobDescriptor(String jobId) {
+		return jobManager.getJobDescriptor(jobId);
+	}
+
+	@Override
+	public Tuple<JobDescriptor, JobStatus> getJobActionDescriptor(String jobId) {
+		return null;
 	}
 
 
@@ -97,13 +111,13 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public GroupBeanOld getUpstreamGroupBean(String groupId) {
+	public GroupBean getUpstreamGroupBean(String groupId) {
 		return groupManager.getUpstreamGroupBean(groupId);
 	}
 
 	@Override
-	public JobBeanOld getUpstreamJobBean(String jobId) {
-		return groupManager.getUpstreamJobBean(jobId);
+	public JobBean getUpstreamJobBean(String jobId) {
+		return jobManager.getUpstreamJobBean(jobId);
 	}
 
 	@Override
@@ -113,11 +127,11 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public void updateJob(String user, JobDescriptorOld job) throws ZeusException {
-		groupManager.updateJob(user, job);
-		groupManager.updateActionList(job);
+	public void updateJob(String user, JobDescriptor job) throws ZeusException {
+		jobManager.updateJob(user, job);
+		jobManager.updateJobActionList(job);
 		try {
-			worker.updateJobFromWeb(job.getId());
+			worker.updateJobFromWeb(job.getJobId());
 		} catch (Exception e) {
 			String msg="更新Job成功，但是调度Job失败";
 			log.error(msg,e);
@@ -126,8 +140,28 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public Map<String, Tuple<JobDescriptorOld, JobStatus>> getJobDescriptor(Collection<String> jobIds) {
-		return groupManager.getJobDescriptor(jobIds);
+	public void saveJobAction(JobTaskAction action) throws ZeusException {
+
+	}
+
+	@Override
+	public void removeJob(Long actionId) throws ZeusException {
+
+	}
+
+	@Override
+	public List<JobTaskAction> getLastJobAction(String jobId) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Tuple<JobDescriptor, JobStatus>> getJobDescriptor(Collection<String> jobIds) {
+		return jobManager.getJobDescriptor(jobIds);
+	}
+
+	@Override
+	public List<Tuple<JobDescriptor, JobStatus>> getJobActionDescriptors(String jobId) {
+		return null;
 	}
 
 	@Override
@@ -137,7 +171,7 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 
 	@Override
 	public JobStatus getJobStatus(String jobId) {
-		return groupManager.getJobStatus(jobId);
+		return jobManager.getJobStatus(jobId);
 	}
 
 	@Override
@@ -149,7 +183,7 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	@Override
 	public void grantJobOwner(String granter, String uid, String jobId)
 			throws ZeusException {
-		groupManager.grantJobOwner(granter, uid, jobId);
+		jobManager.grantJobOwner(granter, uid, jobId);
 	}
 
 	@Override
@@ -158,25 +192,30 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public List<Tuple<JobDescriptorOld, JobStatus>> getChildrenJob(String groupId) {
+	public List<Tuple<JobDescriptor, JobStatus>> getChildrenJob(String groupId) {
 		return groupManager.getChildrenJob(groupId);
 	}
 
 	@Override
-	public GroupBeanOld getDownstreamGroupBean(GroupBeanOld parent) {
+	public GroupBean getDownstreamGroupBean(GroupBean parent) {
 		return groupManager.getDownstreamGroupBean(parent);
 	}
 
 	@Override
 	public void moveJob(String uid, String jobId, String groupId)
 			throws ZeusException {
-		groupManager.moveJob(uid, jobId, groupId);
+		jobManager.moveJob(uid, jobId, groupId);
 	}
 
 	@Override
 	public void moveGroup(String uid, String groupId, String newParentGroupId)
 			throws ZeusException {
 		groupManager.moveGroup(uid, groupId, newParentGroupId);
+	}
+
+	@Override
+	public boolean IsExistedBelowRootGroup(String GroupName) {
+		return false;
 	}
 
 	@Override
@@ -204,20 +243,20 @@ public class ScheduleGroupManager implements GroupManager, JobManager {
 	}
 
 	@Override
-	public List<String> getAllDependencied(String jobID) {
+	public List<String> getDownstreamDependencies(String jobID) {
 		// TODO Auto-generated method stub
-		return groupManager.getAllDependencied(jobID);
+		return jobManager.getDownstreamDependencies(jobID);
 	}
 
 	@Override
-	public List<String> getAllDependencies(String jobID) {
+	public List<String> getUpstreamDependencies(String jobID) {
 		// TODO Auto-generated method stub
-		return groupManager.getAllDependencies(jobID);
+		return jobManager.getUpstreamDependencies(jobID);
 	}
 
 	@Override
-	public void updateActionList(JobDescriptorOld job) {
-		groupManager.updateActionList(job);
+	public void updateJobActionList(JobDescriptor job) {
+		jobManager.updateJobActionList(job);
 	}
 	
 	

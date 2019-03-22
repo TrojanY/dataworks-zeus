@@ -8,13 +8,10 @@ import java.util.Map;
 
 public class JobModel implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
-	private Map<String, String> allProperties = new HashMap<String, String>();
-	private Map<String, String> localProperties = new HashMap<String, String>();
+	private Map<String, String> allProperties = new HashMap<>();
+	private Map<String, String> localProperties = new HashMap<>();
 	private String cronExpression;
 	private List<String> dependencies;
 	private String id;
@@ -24,19 +21,19 @@ public class JobModel implements Serializable {
 	private String owner;
 	private List<String> owners;
 	private String ownerName;
-	private List<Map<String, String>> localResources = new ArrayList<Map<String, String>>();
-	private List<Map<String, String>> allResources = new ArrayList<Map<String, String>>();
+	private List<Map<String, String>> localResources = new ArrayList<>();
+	private List<Map<String, String>> allResources = new ArrayList<>();
 	private String jobRunType;
 	private String jobScheduleType;
 	private Boolean auto;
 	private String script;
-	private List<String> preProcessers = new ArrayList<String>();
-	private List<String> postProcessers = new ArrayList<String>();
+	private List<String> preProcessers = new ArrayList<>();
+	private List<String> postProcessers = new ArrayList<>();
 	private Boolean admin;
-	private List<String> admins = new ArrayList<String>();
-	private List<String> follows = new ArrayList<String>();
-	private List<String> importantContacts = new ArrayList<String>();
-	private Map<String, String> readyDependencies = new HashMap<String, String>();
+	private List<String> admins = new ArrayList<>();
+	private List<String> follows = new ArrayList<>();
+	private List<String> importantContacts = new ArrayList<>();
+	private Map<String, String> readyDependencies = new HashMap<>();
 	private String status;
 	private String lastStatus;
 	private String historyId;
@@ -60,30 +57,30 @@ public class JobModel implements Serializable {
 	public JobModel copy() {
 		JobModel model = new JobModel();
 		model.setAdmin(getAdmin());
-		model.setAdmins(new ArrayList<String>(getAdmins()));
-		model.setImportantContacts(new ArrayList<String>(getImportantContacts()));
-		model.setAllProperties(new HashMap<String, String>(getAllProperties()));
-		model.setAllResources(new ArrayList<Map<String, String>>(
+		model.setAdmins(new ArrayList<>(getAdmins()));
+		model.setImportantContacts(new ArrayList<>(getImportantContacts()));
+		model.setAllProperties(new HashMap<>(getAllProperties()));
+		model.setAllResources(new ArrayList<>(
 				getAllResources()));
 		model.setAuto(getAuto());
 		model.setCronExpression(getCronExpression());
-		model.setDependencies(new ArrayList<String>(getDependencies()));
+		model.setDependencies(new ArrayList<>(getDependencies()));
 		model.setDesc(getDesc());
-		model.setFollows(new ArrayList<String>(getFollows()));
+		model.setFollows(new ArrayList<>(getFollows()));
 		model.setGroupId(getGroupId());
 		model.setId(getId());
 		model.setJobRunType(getJobRunType());
 		model.setJobScheduleType(getJobScheduleType());
-		model.setLocalProperties(new HashMap<String, String>(
+		model.setLocalProperties(new HashMap<>(
 				getLocalProperties()));
-		model.setLocalResources(new ArrayList<Map<String, String>>(
+		model.setLocalResources(new ArrayList<>(
 				getLocalResources()));
 		model.setName(getName());
 		model.setOwner(getOwner());
 		model.setOwnerName(getOwnerName());
-		model.setOwners(new ArrayList<String>(getOwners()));
-		model.setPostProcessers(new ArrayList<String>(getPostProcessers()));
-		model.setPreProcessers(new ArrayList<String>(getPreProcessers()));
+		model.setOwners(new ArrayList<>(getOwners()));
+		model.setPostProcessers(new ArrayList<>(getPostProcessers()));
+		model.setPreProcessers(new ArrayList<>(getPreProcessers()));
 		model.setScript(getScript());
 		model.setDefaultTZ(getDefaultTZ());
 		model.setOffRaw(getOffRaw());

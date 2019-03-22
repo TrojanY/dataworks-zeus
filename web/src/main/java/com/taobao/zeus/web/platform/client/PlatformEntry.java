@@ -63,7 +63,6 @@ public class PlatformEntry implements EntryPoint {
 //			RPCS.getUserService().checkUserSession(new AsyncCallback<String>() {
 //				@Override
 //				public void onSuccess(String result) {
-//					System.out.println(result);
 //					if(null==result || result.equals("null")){
 //						com.google.gwt.user.client.Window.Location.assign("/zeus-web/login.do");
 //					}else{
@@ -73,7 +72,6 @@ public class PlatformEntry implements EntryPoint {
 //				
 //				@Override
 //				public void onFailure(Throwable caught) {
-//					System.out.println(caught);
 //					//com.google.gwt.user.client.Window.Location.reload();
 //				}
 //			});

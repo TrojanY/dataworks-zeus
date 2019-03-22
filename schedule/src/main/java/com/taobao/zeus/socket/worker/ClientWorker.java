@@ -87,19 +87,16 @@ public class ClientWorker {
 						return;
 					}
 					ChannelFuture cf = heartbeat.execute(context);
-					cf.addListener(new ChannelFutureListener() {
-						public void operationComplete(ChannelFuture future)
-								throws Exception {
-							if (!future.isSuccess()) {
-								failCount++;
-								SocketLog.error("heart beat send fail ,failCount="+ failCount);
-							} else {
-								failCount = 0;
-								SocketLog.info("heart beat send success!");
-							}
-							if (failCount > 3) {
-								future.channel().close();
-							}
+					cf.addListener((ChannelFutureListener) future -> {
+						if (!future.isSuccess()) {
+							failCount++;
+							SocketLog.error("heart beat send fail ,failCount="+ failCount);
+						} else {
+							failCount = 0;
+							SocketLog.info("heart beat send success!");
+						}
+						if (failCount > 3) {
+							future.channel().close();
 						}
 					});
 				} catch (Exception e) {
@@ -117,12 +114,11 @@ public class ClientWorker {
 					if (jlog == null) {
 						jlog = "";
 					}
-					log.error(new StringBuilder("log output error!\n")
-									.append("[jobId:").append(his.getJobId())
-									.append(", hisId:").append(his.getId())
-									.append(", logLength:")
-									.append(jlog.length()).append("]")
-									.toString(), e);
+					log.error("log output error!\n" +
+							"[jobId:" + his.getJobId() +
+							", hisId:" + his.getId() +
+							", logLength:" +
+							jlog.length() + "]", e);
 				} catch (Exception ex) {
 					log.error("log exception error!");
 				}
@@ -135,12 +131,11 @@ public class ClientWorker {
 					if (jlog == null) {
 						jlog = "";
 					}
-					log.error(new StringBuilder("log output error!\n")
-									.append("[fileId:").append(his.getFileId())
-									.append(", hisId:").append(his.getId())
-									.append(", logLength:")
-									.append(jlog.length()).append("]")
-									.toString(), e);
+					log.error("log output error!\n" +
+							"[fileId:" + his.getFileId() +
+							", hisId:" + his.getId() +
+							", logLength:" +
+							jlog.length() + "]", e);
 				} catch (Exception ex) {
 					log.error("log exception error!");
 				}
@@ -148,7 +143,7 @@ public class ClientWorker {
 			
 			public void run() {
 
-				for (Job job : new HashSet<Job>(context.getRunnings().values())) {
+				for (Job job : new HashSet<>(context.getRunnings().values())) {
 					try {
 						JobHistory his = job.getJobContext().getJobHistory();
 						context.getJobHistoryManager().updateJobHistoryLog(
@@ -157,7 +152,7 @@ public class ClientWorker {
 						exLog(job, e);
 					}
 				}
-				for (Job job : new HashSet<Job>(context.getManualRunnings()
+				for (Job job : new HashSet<>(context.getManualRunnings()
 						.values())) {
 					try {
 						JobHistory his = job.getJobContext().getJobHistory();
@@ -167,7 +162,7 @@ public class ClientWorker {
 						exLog(job, e);
 					}
 				}
-				for (Job job : new HashSet<Job>(context.getDebugRunnings()
+				for (Job job : new HashSet<>(context.getDebugRunnings()
 						.values())) {
 					try {
 						DebugHistory his = job.getJobContext()
@@ -198,15 +193,11 @@ public class ClientWorker {
 		context.setServerHost(host);
 		final CountDownLatch latch = new CountDownLatch(1);
 		// 等2秒
-		final ChannelFutureListener listener = new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future)
-					throws Exception {
-				if (future.isSuccess()) {
-					context.setServerChannel(future.channel());
-				}
-				latch.countDown();
+		final ChannelFutureListener listener = future -> {
+			if (future.isSuccess()) {
+				context.setServerChannel(future.channel());
 			}
+			latch.countDown();
 		};
 
 		final ChannelFuture connectFuture = clientBootstrap
@@ -286,9 +277,7 @@ public class ClientWorker {
 	 * 以下是一些来自web请求的处理方法
 	 * 
 	 * worker->master 执行任务 包含手动恢复，手动执行，调试执行
-	 * 
-	 * @param kind
-	 * @param id
+	 *
 	 */
 	public void executeJobFromWeb(ExecuteKind kind, String id) throws Exception {
 		WebResponse resp = new WorkerWebExecute().send(context, kind, id).get();

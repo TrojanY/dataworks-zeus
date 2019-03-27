@@ -5,7 +5,7 @@ import com.taobao.zeus.web.platform.client.util.place.PlaceHandler;
 
 public interface FileManagerPresenter extends Presenter,PlaceHandler{
 
-	public static final String TAG="Document";
+	  String TAG="Document";
 	
 	  boolean isEnableCreate();
 

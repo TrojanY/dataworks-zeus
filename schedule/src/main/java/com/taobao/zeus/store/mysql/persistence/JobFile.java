@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-@Entity(name="zeus_job_file")
+@Entity(name="zeus_file")
 public class JobFile implements Serializable{
 	private static final long serialVersionUID = 1L;
 
